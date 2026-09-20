@@ -153,7 +153,7 @@
         <div class="deck-row">
           <span class="deck-info" id="deck-info"></span>
           <button type="button" class="btn" id="btn-load-deck">选择文件…</button>
-          <button type="button" class="btn" id="btn-reset-deck">恢复默认</button>
+          <button type="button" class="btn" id="btn-reset-deck">恢复初始题库</button>
         </div>
         <div class="deck-msg" id="deck-msg"></div>
         <details class="deck-help">
@@ -163,6 +163,12 @@
           <p><b>YAML</b>（默认 <b>cards.yaml</b>）：首行可选 name: 题库名，然后 cards: 后每行一张 <b>- [左, 右]</b>；双面卡写 4 个概念 <b>- [左1, 右1, 左2, 右2]</b>；<b>#</b> 开头为注释。</p>
           <p>2 个概念 = 单面卡；4 个概念 = 双面卡（Psychic 可选一面）。概念文字中请勿使用逗号。</p>
         </details>
+      </div>
+      <div class="field">
+        <label>其他题库</label>
+        <div class="deck-row">
+          <button type="button" class="btn" id="btn-builtin-deck">通用题库（原内置）</button>
+        </div>
       </div>
       <div class="field">
         <label>文案（游戏名 / 术语）</label>

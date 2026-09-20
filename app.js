@@ -836,6 +836,7 @@
   }
 
   function resetDeck() {
+    $("deck-select").value = "";
     if (ONLINE && ROLE === "controller") {
       dispatch({ type: "resetDeck" });
       deckMsg("已恢复默认题库", true);
@@ -1023,6 +1024,10 @@
   $("btn-restart").onclick = function () { dispatch({ type: "newGame" }); };
   $("btn-load-deck").onclick = function () { $("file-deck").click(); };
   $("btn-reset-deck").onclick = resetDeck;
+  $("btn-builtin-deck").onclick = function () {
+    $("deck-select").value = "";
+    loadDeckText(JSON.stringify({ name: "通用题库", cards: WL.BUILTIN_DECK }));
+  };
   $("btn-load-names").onclick = function () { $("file-names").click(); };
   $("btn-reset-names").onclick = resetNames;
   $("file-names").addEventListener("change", function () {

@@ -1,7 +1,11 @@
 process.env.PORT = "0";
 const http = require("http");
+const fs = require("fs");
+const strictAssert = require("node:assert/strict");
 const path = require("path");
+const WL = require("../game.js");
 const { server, state, MAX_BODY_BYTES } = require(path.join(__dirname, "..", "server.js"));
+const defaultDeck = WL.parseDeck(fs.readFileSync(path.join(__dirname, "..", "cards.yaml"), "utf8"));
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -77,6 +81,25 @@ function latestSnapshot() {
   });
   await sleep(150);
   assert(latestSnapshot().phase === "setup", "initial SSE snapshot phase setup");
+  strictAssert.deepEqual(state.cards, defaultDeck.cards, "startup loads the original default cards");
+  assert(state.deckName === defaultDeck.name, "startup loads the original default deck name");
+
+  async function resetAndAssertDefault(label, resetPayload = {}) {
+    await req("POST", base + "/api/intent", { type: "newGame" });
+    await req("POST", base + "/api/intent", { type: "setCardMode", value: "single" });
+    await req("POST", base + "/api/intent", { type: "setup" });
+    assert(state.deck.length > 0, label + ": custom deck has a populated draw pile");
+    const resetResponse = await req("POST", base + "/api/intent", { ...resetPayload, type: "resetDeck" });
+    assert(resetResponse.status === 200, label + ": reset accepted");
+    strictAssert.deepEqual(state.cards, defaultDeck.cards, label + ": reset restores every original card");
+    assert(state.deckName === defaultDeck.name, label + ": reset restores original deck name");
+    strictAssert.deepEqual(state.deck, [], label + ": reset clears the old draw pile");
+    await sleep(100);
+    const snapshot = latestSnapshot();
+    strictAssert.deepEqual(snapshot.cards, defaultDeck.cards, label + ": reset broadcasts every original card");
+    assert(snapshot.deckName === defaultDeck.name, label + ": reset broadcasts original deck name");
+    strictAssert.deepEqual(snapshot.deck, [], label + ": reset broadcasts the cleared draw pile");
+  }
 
   r = await req("POST", base + "/api/intent", { type: "setup", teamA: "蓝", teamB: "粉", first: "A" });
   assert(r.status === 200, "setup intent accepted");
@@ -150,6 +173,7 @@ function latestSnapshot() {
   r = await req("POST", base + "/api/deck", { name: "mydeck", text: "- [甲, 乙]\n- [丙, 丁, 戊, 己]\n" });
   j = JSON.parse(r.body);
   assert(r.status === 200 && j.cards === 2, "deck uploaded via API");
+  await resetAndAssertDefault("uploaded custom deck");
   r = await req("POST", base + "/api/deck", { name: "bad", text: "not yaml at all" });
   assert(r.status === 400, "bad deck rejected");
 
@@ -160,8 +184,17 @@ function latestSnapshot() {
   r = await req("POST", base + "/api/deck/load", { file: folderDeck.file });
   j = JSON.parse(r.body);
   assert(r.status === 200 && j.cards === folderDeck.cards, "folder deck loaded by name");
+  await resetAndAssertDefault("folder custom deck");
   r = await req("POST", base + "/api/deck/load", { file: "../cards.yaml" });
   assert(r.status === 400, "path traversal rejected");
+
+  r = await req("POST", base + "/api/deck", {
+    text: JSON.stringify({ name: "通用题库", cards: WL.BUILTIN_DECK })
+  });
+  j = JSON.parse(r.body);
+  assert(r.status === 200 && j.cards === WL.BUILTIN_DECK.length && j.name === "通用题库", "former builtin deck can be selected separately");
+  strictAssert.deepEqual(state.cards, WL.BUILTIN_DECK, "separate builtin selection preserves all original generic cards");
+  await resetAndAssertDefault("generic deck", { name: "恶意默认题库", cards: [["假左", "假右"]] });
 
   r = await reqRaw("POST", base + "/api/intent", "{bad json", {
     "Content-Type": "application/json"
