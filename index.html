@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Wavelength 心灵波长</title>
 <link rel="icon" href="data:,">
+<meta name="theme-color" content="#ffffff">
+<link rel="preload" href="assets/fantasyguide/ZaoZiGongFangYanSongTi-1.otf" as="font" type="font/otf" crossorigin>
 <link rel="stylesheet" href="app.css">
 </head>
 <!-- 倒计时秒数可在这里调整；设为 0 可关闭对应倒计时。 -->
@@ -12,9 +14,12 @@
 <div class="wrap">
 
   <header>
-    <div>
-      <h1 id="title-main">WAVELENGTH</h1>
-      <div class="sub"><span id="sub-title">心灵波长</span> · <span id="deck-badge"></span> · <span id="conn-badge"><span class="dot"></span></span></div>
+    <div class="brand">
+      <span class="brand-seal" aria-hidden="true">☯</span>
+      <div>
+        <h1 id="title-main">WAVELENGTH</h1>
+        <div class="sub"><span id="sub-title">心灵波长</span> · <span id="deck-badge"></span> · <span id="conn-badge"><span class="dot"></span></span></div>
+      </div>
     </div>
     <div class="timer-display hidden" id="timer-display" aria-live="polite">00:00</div>
     <button class="btn" id="btn-restart">重新开始</button>
@@ -23,13 +28,14 @@
   <div class="banner hidden" id="banner"></div>
   <div class="banner err hidden" id="conn-warn"></div>
 
-  <section class="scoreboard">
+  <section class="scoreboard" aria-label="两队比分">
+    <div class="scoreboard-caption" aria-hidden="true">两队对局 <span>TEAM SCORE</span></div>
     <div class="team a">
       <div class="tname" id="nameA"></div>
       <div class="tscore" id="scoreA">0</div>
       <div class="score-track" id="trackA"></div>
     </div>
-    <div class="vs">VS</div>
+    <div class="vs" aria-label="对阵">对</div>
     <div class="team b">
       <div class="tname" id="nameB"></div>
       <div class="tscore" id="scoreB">1</div>
@@ -65,7 +71,7 @@
   <div class="score-pop" id="score-pop"></div>
 
   <section class="log">
-    <h3>回合记录</h3>
+    <h3>回合记录 <span class="section-subtitle" aria-hidden="true">ROUND CHRONICLE</span></h3>
     <ul id="log"></ul>
   </section>
 
@@ -88,7 +94,8 @@
 
 <div class="modal-mask hidden" id="auth-modal">
   <div class="modal">
-    <h2>🔒 需要密码</h2>
+    <div class="modal-kicker" aria-hidden="true">幻想指南 · 心灵波长</div>
+    <h2>进入对局</h2>
     <p>输入密码加入<span class="warn">联网对局</span>(控制器/监视器实时同步);<br>也可以跳过密码,直接在<span class="warn">本设备</span>上玩本地热座版(不影响他人联网)。</p>
     <div class="field">
       <input type="password" id="auth-password" placeholder="输入密码" autocomplete="off">
@@ -101,7 +108,8 @@
 
 <div class="modal-mask hidden" id="role-modal">
   <div class="modal">
-    <h2>📡 已连接服务器</h2>
+    <div class="modal-kicker" aria-hidden="true">幻想指南 · 心灵波长</div>
+    <h2>选择你的席位</h2>
     <p>选择此设备的角色。控制器（如 iPad）负责操作游戏；监视器（如电脑）实时观看。</p>
     <button class="btn primary btn-block" id="btn-role-controller">🎮 控制器（操作游戏）</button>
     <button class="btn btn-block" id="btn-role-monitor">👀 监视器（实时观看）</button>
@@ -110,7 +118,9 @@
 
 <div class="modal-mask" id="setup-modal">
   <div class="modal">
-    <h2 id="setup-title">🎧 Wavelength</h2>
+    <div class="modal-kicker" aria-hidden="true">幻想指南 · 聚会游戏</div>
+    <h2 id="setup-title">Wavelength</h2>
+    <div class="ornament-rule" aria-hidden="true"></div>
     <p>两队轮流派出一位「Psychic」出题，本队猜目标位置，对方猜左右。先拿 10 分或 10 局后领先者获胜。</p>
     <div class="field-row">
       <div class="field">
@@ -153,7 +163,7 @@
         <div class="deck-row">
           <span class="deck-info" id="deck-info"></span>
           <button type="button" class="btn" id="btn-load-deck">选择文件…</button>
-          <button type="button" class="btn" id="btn-reset-deck">恢复默认</button>
+          <button type="button" class="btn" id="btn-reset-deck">恢复初始题库</button>
         </div>
         <div class="deck-msg" id="deck-msg"></div>
         <details class="deck-help">
@@ -163,6 +173,12 @@
           <p><b>YAML</b>（默认 <b>cards.yaml</b>）：首行可选 name: 题库名，然后 cards: 后每行一张 <b>- [左, 右]</b>；双面卡写 4 个概念 <b>- [左1, 右1, 左2, 右2]</b>；<b>#</b> 开头为注释。</p>
           <p>2 个概念 = 单面卡；4 个概念 = 双面卡（Psychic 可选一面）。概念文字中请勿使用逗号。</p>
         </details>
+      </div>
+      <div class="field">
+        <label>其他题库</label>
+        <div class="deck-row">
+          <button type="button" class="btn" id="btn-builtin-deck">通用题库（原内置）</button>
+        </div>
       </div>
       <div class="field">
         <label>文案（游戏名 / 术语）</label>
@@ -206,6 +222,7 @@
 
 <div class="modal-mask hidden" id="over-modal">
   <div class="modal">
+    <div class="modal-kicker" aria-hidden="true">终局 · 此刻同频</div>
     <div class="winner" id="winner-text"></div>
     <div class="final-score" id="final-score"></div>
     <button class="btn primary" id="btn-playagain" style="width:100%">再来一局</button>

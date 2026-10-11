@@ -49,6 +49,17 @@ function assert(cond, msg) {
   assert(await page.$eval("#interact", (el) => el.className.indexOf("lock-touch") !== -1), "interact locks touch during dial");
   const sideOpacity = await page.$eval(".side", (el) => getComputedStyle(el).opacity);
   assert(sideOpacity === "1", "card side never grey after psychic");
+  await page.$eval("#axis", el => el.scrollIntoView({ block: "center" }));
+  const axis = await page.$eval("#axis", el => {
+    const r = el.getBoundingClientRect();
+    return { x: r.x, y: r.y, width: r.width, height: r.height };
+  });
+  await page.mouse.move(axis.x + axis.width * .25, axis.y + axis.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(axis.x + axis.width * .75, axis.y + axis.height / 2, { steps: 4 });
+  await page.mouse.up();
+  await page.waitForFunction(() => Math.abs(parseFloat(document.getElementById("dial").style.left) - 75) < 1);
+  assert(true, "foreground frame and cursor do not block dragging the dial to 75%");
 
   const serverPath = path.join(__dirname, "..", "server.js");
   server.closeAllConnections();

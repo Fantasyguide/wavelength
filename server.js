@@ -16,6 +16,8 @@ var MIME = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".js": "application/javascript; charset=utf-8",
+  ".svg": "image/svg+xml",
+  ".otf": "font/otf",
   ".json": "application/json; charset=utf-8",
   ".yaml": "text/plain; charset=utf-8",
   ".yml": "text/plain; charset=utf-8"
@@ -146,6 +148,12 @@ if (deckFile) {
 } else {
   console.log("未找到 cards.yaml / cards.json，使用内置题库");
 }
+
+// Keep the startup deck separate from later controller selections.
+var defaultDeck = {
+  name: state.deckName,
+  cards: state.cards.map(function (card) { return card.slice(); })
+};
 
 function broadcast() {
   var payload = "data: " + JSON.stringify(state) + "\n\n";
@@ -312,7 +320,11 @@ var server = http.createServer(function (req, res) {
     return requireAuth(req, res, function () {
       readJsonBody(req, res, function (intent) {
         try {
-          WL.applyIntent(state, intent);
+          WL.applyIntent(state, intent && intent.type === "resetDeck" ? {
+            type: "loadDeck",
+            name: defaultDeck.name,
+            cards: defaultDeck.cards.map(function (card) { return card.slice(); })
+          } : intent);
           broadcast();
           sendJson(res, 200, { ok: true, phase: state.phase });
         } catch (e) {

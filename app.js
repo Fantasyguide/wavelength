@@ -127,7 +127,7 @@
     document.title = T("gameTitle") + " · " + T("gameSubtitle");
     $("title-main").textContent = T("gameTitle");
     $("sub-title").textContent = T("gameSubtitle");
-    $("setup-title").textContent = "🎧 " + T("gameName");
+    $("setup-title").textContent = T("gameName");
     $("btn-restart").textContent = T("restartBtn");
     $("btn-playagain").textContent = T("playagainBtn");
     $("btn-start").textContent = T("startBtn");
@@ -375,6 +375,11 @@
     var A = G.teams.A, B = G.teams.B;
     $("nameA").textContent = A.name;
     $("nameB").textContent = B.name;
+    [A, B].forEach(function (team, index) {
+      var panel = $(index === 0 ? "nameA" : "nameB").parentElement;
+      panel.style.setProperty("--name-length", Math.max(1, Array.from(team.name).length));
+      panel.style.setProperty("--score-digits", String(team.score).length);
+    });
     $("scoreA").textContent = A.score;
     $("scoreB").textContent = B.score;
     renderTrack("trackA", A.score, "a");
@@ -412,7 +417,9 @@
     var t = G.teams[G.active];
     var who = "<b class='" + (G.active === "A" ? "a" : "b") + "'>" + t.name + "</b>";
     if (G.catchup) {
-      $("turn-indicator").innerHTML = "🔥 " + T("catchup") + "触发：" + who + " 本轮 4 分且仍落后，继续行动！";
+      $("turn-indicator").innerHTML = ROLE === "monitor"
+        ? T("catchup") + " · " + who + " 继续行动"
+        : "🔥 " + T("catchup") + "触发：" + who + " 本轮 4 分且仍落后，继续行动！";
       $("banner").textContent = T("catchup") + "：4 分 + 落后 = " + G.teams[G.active].name + " 立刻再行动一轮（换一位新 " + T("psychic") + "）";
       $("banner").classList.remove("hidden");
     } else {
@@ -646,6 +653,21 @@
       hint.innerHTML = "";
     }
 
+    // The event display has one fixed headline row; controller instructions stay detailed.
+    if (ROLE === "monitor") {
+      if (G.phase === "chooseCard") {
+        hint.innerHTML = teamName(G.active, t.name) + " 的 " + T("psychic") + " 正在选择本轮题目，等待控制器确认。";
+      } else if (G.phase === "psychic") {
+        hint.innerHTML = teamName(G.active, t.name) + " 的 " + T("psychic") + " 正在查看" + T("target") + "并出题，请听取" + T("clue") + "。";
+      } else if (G.phase === "dial") {
+        hint.innerHTML = teamName(G.active, t.name) + " 讨论" + T("clue") + "并拖动金色" + T("dial") + "，确认后锁定；" + T("psychic") + " 请保持沉默。";
+      } else if (G.phase === "revealed") {
+        hint.innerHTML = (G.sudden ? "<b>" + T("suddenDeath") + " · </b>" : "") + "下一轮由 " +
+          (G.catchup ? teamName(G.active, t.name) : teamName(WL.other(G.active), o.name)) +
+          " 行动，请换一位新 " + T("psychic") + " 出题。";
+      }
+    }
+
     if (hint.innerHTML) {
       hint.innerHTML = "<span class='phase-message'>" + hint.innerHTML + "</span>";
     }
@@ -710,9 +732,11 @@
           : it.val + "%";
       }).join("-");
       var opp = WL.other(e.team);
-      li.innerHTML = "第 " + e.round + " " + T("roundUnit") + " · " + teamName(e.team, G.teams[e.team].name) +
-        "（" + labels + " " + vals + "）· 卡片：<b>" +
-        e.pair[0] + " — " + e.pair[1] + "</b> · 本队 <span style='color:" + teamColor(e.team) + "'>+" + e.pts + "</span> / 对方 <span style='color:" + teamColor(opp) + "'>+" + e.oppPts + "</span>";
+      li.innerHTML = "<span class='log-round'>第 " + e.round + " " + T("roundUnit") + " · " + teamName(e.team, G.teams[e.team].name) +
+        "（" + labels + " " + vals + "）</span><span class='log-separator'> · </span>" +
+        "<span class='log-card'>卡片：<b></b></span><span class='log-separator'> · </span>" +
+        "<span class='log-score'>本队 <span style='color:" + teamColor(e.team) + "'>+" + e.pts + "</span> / 对方 <span style='color:" + teamColor(opp) + "'>+" + e.oppPts + "</span></span>";
+      li.querySelector(".log-card b").textContent = e.pair[0] + " — " + e.pair[1];
       ul.appendChild(li);
     });
   }
@@ -743,6 +767,7 @@
 
     var isMonitor = ROLE === "monitor";
     document.body.classList.toggle("monitor-mode", isMonitor);
+    document.body.dataset.phase = G.phase;
     $("btn-restart").style.display = isMonitor ? "none" : "";
     $("btn-playagain").style.display = isMonitor ? "none" : "";
   }
@@ -836,6 +861,7 @@
   }
 
   function resetDeck() {
+    $("deck-select").value = "";
     if (ONLINE && ROLE === "controller") {
       dispatch({ type: "resetDeck" });
       deckMsg("已恢复默认题库", true);
@@ -1023,6 +1049,10 @@
   $("btn-restart").onclick = function () { dispatch({ type: "newGame" }); };
   $("btn-load-deck").onclick = function () { $("file-deck").click(); };
   $("btn-reset-deck").onclick = resetDeck;
+  $("btn-builtin-deck").onclick = function () {
+    $("deck-select").value = "";
+    loadDeckText(JSON.stringify({ name: "通用题库", cards: WL.BUILTIN_DECK }));
+  };
   $("btn-load-names").onclick = function () { $("file-names").click(); };
   $("btn-reset-names").onclick = resetNames;
   $("file-names").addEventListener("change", function () {

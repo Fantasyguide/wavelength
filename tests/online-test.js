@@ -3,10 +3,12 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const { JSDOM } = require("jsdom");
+const WL = require("../game.js");
 const { server } = require(path.join(__dirname, "..", "server.js"));
 
 const ROOT = path.join(__dirname, "..");
 const html = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
+const defaultDeck = WL.parseDeck(fs.readFileSync(path.join(ROOT, "cards.yaml"), "utf8"));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let BASE = "";
 
@@ -84,15 +86,33 @@ function click(doc, id) {
   await waitFor(() => cdoc.getElementById("setup-modal").className.indexOf("hidden") === -1, "controller setup modal");
   await waitFor(() => mdoc.getElementById("btn-restart").style.display === "none", "monitor restart hidden");
 
+  async function expectDeck(deck, label) {
+    const info = deck.name + " · " + deck.cards.length + " 张卡";
+    await waitFor(() => [cdoc, mdoc].every((doc) =>
+      doc.getElementById("deck-info").textContent === info &&
+      doc.getElementById("deck-badge").textContent === deck.name
+    ), label);
+    assert(true, label);
+  }
+
+  await expectDeck(defaultDeck, "controller and monitor start with original cards.yaml deck name and count");
   await waitFor(() => cdoc.getElementById("deck-select").children.length > 1, "deck select populated from folder");
-  const chosenDeck = await (async () => {
-    const opt = cdoc.getElementById("deck-select").children[1];
-    return { name: opt.textContent.split(" · ")[0], file: opt.value };
-  })();
+  const chosenFile = "儿童版.json";
+  const chosenDeck = WL.parseDeck(fs.readFileSync(path.join(ROOT, "decks", chosenFile), "utf8"));
   const sel = cdoc.getElementById("deck-select");
-  sel.value = chosenDeck.file;
+  sel.value = chosenFile;
+  assert(sel.value === chosenFile, "controller can select a different folder deck");
   sel.dispatchEvent(new cdoc.defaultView.Event("change", { bubbles: true }));
-  await waitFor(() => mdoc.getElementById("deck-badge").textContent === chosenDeck.name, "monitor deck badge synced");
+  await expectDeck(chosenDeck, "folder deck name and count sync to controller and monitor");
+
+  click(cdoc, "btn-reset-deck");
+  await expectDeck(defaultDeck, "reset after folder selection restores original cards.yaml deck on both devices");
+  assert(sel.value === "", "reset clears the folder deck selection");
+
+  click(cdoc, "btn-builtin-deck");
+  await expectDeck({ name: "通用题库", cards: WL.BUILTIN_DECK }, "separate generic deck button syncs original builtin cards to both devices");
+  click(cdoc, "btn-reset-deck");
+  await expectDeck(defaultDeck, "reset after generic selection restores original cards.yaml deck on both devices");
 
   cdoc.getElementById("input-nameA").value = "蓝队";
   cdoc.getElementById("input-nameB").value = "粉队";
