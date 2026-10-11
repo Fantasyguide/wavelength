@@ -14,6 +14,7 @@ function assert(cond, msg) {
   const page = await browser.newPage();
   await page.setViewport({ width: 360, height: 640, isMobile: true, hasTouch: true });
   await page.goto(pathToFileURL(path.join(ROOT, "index.html")).href, { waitUntil: "load", timeout: 20000 });
+  await page.evaluate(() => document.fonts.ready);
   await new Promise((r) => setTimeout(r, 600));
 
   await page.evaluate(() => {
