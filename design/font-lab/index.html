@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; font-src data: blob:; img-src data: blob:; frame-src 'self' about: blob:; connect-src 'none'">
+<link rel="icon" href="data:,">
+<title>Wavelength · 本地字体试验台</title>
+<style>/* LAB_CSS */</style>
+</head>
+<body>
+<header class="toolbar">
+  <div><div class="eyebrow">WAVELENGTH / TYPE LAB</div><h1>本地字体试验台 <span>3904 × 672</span></h1></div>
+  <div class="actions"><button id="save-html" class="primary">保存当前 HTML</button><button id="export-json">导出方案</button><button id="import-json">导入方案</button><button id="export-css">导出 CSS</button></div>
+</header>
+<p class="intro">以当前游戏界面为默认方案：208px 比分、平直箭尾、无拨杆数字底纹。先点选区域，再试字体；所有操作都在本机完成，断网也能用。调好后导出“方案 JSON”发回来即可。</p>
+<section class="preview-panel">
+  <div class="preview-tools">
+    <div class="row"><label>预览阶段 <select id="stage"><option value="revealed">揭晓结算</option><option value="chooseCard">二选一题卡</option><option value="dial">讨论拨杆</option><option value="over">结束复盘</option></select></label><label>缩放 <select id="zoom"><option value="fit">适应窗口</option><option value="0.5">50%</option><option value="1">100% 原尺寸</option></select></label><span id="scale-info" class="muted"></span></div>
+    <div class="row"><label class="check"><input type="checkbox" id="highlight" checked> 标出选中区域</label><button id="remember-a">记为 A</button><button id="compare-a" disabled>对比 A</button><button id="fullscreen">全屏预览</button></div>
+  </div>
+  <div id="viewport"><div id="canvas-holder"><iframe id="preview" title="3904 × 672 游戏布局预览"></iframe></div></div>
+  <div class="preview-footer"><span id="layout-status" role="status">正在准备预览…</span><span class="muted">字号按原生像素计；判断远处可读性时，请切到 100%。</span></div>
+</section>
+<main class="editor">
+  <aside class="font-browser card">
+    <h2>1. 选择区域</h2><div id="group-tabs" class="group-tabs"></div>
+    <h2>2. 选择字体</h2>
+    <div class="row"><button id="scan-fonts">读取本机字体</button><button id="load-font">载入字体文件</button></div>
+    <p id="font-status" class="hint" role="status">可以输入已安装字体的名字，也可载入 TTF、OTF、WOFF 或 WOFF2 文件。</p>
+    <label class="field">直接输入字体名<input id="font-name" list="font-options" placeholder="例如：方正小标宋简体、SimSun、Georgia" autocomplete="off"></label><datalist id="font-options"></datalist>
+    <label class="field">筛选列表<input id="font-search" type="search" placeholder="搜索字体名称"></label>
+    <select id="font-list" size="8" aria-label="可试用字体列表"></select>
+    <div class="row font-step"><button id="previous-font">← 上一个</button><button id="next-font">下一个 →</button><span id="font-count" class="muted"></span></div>
+    <p class="hint">“常见”项是候选名称，需在你的电脑上安装。浏览器若不能读取字体列表，可直接输入字体名或载入文件。</p>
+    <p class="hint">内置中文字体包含预览所需字形。测试其他文字时，可载入完整字体文件。</p>
+  </aside>
+  <section class="card settings">
+    <div class="section-heading"><h2>3. 调整 <span id="selected-name"></span></h2><button id="reset-group">恢复此区域</button></div>
+    <div class="settings-grid">
+      <label class="field">字号（原生 px）<div class="slider-field"><input id="font-size-range" type="range" min="8" max="320" step="1"><input id="font-size" type="number" min="8" max="320" step="1"></div></label>
+      <label class="field">字重 <select id="font-weight"><option value="100">100 · 极细</option><option value="200">200 · 细</option><option value="300">300 · 较细</option><option value="400">400 · 常规</option><option value="500">500 · 中等</option><option value="600">600 · 半粗</option><option value="700">700 · 粗体</option><option value="800">800 · 特粗</option><option value="900">900 · 最粗</option></select></label>
+      <label class="field">字距（px）<input id="letter-spacing" type="number" min="-4" max="30" step="0.5"></label>
+      <label class="field">行高（倍）<input id="line-height" type="number" min="0.8" max="2.5" step="0.05"></label>
+      <label class="field">微量描边（em；0 为不描边）<input id="font-stroke" type="number" min="0" max="0.08" step="0.001"></label>
+      <label class="field">文字颜色<div class="row"><input id="group-color" type="color"><label class="check"><input id="follow-color" type="checkbox"> 跟随队色／正文色</label></div></label>
+      <div class="field">字形选项<label class="check"><input id="synthesize" type="checkbox"> 允许浏览器模拟粗体</label><label class="check"><input id="italic" type="checkbox"> 斜体</label></div>
+    </div>
+    <p class="hint" id="group-note"></p>
+    <div class="sample-heading"><h3>原字号字样</h3><span id="sample-metrics" class="muted"></span></div>
+    <div id="sample-box"><div id="sample"></div></div>
+    <div class="section-heading"><h2>全局配色</h2><button id="reset-colors">恢复配色</button></div>
+    <div id="palette" class="palette"></div>
+    <p class="hint">中文里的数字始终由“其他数字”字体单独显示；比分和计时器还能分别选字体。载入字体文件后，用“保存当前 HTML”把字体和方案一起留在本机。</p>
+  </section>
+  <section class="card content-editor">
+    <div class="section-heading"><h2>示例文字</h2><div class="row"><button id="long-text">换成长文字</button><button id="normal-text">恢复示例</button></div></div>
+    <div class="text-grid">
+      <label class="field">左队名称<input data-text="teamA"></label><label class="field">右队名称<input data-text="teamB"></label>
+      <label class="field">左侧概念<input data-text="left"></label><label class="field">右侧概念<input data-text="right"></label>
+      <label class="field">另一张题卡 · 左侧<input data-text="left2"></label><label class="field">另一张题卡 · 右侧<input data-text="right2"></label>
+      <label class="field">群友昵称（每行一个）<textarea data-text="nicknames" rows="4"></textarea></label>
+      <label class="field">混排数字测试<input data-text="mixed"></label>
+    </div>
+  </section>
+</main>
+<footer><span id="save-status" role="status">参数会尽量记在此浏览器。跨电脑使用请保存 HTML 或导出方案。</span><button id="reset-all">恢复全部默认值</button></footer>
+<input hidden id="font-files" type="file" accept=".ttf,.otf,.woff,.woff2" multiple>
+<input hidden id="json-file" type="file" accept=".json,application/json">
+<script id="lab-payload" type="application/json">/* LAB_PAYLOAD */</script>
+<script id="lab-saved" type="application/json">null</script>
+<script>/* LAB_JS */</script>
+</body>
+</html>

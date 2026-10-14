@@ -86,6 +86,13 @@ function click(doc, id) {
   await waitFor(() => cdoc.getElementById("setup-modal").className.indexOf("hidden") === -1, "controller setup modal");
   await waitFor(() => mdoc.getElementById("btn-restart").style.display === "none", "monitor restart hidden");
 
+  click(cdoc, cdoc.querySelector("details.rules > summary"));
+  await waitFor(() => mdoc.querySelector("details.rules").open, "controller opens monitor rules");
+  click(mdoc, mdoc.querySelector("details.rules > summary"));
+  assert(mdoc.querySelector("details.rules").open, "monitor cannot dismiss shared rules locally");
+  click(cdoc, cdoc.querySelector("details.rules > summary"));
+  await waitFor(() => !mdoc.querySelector("details.rules").open, "controller closes monitor rules");
+
   async function expectDeck(deck, label) {
     const info = deck.name + " · " + deck.cards.length + " 张卡";
     await waitFor(() => [cdoc, mdoc].every((doc) =>
@@ -147,6 +154,7 @@ function click(doc, id) {
   const interact = cdoc.getElementById("interact");
   const PE = controller.window.PointerEvent || controller.window.MouseEvent;
   interact.dispatchEvent(new PE("pointerdown", { clientX: 250, pointerId: 1, bubbles: true }));
+  await waitFor(() => mdoc.getElementById("dial").style.left === "25%", "monitor receives the first pointer movement before release");
   interact.dispatchEvent(new PE("pointermove", { clientX: 600, pointerId: 1, bubbles: true }));
   interact.dispatchEvent(new controller.window.Event("pointerup", { bubbles: true }));
   await waitFor(() => mdoc.getElementById("dial").style.left === "60%", "monitor dial synced to 60%");

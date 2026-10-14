@@ -1,0 +1,6590 @@
+{
+  "schema": 1,
+  "createdAt": "2026-10-13T03:46:17.953Z",
+  "model": "gpt-6-astra",
+  "reasoningEffort": "high",
+  "engineSha256": "7fd14b689de66346e6fcbcd216c4717aec923fd5e77d7ab62a0b862ac4f5f070",
+  "deckSha256": "ea2012b07a51d96a56afbf5970d0471194df6ca7e692ddfbc7268dbfdca4ce8a",
+  "deck": {
+    "cards": [
+      [
+        "大",
+        "小"
+      ],
+      [
+        "像男的",
+        "像女的"
+      ],
+      [
+        "老资历",
+        "小资历"
+      ],
+      [
+        "老太婆",
+        "小萝莉"
+      ],
+      [
+        "人类",
+        "妖怪"
+      ],
+      [
+        "人类友好度高",
+        "人类友好度低"
+      ],
+      [
+        "强强",
+        "弱弱"
+      ],
+      [
+        "居住点海拔高",
+        "居住点海拔低"
+      ],
+      [
+        "审美积累",
+        "审美积积"
+      ],
+      [
+        "人气排名高",
+        "人气排名低"
+      ],
+      [
+        "活泼",
+        "冷静"
+      ],
+      [
+        "聪明",
+        "笨蛋"
+      ],
+      [
+        "有文化底蕴",
+        "没有文化底蕴"
+      ],
+      [
+        "幸运",
+        "不幸"
+      ],
+      [
+        "富裕",
+        "贫穷"
+      ],
+      [
+        "开朗阳光",
+        "孤僻阴暗"
+      ],
+      [
+        "孩子气",
+        "妈妈"
+      ],
+      [
+        "维新",
+        "传统"
+      ],
+      [
+        "现充",
+        "御宅族"
+      ],
+      [
+        "精英",
+        "草根"
+      ],
+      [
+        "纯情",
+        "海王"
+      ],
+      [
+        "0",
+        "1"
+      ],
+      [
+        "s",
+        "m"
+      ],
+      [
+        "香",
+        "臭"
+      ],
+      [
+        "威严满满",
+        "抱头蹲防"
+      ],
+      [
+        "左",
+        "右"
+      ],
+      [
+        "黑白",
+        "七彩"
+      ],
+      [
+        "西洋",
+        "东洋"
+      ],
+      [
+        "外向",
+        "内向"
+      ],
+      [
+        "兽",
+        "人"
+      ],
+      [
+        "高",
+        "矮"
+      ],
+      [
+        "长发",
+        "短发"
+      ],
+      [
+        "文",
+        "理"
+      ],
+      [
+        "CP多",
+        "CP少"
+      ],
+      [
+        "活着的",
+        "死掉了"
+      ],
+      [
+        "科技",
+        "幻想"
+      ],
+      [
+        "北大",
+        "清华"
+      ],
+      [
+        "大々吉",
+        "大々凶"
+      ],
+      [
+        "清真",
+        "不清真"
+      ],
+      [
+        "（音乐）豪庭的钥匙",
+        "（音乐）南亭的钥匙"
+      ],
+      [
+        "常见",
+        "罕见"
+      ],
+      [
+        "夯",
+        "拉完了"
+      ],
+      [
+        "强健",
+        "病弱"
+      ],
+      [
+        "胆子大",
+        "胆子小"
+      ],
+      [
+        "文明",
+        "野蛮"
+      ],
+      [
+        "猫",
+        "狗"
+      ],
+      [
+        "GPA4.0",
+        "GPA1.0"
+      ],
+      [
+        "讨好型人格",
+        "反驳型人格"
+      ],
+      [
+        "波长长",
+        "波长短"
+      ],
+      [
+        "岁月静好",
+        "负重前行"
+      ],
+      [
+        "太快乐了🤗",
+        "太痛苦了😫"
+      ],
+      [
+        "叮咚鸡",
+        "大狗叫"
+      ],
+      [
+        "星宇旺盛",
+        "星宇low"
+      ],
+      [
+        "串子",
+        "纯良"
+      ]
+    ],
+    "name": "车万版"
+  },
+  "match": 5,
+  "ownTurns": {
+    "A": 18,
+    "B": 16
+  },
+  "matches": [
+    {
+      "game": 1,
+      "seed": 2066895850,
+      "first": "A",
+      "settings": {
+        "winScore": 10,
+        "bandWidth": 40,
+        "maxRounds": 10,
+        "cardMode": "choice"
+      },
+      "rounds": [
+        {
+          "game": 1,
+          "round": 1,
+          "team": "A",
+          "psychic": "A1",
+          "guesser": "A2",
+          "captain": "B1",
+          "candidates": [
+            [
+              "GPA4.0",
+              "GPA1.0"
+            ],
+            [
+              "串子",
+              "纯良"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 0,
+            "B": 1
+          },
+          "sudden": false,
+          "selection": {
+            "index": 0,
+            "reason": "学业表现可通过角色知识、学习态度和笨蛋形象分层，比串子与纯良更稳定。"
+          },
+          "clue": {
+            "clue": "雾雨魔理沙",
+            "reason": "靠努力研究魔法，有实际学习能力，但随性、偏科且不循规蹈矩，学业应略高于中等而非满绩学霸。",
+            "difficulty": 3,
+            "confidence": 0.67
+          },
+          "dial": {
+            "dial": -35,
+            "reason": "魔理沙善于研究魔法且暗中勤奋，学习能力较强；但行事随性、不像循规蹈矩的满绩优等生，因此适度偏向GPA4.0。",
+            "confidence": 0.57,
+            "requestedDial": -35
+          },
+          "defense": {
+            "B1": {
+              "estimate": -45,
+              "side": "L",
+              "reason": "魔理沙虽顽皮且不像循规蹈矩的优等生，但以自学、研究和努力见长，学业能力应明显偏高；估计比拨杆略靠GPA4.0一侧。",
+              "confidence": 0.55
+            },
+            "B2": {
+              "estimate": -48,
+              "side": "L",
+              "reason": "魔理沙虽有逃课式的随性气质，但长期自学魔法并勤于研究，学力更接近高绩点；相较帕秋莉或慧音等典型学霸仍留明显余地，估计比-35再偏左。",
+              "confidence": 0.59
+            }
+          },
+          "startedAt": "2026-10-13T03:46:17.954Z",
+          "pair": [
+            "GPA4.0",
+            "GPA1.0"
+          ],
+          "opponentEstimate": -46.5,
+          "opponentSide": "L",
+          "target": -21.6,
+          "targetRaw": {
+            "center": 392,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "mild"
+          },
+          "error": 13.4,
+          "pts": 2,
+          "oppPts": 0,
+          "opponentCorrect": "R",
+          "scoreAfter": {
+            "A": 2,
+            "B": 1
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T03:47:36.219Z"
+        },
+        {
+          "game": 1,
+          "round": 2,
+          "team": "B",
+          "psychic": "B1",
+          "guesser": "B2",
+          "captain": "A2",
+          "candidates": [
+            [
+              "s",
+              "m"
+            ],
+            [
+              "高",
+              "矮"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 2,
+            "B": 1
+          },
+          "sudden": false,
+          "selection": {
+            "index": 1,
+            "reason": "高矮可用角色体型和常见视觉印象表达，端点与中段均有明确角色；比s/m的二设歧义小。"
+          },
+          "clue": {
+            "clue": "十六夜咲夜",
+            "reason": "成熟人类女性形象，明显比少女与小型妖精高，但不及勇仪、八尺样的极高形象，适合偏高约半程。",
+            "difficulty": 2,
+            "confidence": 0.7
+          },
+          "dial": {
+            "dial": -55,
+            "reason": "咲夜是成熟修长的成年女性形象，明显在高的一侧；但相较美铃、八云紫等典型高个角色，不取极端。",
+            "confidence": 0.68,
+            "requestedDial": -55
+          },
+          "defense": {
+            "A1": {
+              "estimate": -48,
+              "side": "R",
+              "reason": "咲夜属于成年女性中的偏高形象，但与八云紫、红美铃等最高一档仍有距离，-55可能略偏高端。",
+              "confidence": 0.58
+            },
+            "A2": {
+              "estimate": -62,
+              "side": "L",
+              "reason": "咲夜通常呈现为身材修长的成年女仆，在大量娇小角色中明显偏高，但尚非最高的一档；估计略在拨杆左侧。",
+              "confidence": 0.59
+            }
+          },
+          "startedAt": "2026-10-13T03:47:36.219Z",
+          "pair": [
+            "高",
+            "矮"
+          ],
+          "opponentEstimate": -55,
+          "opponentSide": "L",
+          "target": -49.8,
+          "targetRaw": {
+            "center": 251,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "strong"
+          },
+          "error": 5.2,
+          "pts": 3,
+          "oppPts": 0,
+          "opponentCorrect": "R",
+          "scoreAfter": {
+            "A": 2,
+            "B": 4
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T03:48:51.814Z"
+        },
+        {
+          "game": 1,
+          "round": 3,
+          "team": "A",
+          "psychic": "A2",
+          "guesser": "A1",
+          "captain": "B1",
+          "candidates": [
+            [
+              "黑白",
+              "七彩"
+            ],
+            [
+              "科技",
+              "幻想"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 2,
+            "B": 4
+          },
+          "sudden": false,
+          "selection": {
+            "index": 0,
+            "reason": "角色服饰配色和标志物容易共享理解，黑白端有魔理沙，七彩端有芙兰朵露或爱丽丝，中间也能以服饰丰富度表达。"
+          },
+          "clue": {
+            "clue": "芙兰朵露·斯卡雷特",
+            "reason": "最醒目的标志就是七彩水晶翅膀，直接对应接近七彩极端。",
+            "difficulty": 1,
+            "confidence": 0.94
+          },
+          "dial": {
+            "dial": 94,
+            "reason": "芙兰朵露的标志性翅膀由多色宝石组成，几乎直接对应七彩端点，整体服装仍以红白为主，略留余量。",
+            "confidence": 0.91,
+            "requestedDial": 94
+          },
+          "defense": {
+            "B1": {
+              "estimate": 92,
+              "side": "L",
+              "reason": "芙兰朵露的多彩水晶翼直接对应七彩端点；94已非常极端，考虑端点附近目标仍有分散，估计略左为92。",
+              "confidence": 0.58
+            },
+            "B2": {
+              "estimate": 90,
+              "side": "L",
+              "reason": "芙兰朵露的多彩晶体翼是非常直接的七彩意象，目标应接近右端；94已极端靠右，我估计略向内的90。",
+              "confidence": 0.58
+            }
+          },
+          "startedAt": "2026-10-13T03:48:51.814Z",
+          "pair": [
+            "黑白",
+            "七彩"
+          ],
+          "opponentEstimate": 91,
+          "opponentSide": "L",
+          "target": 98.8,
+          "targetRaw": {
+            "center": 994,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "recommended"
+          },
+          "error": 4.8,
+          "pts": 3,
+          "oppPts": 0,
+          "opponentCorrect": "R",
+          "scoreAfter": {
+            "A": 5,
+            "B": 4
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T03:51:46.807Z"
+        },
+        {
+          "game": 1,
+          "round": 4,
+          "team": "B",
+          "psychic": "B2",
+          "guesser": "B1",
+          "captain": "A2",
+          "candidates": [
+            [
+              "富裕",
+              "贫穷"
+            ],
+            [
+              "老资历",
+              "小资历"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 5,
+            "B": 4
+          },
+          "sudden": false,
+          "selection": {
+            "index": 0,
+            "reason": "财富有红魔馆、普通经营者、贫困神社及贫穷神等较清楚的自然层次；资历容易混淆年龄与登场年份。"
+          },
+          "clue": {
+            "clue": "雾雨魔理沙",
+            "reason": "魔理沙独居森林、经营生意不旺的魔法店，经济偏拮据，但仍有自宅和研究资源，贫穷程度应明显弱于灵梦或依神紫苑，适合贫穷侧中段。",
+            "difficulty": 3,
+            "confidence": 0.67
+          },
+          "dial": {
+            "dial": 50,
+            "reason": "魔理沙经营规模很小的魔法店，生活朴素又常借走别人的书，明显偏贫穷；但仍有住所、藏品且出身商家，未到灵梦或贫穷神的极端。",
+            "confidence": 0.64,
+            "requestedDial": 50
+          },
+          "defense": {
+            "A1": {
+              "estimate": 36,
+              "side": "L",
+              "reason": "魔理沙生活朴素且爱借东西，但有独立魔法店和研究收藏，贫穷程度应弱于灵梦或依神紫苑，50略偏贫穷。",
+              "confidence": 0.63
+            },
+            "A2": {
+              "estimate": 35,
+              "side": "L",
+              "reason": "魔理沙独居经营魔法店，常借取物品，经济偏拮据；但有商家出身和大量收藏，通常不像灵梦那样接近贫穷极端，估计比50更靠中间。",
+              "confidence": 0.62
+            }
+          },
+          "startedAt": "2026-10-13T03:51:46.807Z",
+          "pair": [
+            "富裕",
+            "贫穷"
+          ],
+          "opponentEstimate": 35.5,
+          "opponentSide": "L",
+          "target": 48.6,
+          "targetRaw": {
+            "center": 743,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "recommended"
+          },
+          "error": 1.4,
+          "pts": 4,
+          "oppPts": 0,
+          "opponentCorrect": null,
+          "scoreAfter": {
+            "A": 5,
+            "B": 8
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T03:52:55.564Z"
+        },
+        {
+          "game": 1,
+          "round": 5,
+          "team": "A",
+          "psychic": "A1",
+          "guesser": "A2",
+          "captain": "B1",
+          "candidates": [
+            [
+              "活泼",
+              "冷静"
+            ],
+            [
+              "人类友好度高",
+              "人类友好度低"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 5,
+            "B": 8
+          },
+          "sudden": false,
+          "selection": {
+            "index": 0,
+            "reason": "活泼与冷静能依据角色稳定性格覆盖整个光谱，人类友好度更容易混入危险度歧义。"
+          },
+          "clue": {
+            "clue": "十六夜咲夜",
+            "reason": "成熟从容、办事沉着的女仆长，明显偏冷静，但仍有幽默和积极行动的一面，不是最极端的无波动。",
+            "difficulty": 2,
+            "confidence": 0.83
+          },
+          "dial": {
+            "dial": 87,
+            "reason": "咲夜以从容、优雅和精准执行的女仆长形象著称，战斗也能冷静掌控局面，明显接近冷静端；保留少量日常天然和幽默的余地。",
+            "confidence": 0.8,
+            "requestedDial": 87
+          },
+          "defense": {
+            "B1": {
+              "estimate": 85,
+              "side": "L",
+              "reason": "咲夜是从容冷静的女仆长，强烈靠右，但偶有天然和玩笑，87已接近她语义的上沿，估计略左。",
+              "confidence": 0.55
+            },
+            "B2": {
+              "estimate": 82,
+              "side": "L",
+              "reason": "咲夜以从容冷静的女仆长形象为主，但仍有调侃和天然的一面；87已很接近冷静极端，我估计稍向内。",
+              "confidence": 0.59
+            }
+          },
+          "startedAt": "2026-10-13T03:52:55.564Z",
+          "pair": [
+            "活泼",
+            "冷静"
+          ],
+          "opponentEstimate": 83.5,
+          "opponentSide": "L",
+          "target": 73,
+          "targetRaw": {
+            "center": 865,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "recommended"
+          },
+          "error": 14,
+          "pts": 2,
+          "oppPts": 1,
+          "opponentCorrect": "L",
+          "scoreAfter": {
+            "A": 7,
+            "B": 9
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T03:53:45.714Z"
+        },
+        {
+          "game": 1,
+          "round": 6,
+          "team": "B",
+          "psychic": "B1",
+          "guesser": "B2",
+          "captain": "A2",
+          "candidates": [
+            [
+              "猫",
+              "狗"
+            ],
+            [
+              "精英",
+              "草根"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 7,
+            "B": 9
+          },
+          "sudden": false,
+          "selection": {
+            "index": 1,
+            "reason": "精英与草根能依据出身、地位、修行途径构造较连续的角色谱，猫狗中段过于依赖性格类比。"
+          },
+          "clue": {
+            "clue": "若鹭姬",
+            "reason": "普通而弱小的人鱼妖怪，与草根妖怪网络有直接设定联系，没有精英身份或权势，适合草根端点。",
+            "difficulty": 2,
+            "confidence": 0.81
+          },
+          "dial": {
+            "dial": 82,
+            "reason": "若鹭姬是雾之湖里安静生活的弱小妖怪，没有权势、组织地位或精英气质，非常偏草根；仍有明确能力与独立生活，因此略留端点余地。",
+            "confidence": 0.75,
+            "requestedDial": 82
+          },
+          "defense": {
+            "A1": {
+              "estimate": 88,
+              "side": "R",
+              "reason": "若鹭姬是缺乏权势与组织地位的普通弱小妖怪，很贴近草根端点，82还可能保守了一点。",
+              "confidence": 0.65
+            },
+            "A2": {
+              "estimate": 90,
+              "side": "R",
+              "reason": "若鹭姬是雾之湖的弱小妖怪，缺少组织权力与精英身份，并与弱者反抗的故事相关，虽然名字带姬，整体仍很接近草根端。",
+              "confidence": 0.65
+            }
+          },
+          "startedAt": "2026-10-13T03:53:45.714Z",
+          "pair": [
+            "精英",
+            "草根"
+          ],
+          "opponentEstimate": 89,
+          "opponentSide": "R",
+          "target": 96.6,
+          "targetRaw": {
+            "center": 983,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "recommended"
+          },
+          "error": 14.6,
+          "pts": 2,
+          "oppPts": 1,
+          "opponentCorrect": "R",
+          "scoreAfter": {
+            "A": 8,
+            "B": 11
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": {
+            "winner": "B",
+            "maxRounds": false
+          },
+          "endedAt": "2026-10-13T03:54:36.917Z"
+        }
+      ],
+      "feedback": {
+        "A2": {
+          "fun": 4,
+          "fairness": 4,
+          "pace": 4,
+          "agency": 4,
+          "frustrations": [
+            "七彩芙兰朵露传达了接近端点，94对98.8仍差一点才能拿4分。",
+            "冷静咲夜我猜87，目标73；角色特征共识较强，强度尺度仍有14点分歧。"
+          ],
+          "learned": "A1对魔理沙学业和咲夜冷静程度都比我的第一直觉更向中间，后续类似人格与能力题需适度收缩；标志物题可以大胆靠近端点。",
+          "proposal": "揭晓时把目标、拨杆与各得分带同时展示，便于玩家直观建立强度尺度。"
+        },
+        "A1": {
+          "fun": 4,
+          "fairness": 4,
+          "pace": 4,
+          "agency": 4,
+          "frustrations": [
+            "第5轮咲夜冷静的目标73被理解为87，角色方向一致但程度分歧损失分数。",
+            "第3轮七彩芙兰朵露猜94，距目标98.8仅4.8仍错过4分窄带。"
+          ],
+          "learned": "A2对明显特质倾向给更极端的位置：魔理沙学习与咲夜冷静均比我的预期远离中点约14；后续选线索会据此校准。猜端点鲜明的角色时更敢靠近边界。",
+          "proposal": "揭晓后保留题面、角色、目标和拨杆的紧凑历史，方便双方自然校准尺度。"
+        },
+        "B1": {
+          "fun": 4,
+          "fairness": 4,
+          "pace": 5,
+          "agency": 4,
+          "frustrations": [
+            "若鹭姬的草根网络设定能传达方向，但96.6被猜到82，端点强度仍难达成默契。",
+            "七彩芙兰朵露98.8与拨杆94仅差4.8却错过4分，端点精度对输赢影响明显。"
+          ],
+          "learned": "我与B2对中等程度语义较一致：咲夜身高误差5.2，魔理沙贫穷误差1.4；对极端目标应优先用最显著的端点形象，并在猜题时考虑端点偏重先验。防守不能机械把极端拨杆向中心修正。",
+          "proposal": "揭晓时并列显示目标、拨杆、得分色带及短历史，帮助玩家自然校准语义强度。"
+        },
+        "B2": {
+          "fun": 4,
+          "fairness": 4,
+          "pace": 5,
+          "agency": 4,
+          "frustrations": [
+            "若鹭姬的草根线索我停在82，目标96.6；明确端点意象仍容易因保守留余地失分。",
+            "芙兰朵露七彩翼的防守也因向中间收缩误判。"
+          ],
+          "learned": "与B1对魔理沙财富中段的理解吻合；对缺乏明显反面特征的典型端点角色，应更愿意贴近端点，而咲夜冷静等仍保留层次。",
+          "proposal": "揭晓时展示双方估计及短理由，让跨轮校准更直观。"
+        }
+      },
+      "result": {
+        "winner": "B",
+        "maxRounds": false
+      },
+      "score": {
+        "A": 8,
+        "B": 11
+      }
+    },
+    {
+      "game": 2,
+      "seed": 2144565302,
+      "first": "B",
+      "settings": {
+        "winScore": 10,
+        "bandWidth": 40,
+        "maxRounds": 10,
+        "cardMode": "choice"
+      },
+      "rounds": [
+        {
+          "game": 2,
+          "round": 1,
+          "team": "B",
+          "psychic": "B2",
+          "guesser": "B1",
+          "captain": "A1",
+          "candidates": [
+            [
+              "波长长",
+              "波长短"
+            ],
+            [
+              "黑白",
+              "七彩"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 1,
+            "B": 0
+          },
+          "sudden": false,
+          "selection": {
+            "index": 1,
+            "reason": "服饰与角色视觉配色可形成明确层次，且已有芙兰朵露作为七彩端点的公开记录；波长题面物理与比喻解释容易分歧。"
+          },
+          "clue": {
+            "clue": "爱丽丝·玛格特罗依德",
+            "reason": "金发、蓝裙、白披肩和红发带形成清楚的多色视觉，明显比黑白鲜艳，但没有芙兰朵露的七彩翼那样接近彩虹端点，表达偏七彩的中段。",
+            "difficulty": 3,
+            "confidence": 0.68
+          },
+          "dial": {
+            "dial": 85,
+            "reason": "爱丽丝有七色人偶使的称号，明确靠七彩端；但视觉色彩不如上局芙兰朵露彩翼那样直接覆盖全谱，放在靠近右端而略留余地的位置。",
+            "confidence": 0.77,
+            "requestedDial": 85
+          },
+          "defense": {
+            "A1": {
+              "estimate": 92,
+              "side": "R",
+              "reason": "爱丽丝有七色的人偶使这一直接称号，对七彩端的指向比单纯服装配色更强，我估计比85还靠右。",
+              "confidence": 0.68
+            },
+            "A2": {
+              "estimate": 93,
+              "side": "R",
+              "reason": "爱丽丝拥有七色人偶使的标志性称号，对七彩的指向很直接，虽服饰自身不是全彩，仍应比85更接近右端。",
+              "confidence": 0.72
+            }
+          },
+          "startedAt": "2026-10-13T03:55:41.311Z",
+          "pair": [
+            "黑白",
+            "七彩"
+          ],
+          "opponentEstimate": 92.5,
+          "opponentSide": "R",
+          "target": 31.8,
+          "targetRaw": {
+            "center": 659,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "mild"
+          },
+          "error": 53.2,
+          "pts": 0,
+          "oppPts": 0,
+          "opponentCorrect": "L",
+          "scoreAfter": {
+            "A": 1,
+            "B": 0
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T03:56:33.468Z"
+        },
+        {
+          "game": 2,
+          "round": 2,
+          "team": "A",
+          "psychic": "A2",
+          "guesser": "A1",
+          "captain": "B2",
+          "candidates": [
+            [
+              "孩子气",
+              "妈妈"
+            ],
+            [
+              "香",
+              "臭"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 1,
+            "B": 0
+          },
+          "sudden": false,
+          "selection": {
+            "index": 0,
+            "reason": "从琪露诺等孩子气角色到八云蓝等照料者，关系与性格足以表达多个强度，较香臭更少依赖小众梗。"
+          },
+          "clue": {
+            "clue": "博丽灵梦",
+            "reason": "灵梦承担守护与收拾异变的责任，也会照顾来往者，有些可靠照料者气质；但本人仍是随性、会闹情绪的少女，仅小幅偏妈妈。",
+            "difficulty": 4,
+            "confidence": 0.57
+          },
+          "dial": {
+            "dial": 26,
+            "reason": "灵梦年轻且会任性，但经常负责收拾异变、照看神社和应付妖精，整体稍有照料者与管事人的妈妈感，远不及八云蓝或圣白莲。",
+            "confidence": 0.56,
+            "requestedDial": 26
+          },
+          "defense": {
+            "B1": {
+              "estimate": 12,
+              "side": "L",
+              "reason": "灵梦有照顾神社众人与处理异变的成熟一面，但懒散、贪财和直接脾气也很少女；妈妈感仅略高于中点，估计在26左边。",
+              "confidence": 0.6
+            },
+            "B2": {
+              "estimate": 10,
+              "side": "L",
+              "reason": "灵梦有照顾小妖怪和维持秩序的监护者气质，但也常任性、懒散、为钱发愁；整体仅略偏妈妈，不如26那样明显。",
+              "confidence": 0.6
+            }
+          },
+          "startedAt": "2026-10-13T03:56:33.468Z",
+          "pair": [
+            "孩子气",
+            "妈妈"
+          ],
+          "opponentEstimate": 11,
+          "opponentSide": "L",
+          "target": 17.8,
+          "targetRaw": {
+            "center": 589,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "strong"
+          },
+          "error": 8.2,
+          "pts": 3,
+          "oppPts": 1,
+          "opponentCorrect": "L",
+          "scoreAfter": {
+            "A": 4,
+            "B": 1
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T03:57:26.229Z"
+        },
+        {
+          "game": 2,
+          "round": 3,
+          "team": "B",
+          "psychic": "B1",
+          "guesser": "B2",
+          "captain": "A1",
+          "candidates": [
+            [
+              "0",
+              "1"
+            ],
+            [
+              "大",
+              "小"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 4,
+            "B": 1
+          },
+          "sudden": false,
+          "selection": {
+            "index": 1,
+            "reason": "大小可以依据整体体型及角色设定表达；0与1含义依赖圈内语境，难形成可靠的自然尺度。"
+          },
+          "clue": {
+            "clue": "博丽灵梦",
+            "reason": "标准人类少女体型，在高大成熟角色与幼小妖精之间，整体接近中等而略偏小。",
+            "difficulty": 3,
+            "confidence": 0.65
+          },
+          "dial": {
+            "dial": 18,
+            "reason": "按整体体格理解，灵梦是普通少女，远大于幼小妖精和针妙丸，但比成年御姐型角色纤小；位于中间略偏小。",
+            "confidence": 0.48,
+            "requestedDial": 18
+          },
+          "defense": {
+            "A2": {
+              "estimate": 6,
+              "side": "L",
+              "reason": "按整体体型理解，灵梦是普通少女，介于成熟高大角色与幼小妖精之间，略偏小但很接近中间；18可能偏小过多。",
+              "confidence": 0.54
+            },
+            "A1": {
+              "estimate": 5,
+              "side": "L",
+              "reason": "灵梦属于体型中等的少女，相比许多幼小妖精不算小，也没有成年高大角色的体型，估计更靠近中点。",
+              "confidence": 0.57
+            }
+          },
+          "startedAt": "2026-10-13T03:57:26.229Z",
+          "pair": [
+            "大",
+            "小"
+          ],
+          "opponentEstimate": 5.5,
+          "opponentSide": "L",
+          "target": 6.2,
+          "targetRaw": {
+            "center": 531,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "recommended"
+          },
+          "error": 11.8,
+          "pts": 2,
+          "oppPts": 1,
+          "opponentCorrect": "L",
+          "scoreAfter": {
+            "A": 5,
+            "B": 3
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T03:58:12.642Z"
+        },
+        {
+          "game": 2,
+          "round": 4,
+          "team": "A",
+          "psychic": "A1",
+          "guesser": "A2",
+          "captain": "B2",
+          "candidates": [
+            [
+              "猫",
+              "狗"
+            ],
+            [
+              "老资历",
+              "小资历"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 5,
+            "B": 3
+          },
+          "sudden": false,
+          "selection": {
+            "index": 1,
+            "reason": "角色的阅历、年龄和组织地位可自然表达资历梯度，猫狗在中间段更难给出稳定的单角色线索。"
+          },
+          "clue": {
+            "clue": "上白泽慧音",
+            "reason": "慧音是有学识与阅历的教师和人里守护者，属于资深可靠的一档，但远没有贤者或古老神明那种元老地位。",
+            "difficulty": 3,
+            "confidence": 0.65
+          },
+          "dial": {
+            "dial": -45,
+            "reason": "慧音是熟悉历史、承担教导与守护职责的老师，明显具有前辈资历；但相较永琳、八云紫等远古人物，还未到老资历极端，取中等偏左。",
+            "confidence": 0.65,
+            "requestedDial": -45
+          },
+          "defense": {
+            "B1": {
+              "estimate": -32,
+              "side": "R",
+              "reason": "慧音有教师与历史知识带来的资深感，但并非紫、永琳那种远古人物，半兽身份也不直接意味着极老；相比-45稍向中间。",
+              "confidence": 0.61
+            },
+            "B2": {
+              "estimate": -38,
+              "side": "R",
+              "reason": "慧音是历史教师和可靠前辈，明显有资历，但与古老神灵、大妖怪相比并非最老一层；估计老资历侧中段，比-45略靠中间。",
+              "confidence": 0.55
+            }
+          },
+          "startedAt": "2026-10-13T03:58:12.642Z",
+          "pair": [
+            "老资历",
+            "小资历"
+          ],
+          "opponentEstimate": -35,
+          "opponentSide": "R",
+          "target": -33,
+          "targetRaw": {
+            "center": 335,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "recommended"
+          },
+          "error": 12,
+          "pts": 2,
+          "oppPts": 1,
+          "opponentCorrect": "R",
+          "scoreAfter": {
+            "A": 7,
+            "B": 4
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T03:59:14.771Z"
+        },
+        {
+          "game": 2,
+          "round": 5,
+          "team": "B",
+          "psychic": "B2",
+          "guesser": "B1",
+          "captain": "A1",
+          "candidates": [
+            [
+              "老太婆",
+              "小萝莉"
+            ],
+            [
+              "审美积累",
+              "审美积积"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 7,
+            "B": 4
+          },
+          "sudden": false,
+          "selection": {
+            "index": 0,
+            "reason": "年龄形象有明确的长辈、少女和幼女角色层次；另一题面的审美积积含义不够明确。"
+          },
+          "clue": {
+            "clue": "琪露诺",
+            "reason": "琪露诺的外形与心智都鲜明幼小，孩子气的妖精形象几乎完全落在小萝莉一端，且没有吸血鬼式的高龄反差干扰。",
+            "difficulty": 1,
+            "confidence": 0.89
+          },
+          "dial": {
+            "dial": 94,
+            "reason": "琪露诺外形幼小、心智也明显孩子气，是小萝莉端非常鲜明的角色；没有蕾米莉亚那种高龄反差，结合端点偏重先验放到94。",
+            "confidence": 0.85,
+            "requestedDial": 94
+          },
+          "defense": {
+            "A1": {
+              "estimate": 88,
+              "side": "L",
+              "reason": "琪露诺外形与心智都明显偏小萝莉，但仍不是最幼小的角色形象，94接近绝对端点，我略向内估计。",
+              "confidence": 0.59
+            },
+            "A2": {
+              "estimate": 90,
+              "side": "L",
+              "reason": "琪露诺外形和心智都很幼小，明显靠近小萝莉端；但妖精年龄不等于外貌，94已非常极端，估计略向中间。",
+              "confidence": 0.55
+            }
+          },
+          "startedAt": "2026-10-13T03:59:14.771Z",
+          "pair": [
+            "老太婆",
+            "小萝莉"
+          ],
+          "opponentEstimate": 89,
+          "opponentSide": "L",
+          "target": 90.6,
+          "targetRaw": {
+            "center": 953,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "recommended"
+          },
+          "error": 3.4,
+          "pts": 3,
+          "oppPts": 1,
+          "opponentCorrect": "L",
+          "scoreAfter": {
+            "A": 8,
+            "B": 7
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T04:00:04.186Z"
+        },
+        {
+          "game": 2,
+          "round": 6,
+          "team": "A",
+          "psychic": "A2",
+          "guesser": "A1",
+          "captain": "B2",
+          "candidates": [
+            [
+              "星宇旺盛",
+              "星宇low"
+            ],
+            [
+              "岁月静好",
+              "负重前行"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 8,
+            "B": 7
+          },
+          "sudden": false,
+          "selection": {
+            "index": 1,
+            "reason": "悠闲生活与承担责任可以用角色日常职责及经历自然表达，尺度比星宇梗稳定。"
+          },
+          "clue": {
+            "clue": "蓬莱山辉夜",
+            "reason": "长居永远亭、由永琳和兔子们照料的公主，日常悠闲且常见宅居印象，非常接近岁月静好端。",
+            "difficulty": 1,
+            "confidence": 0.86
+          },
+          "dial": {
+            "dial": -92,
+            "reason": "辉夜作为永远亭公主，日常生活受到照料、悠闲安逸，尤其有宅居享清闲的典型印象，非常接近岁月静好端。",
+            "confidence": 0.85,
+            "requestedDial": -92
+          },
+          "defense": {
+            "B1": {
+              "estimate": -87,
+              "side": "R",
+              "reason": "辉夜在永远亭由永琳等照顾，生活悠闲，明显接近岁月静好端；但流放与永生背景使她并非毫无负担，估计略高于-92。",
+              "confidence": 0.61
+            },
+            "B2": {
+              "estimate": -90,
+              "side": "R",
+              "reason": "辉夜长期在永远亭受照顾，悠闲公主形象非常接近岁月静好；但仍有月都旧事与妹红争斗，估计略在-92以内。",
+              "confidence": 0.54
+            }
+          },
+          "startedAt": "2026-10-13T04:00:04.186Z",
+          "pair": [
+            "岁月静好",
+            "负重前行"
+          ],
+          "opponentEstimate": -88.5,
+          "opponentSide": "R",
+          "target": -93.2,
+          "targetRaw": {
+            "center": 34,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "recommended"
+          },
+          "error": 1.2,
+          "pts": 4,
+          "oppPts": 0,
+          "opponentCorrect": null,
+          "scoreAfter": {
+            "A": 12,
+            "B": 7
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": {
+            "winner": "A",
+            "maxRounds": false
+          },
+          "endedAt": "2026-10-13T04:00:56.222Z"
+        }
+      ],
+      "feedback": {
+        "B1": {
+          "fun": 4,
+          "fairness": 4,
+          "pace": 5,
+          "agency": 4,
+          "frustrations": [
+            "爱丽丝七彩目标31.8，我因七色人偶使称号猜85，语义维度分叉导致整轮零分。",
+            "琪露诺误差3.4，距4分仅0.2，同时对方拿1分，临界差异对比分影响很大。"
+          ],
+          "learned": "B2在颜色题更按外观配色而非称号取值，未来须同时评估视觉和设定，不用单一称号覆盖其余信息。中段角色需预留更宽的不确定性；防守灵梦与慧音的方向判断有效。",
+          "proposal": "题面可补一个简短范围说明，例如颜色轴明确以外观配色为主，减少同一词被当作称号或视觉印象的分歧。"
+        },
+        "B2": {
+          "fun": 4,
+          "fairness": 4,
+          "pace": 5,
+          "agency": 4,
+          "frustrations": [
+            "我用爱丽丝的服饰表达中等多彩，却忽略七色人偶使称号，伙伴猜85而目标31.8，出现本局最大语义分歧。",
+            "琪露诺拨94与目标90.6只差3.4，刚错过4分，同时让对手得分，边界体感很尖锐。"
+          ],
+          "learned": "角色称号和强梗应优先于一般外观；出题先排除会把人引向另一位置的显著联想。中间型普通少女线索应更贴近中心。",
+          "proposal": "揭晓界面明确呈现距下一档得分还差多少及对手得分原因，帮助理解临界结果。"
+        },
+        "A2": {
+          "fun": 4,
+          "fairness": 4,
+          "pace": 5,
+          "agency": 4,
+          "frustrations": [
+            "爱丽丝的七色称号让我估93，实际目标31.8，称号和服装两个自然解释产生很大偏差。",
+            "慧音资历我猜-45而目标-33，再次把人格身份特征推得略远，刚好掉出3分区。"
+          ],
+          "learned": "日常身份明确的端点角色容易建立共识，辉夜悠闲端取得4分；中段题需继续收缩强度，并警惕称号、外观和剧情给出不同答案。",
+          "proposal": "为大/小、资历等多义题面增加简短的维度说明，减少猜测作者究竟采用哪种解释。"
+        },
+        "A1": {
+          "fun": 4,
+          "fairness": 4,
+          "pace": 5,
+          "agency": 4,
+          "frustrations": [
+            "老资历的慧音目标-33、拨杆-45，仍有约12点的程度分歧。",
+            "爱丽丝在黑白至七彩轴触发七色称号联想，但目标实际31.8，说明外观与称号两种依据会严重错位。"
+          ],
+          "learned": "明确极端特质时更接近端点，辉夜猜-92命中-93.2得4分；继续校准A2对我所选角色特征强度的较极端解读，出线索避免同时具有相反尺度的称号与外观。",
+          "proposal": "为容易产生多种依据的题目提供简短维度说明，例如黑白至七彩明确主要看外观还是允许称号。"
+        }
+      },
+      "result": {
+        "winner": "A",
+        "maxRounds": false
+      },
+      "score": {
+        "A": 12,
+        "B": 7
+      }
+    },
+    {
+      "game": 3,
+      "seed": 2487875770,
+      "first": "A",
+      "settings": {
+        "winScore": 10,
+        "bandWidth": 40,
+        "maxRounds": 10,
+        "cardMode": "choice"
+      },
+      "rounds": [
+        {
+          "game": 3,
+          "round": 1,
+          "team": "A",
+          "psychic": "A1",
+          "guesser": "A2",
+          "captain": "B1",
+          "candidates": [
+            [
+              "活着的",
+              "死掉了"
+            ],
+            [
+              "维新",
+              "传统"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 0,
+            "B": 1
+          },
+          "sudden": false,
+          "selection": {
+            "index": 1,
+            "reason": "维新与传统可由科技态度、宗教和生活方式形成梯度，生死轴中间段较难稳定表达。"
+          },
+          "clue": {
+            "clue": "博丽灵梦",
+            "reason": "继承巫女职责、维护幻想乡既有秩序、穿传统巫女服，鲜明偏传统；但本人务实随性，并非极端守旧的古老权威。",
+            "difficulty": 2,
+            "confidence": 0.8
+          },
+          "dial": {
+            "dial": 65,
+            "reason": "灵梦继承博丽巫女职责并维护幻想乡既有秩序，明显偏传统；但处理异变和与妖怪相处很灵活，不是守旧极端。结合此前与A1的尺度差异，取中高强度。",
+            "confidence": 0.68,
+            "requestedDial": 65
+          },
+          "defense": {
+            "B2": {
+              "estimate": 60,
+              "side": "L",
+              "reason": "灵梦继承巫女职责、维护幻想乡现有秩序，明显偏传统；但本人处事随性，也会接受新办法，并非最顽固守旧者，估计略低于65。",
+              "confidence": 0.58
+            },
+            "B1": {
+              "estimate": 63,
+              "side": "L",
+              "reason": "博丽巫女维护结界与秩序，传统侧明确，但灵梦实际处事随性、也参与新事物，不属于最顽固守旧者；65附近而略低。",
+              "confidence": 0.54
+            }
+          },
+          "startedAt": "2026-10-13T04:01:57.668Z",
+          "pair": [
+            "维新",
+            "传统"
+          ],
+          "opponentEstimate": 61.5,
+          "opponentSide": "L",
+          "target": 71.8,
+          "targetRaw": {
+            "center": 859,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "mild"
+          },
+          "error": 6.8,
+          "pts": 3,
+          "oppPts": 0,
+          "opponentCorrect": "R",
+          "scoreAfter": {
+            "A": 3,
+            "B": 1
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T04:03:01.264Z"
+        },
+        {
+          "game": 3,
+          "round": 2,
+          "team": "B",
+          "psychic": "B1",
+          "guesser": "B2",
+          "captain": "A2",
+          "candidates": [
+            [
+              "大",
+              "小"
+            ],
+            [
+              "精英",
+              "草根"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 3,
+            "B": 1
+          },
+          "sudden": false,
+          "selection": {
+            "index": 0,
+            "reason": "已有灵梦在大小轴的共同揭晓，可自然校准中段；大小也有清楚的极端体型可用。"
+          },
+          "clue": {
+            "clue": "蕾米莉亚·斯卡雷特",
+            "reason": "蕾米莉亚是明显娇小的幼女体型，比灵梦小一档以上；但仍是正常人形大小，远不到少名针妙丸那种极小端点。",
+            "difficulty": 2,
+            "confidence": 0.76
+          },
+          "dial": {
+            "dial": 80,
+            "reason": "沿用上局大与小按体格理解，蕾米莉亚是鲜明幼女体型，比灵梦显著小；但尚非针妙丸那种字面微型角色，取偏小的高位。",
+            "confidence": 0.76,
+            "requestedDial": 80
+          },
+          "defense": {
+            "A1": {
+              "estimate": 72,
+              "side": "L",
+              "reason": "蕾米莉亚外形娇小，但仍是普通幼女体型，距离针妙丸或小型妖精那种极小端点有空间，80可能稍偏右。",
+              "confidence": 0.66
+            },
+            "A2": {
+              "estimate": 72,
+              "side": "L",
+              "reason": "延续此前大/小按外形理解，蕾米莉亚是娇小少女，明显偏小；但还有少名针妙丸等更极端角色，80可能略偏远。",
+              "confidence": 0.57
+            }
+          },
+          "startedAt": "2026-10-13T04:03:01.264Z",
+          "pair": [
+            "大",
+            "小"
+          ],
+          "opponentEstimate": 72,
+          "opponentSide": "L",
+          "target": 53.2,
+          "targetRaw": {
+            "center": 766,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "strong"
+          },
+          "error": 26.8,
+          "pts": 0,
+          "oppPts": 1,
+          "opponentCorrect": "L",
+          "scoreAfter": {
+            "A": 4,
+            "B": 1
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T04:04:10.096Z"
+        },
+        {
+          "game": 3,
+          "round": 3,
+          "team": "A",
+          "psychic": "A2",
+          "guesser": "A1",
+          "captain": "B1",
+          "candidates": [
+            [
+              "北大",
+              "清华"
+            ],
+            [
+              "西洋",
+              "东洋"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 4,
+            "B": 1
+          },
+          "sudden": false,
+          "selection": {
+            "index": 1,
+            "reason": "西洋与东洋可由服饰、神话来源及生活环境表达，角色有明确的两端和混合特征，较院校联想稳定。"
+          },
+          "clue": {
+            "clue": "风见幽香",
+            "reason": "洋伞、格纹裙和花园气质略偏西洋，但本身是日式姓名与妖怪设定，缺少吸血鬼或西方魔女那样强烈的西洋身份，适合小幅偏左。",
+            "difficulty": 4,
+            "confidence": 0.58
+          },
+          "dial": {
+            "dial": -44,
+            "reason": "幽香的格纹马甲、长裙和阳伞偏西式淑女风，但没有吸血鬼或西洋魔女那种明确的西方身份，取中度偏西洋。",
+            "confidence": 0.63,
+            "requestedDial": -44
+          },
+          "defense": {
+            "B1": {
+              "estimate": -50,
+              "side": "L",
+              "reason": "幽香的格纹裙、衬衫和洋伞形成清晰西洋外观，不过名字与妖怪身份仍有东洋成分，估计西洋侧约半程，略左于-44。",
+              "confidence": 0.56
+            },
+            "B2": {
+              "estimate": -35,
+              "side": "R",
+              "reason": "幽香的洋伞、格纹裙和花园形象偏西洋，但日本妖怪身份仍明显，西洋关联不及吸血鬼和魔女，估计比-44略靠中间。",
+              "confidence": 0.58
+            }
+          },
+          "startedAt": "2026-10-13T04:04:10.096Z",
+          "pair": [
+            "西洋",
+            "东洋"
+          ],
+          "opponentEstimate": -42.5,
+          "opponentSide": "R",
+          "target": -20.2,
+          "targetRaw": {
+            "center": 399,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "recommended"
+          },
+          "error": 23.8,
+          "pts": 0,
+          "oppPts": 1,
+          "opponentCorrect": "R",
+          "scoreAfter": {
+            "A": 4,
+            "B": 2
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T04:05:19.874Z"
+        },
+        {
+          "game": 3,
+          "round": 4,
+          "team": "B",
+          "psychic": "B2",
+          "guesser": "B1",
+          "captain": "A2",
+          "candidates": [
+            [
+              "叮咚鸡",
+              "大狗叫"
+            ],
+            [
+              "开朗阳光",
+              "孤僻阴暗"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 4,
+            "B": 2
+          },
+          "sudden": false,
+          "selection": {
+            "index": 1,
+            "reason": "开朗与孤僻可根据角色稳定性格表达层次，另一题面的梗义不确定。"
+          },
+          "clue": {
+            "clue": "博丽灵梦",
+            "reason": "灵梦不算热情阳光，经常淡漠嫌麻烦，但社交广泛、宴会正常，也没有阴暗孤僻的核心设定，整体处于中间略偏冷淡。",
+            "difficulty": 3,
+            "confidence": 0.73
+          },
+          "dial": {
+            "dial": 12,
+            "reason": "灵梦待人较淡、独居神社，常显得慵懒不耐烦，稍偏疏离；但能自在参加宴会，与许多人往来，远不算明显阴暗孤僻，放在中点稍右。",
+            "confidence": 0.62,
+            "requestedDial": 12
+          },
+          "defense": {
+            "A1": {
+              "estimate": 3,
+              "side": "L",
+              "reason": "灵梦有冷淡懒散的一面，但频繁交际、举办宴会，也没有明显阴暗心理，更接近中间，12略偏孤僻。",
+              "confidence": 0.56
+            },
+            "A2": {
+              "estimate": 24,
+              "side": "R",
+              "reason": "灵梦待人较淡、独居神社且常嫌麻烦，略偏孤僻；她也经常参加宴会，不到阴暗极端，估计在12右侧但仍属中间区域。",
+              "confidence": 0.58
+            }
+          },
+          "startedAt": "2026-10-13T04:05:19.874Z",
+          "pair": [
+            "开朗阳光",
+            "孤僻阴暗"
+          ],
+          "opponentEstimate": 13.5,
+          "opponentSide": "R",
+          "target": 4.8,
+          "targetRaw": {
+            "center": 524,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "recommended"
+          },
+          "error": 7.2,
+          "pts": 3,
+          "oppPts": 0,
+          "opponentCorrect": "L",
+          "scoreAfter": {
+            "A": 4,
+            "B": 5
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T04:06:35.225Z"
+        },
+        {
+          "game": 3,
+          "round": 5,
+          "team": "A",
+          "psychic": "A1",
+          "guesser": "A2",
+          "captain": "B1",
+          "candidates": [
+            [
+              "活泼",
+              "冷静"
+            ],
+            [
+              "（音乐）豪庭的钥匙",
+              "（音乐）南亭的钥匙"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 4,
+            "B": 5
+          },
+          "sudden": false,
+          "selection": {
+            "index": 0,
+            "reason": "性格轴熟悉且已有咲夜的公开尺度可校准；音乐梗含义不够确定。"
+          },
+          "clue": {
+            "clue": "博丽灵梦",
+            "reason": "灵梦平时淡定、懒散、不太闹腾，略偏冷静，但有直接冲动和活跃解决异变的一面，远弱于咲夜的冷静程度。",
+            "difficulty": 3,
+            "confidence": 0.74
+          },
+          "dial": {
+            "dial": 38,
+            "reason": "灵梦通常淡定、随性，较少持续活蹦乱跳，但也容易吐槽和动怒；冷静程度明显低于此前目标73的咲夜，因此取适度偏冷静。",
+            "confidence": 0.7,
+            "requestedDial": 38
+          },
+          "defense": {
+            "B1": {
+              "estimate": 28,
+              "side": "L",
+              "reason": "灵梦日常淡定慵懒，但遇到异变或钱财会急躁直接，冷静程度低于咲夜很多，估计中间偏右而稍低于38。",
+              "confidence": 0.62
+            },
+            "B2": {
+              "estimate": 30,
+              "side": "L",
+              "reason": "灵梦平时淡然、嫌麻烦，确实偏冷静，但比曾表达73的咲夜随性且易动怒；估计是温和偏冷静的位置，略低于38。",
+              "confidence": 0.61
+            }
+          },
+          "startedAt": "2026-10-13T04:06:35.225Z",
+          "pair": [
+            "活泼",
+            "冷静"
+          ],
+          "opponentEstimate": 29,
+          "opponentSide": "L",
+          "target": 21,
+          "targetRaw": {
+            "center": 605,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "recommended"
+          },
+          "error": 17,
+          "pts": 2,
+          "oppPts": 1,
+          "opponentCorrect": "L",
+          "scoreAfter": {
+            "A": 6,
+            "B": 6
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T04:07:13.582Z"
+        },
+        {
+          "game": 3,
+          "round": 6,
+          "team": "B",
+          "psychic": "B1",
+          "guesser": "B2",
+          "captain": "A2",
+          "candidates": [
+            [
+              "清真",
+              "不清真"
+            ],
+            [
+              "兽",
+              "人"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 6,
+            "B": 6
+          },
+          "sudden": false,
+          "selection": {
+            "index": 1,
+            "reason": "兽与人可依据物种及兽耳、尾巴等直接外观特征判断，连续谱较清楚。"
+          },
+          "clue": {
+            "clue": "八云蓝",
+            "reason": "九尾狐本体与醒目九条尾巴使兽性特征很强，但日常呈完整人形、举止理性成熟，适合明显偏兽而非纯兽端点。",
+            "difficulty": 2,
+            "confidence": 0.77
+          },
+          "dial": {
+            "dial": -68,
+            "reason": "蓝本体为九尾妖狐，兽耳与九尾使兽的特征很强；同时保持完整人形、语言与理性生活，故取明显偏兽而未到纯动物端点。",
+            "confidence": 0.67,
+            "requestedDial": -68
+          },
+          "defense": {
+            "A1": {
+              "estimate": -55,
+              "side": "R",
+              "reason": "蓝有明确九尾狐本体和浓厚兽类特征，但人形、语言与社会行为也很突出，-68可能比出题人想表达的更兽化。",
+              "confidence": 0.66
+            },
+            "A2": {
+              "estimate": -60,
+              "side": "R",
+              "reason": "蓝本体是九尾狐，兽性标志强烈，但通常维持完整人形、具高度理性和家务职责；相较纯动物应留明显距离，估计比-68稍向人端。",
+              "confidence": 0.58
+            }
+          },
+          "startedAt": "2026-10-13T04:07:13.582Z",
+          "pair": [
+            "兽",
+            "人"
+          ],
+          "opponentEstimate": -57.5,
+          "opponentSide": "R",
+          "target": -64.6,
+          "targetRaw": {
+            "center": 177,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "recommended"
+          },
+          "error": 3.4,
+          "pts": 3,
+          "oppPts": 1,
+          "opponentCorrect": "R",
+          "scoreAfter": {
+            "A": 7,
+            "B": 9
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T04:08:11.664Z"
+        },
+        {
+          "game": 3,
+          "round": 7,
+          "team": "A",
+          "psychic": "A2",
+          "guesser": "A1",
+          "captain": "B1",
+          "candidates": [
+            [
+              "胆子大",
+              "胆子小"
+            ],
+            [
+              "纯情",
+              "海王"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 7,
+            "B": 9
+          },
+          "sudden": false,
+          "selection": {
+            "index": 0,
+            "reason": "胆量可依照面对危险、鬼怪和强敌的表现表达，正作支撑比恋爱关系梗清楚。"
+          },
+          "clue": {
+            "clue": "魂魄妖梦",
+            "reason": "妖梦有怕鬼、容易被吓到的鲜明印象，明显偏胆小；但她仍是敢于持剑应战的异变解决者，因此不是极端怯懦。",
+            "difficulty": 2,
+            "confidence": 0.76
+          },
+          "dial": {
+            "dial": 62,
+            "reason": "妖梦怕幽灵、容易受惊是鲜明反差特征，明显偏胆小；同时能认真战斗、独自解决事件，因此未到最胆怯端点。",
+            "confidence": 0.72,
+            "requestedDial": 62
+          },
+          "defense": {
+            "B1": {
+              "estimate": 50,
+              "side": "L",
+              "reason": "妖梦怕鬼的反差使她偏胆小，但面对战斗和异变仍敢正面行动，并非普遍畏缩；62可能略高，估计50。",
+              "confidence": 0.67
+            },
+            "B2": {
+              "estimate": 55,
+              "side": "L",
+              "reason": "妖梦怕鬼且容易受惊，是偏胆小的明确联想，但能主动战斗和处理异变，胆量并非一贯很低，估计略低于62。",
+              "confidence": 0.64
+            }
+          },
+          "startedAt": "2026-10-13T04:08:11.665Z",
+          "pair": [
+            "胆子大",
+            "胆子小"
+          ],
+          "opponentEstimate": 52.5,
+          "opponentSide": "L",
+          "target": 56,
+          "targetRaw": {
+            "center": 780,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "recommended"
+          },
+          "error": 6,
+          "pts": 3,
+          "oppPts": 1,
+          "opponentCorrect": "L",
+          "scoreAfter": {
+            "A": 10,
+            "B": 10
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T04:09:03.208Z"
+        },
+        {
+          "game": 3,
+          "round": 8,
+          "team": "B",
+          "psychic": "B2",
+          "guesser": "B1",
+          "captain": "A2",
+          "candidates": [
+            [
+              "CP多",
+              "CP少"
+            ],
+            [
+              "幸运",
+              "不幸"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 10,
+            "B": 10
+          },
+          "sudden": true,
+          "selection": {
+            "index": 1,
+            "reason": "幸运与不幸有因幡帝、依神紫苑等明确角色锚点，且中段可按经历与处境表达，CP数量更依赖同人圈口径。"
+          },
+          "clue": {
+            "clue": "依神紫苑",
+            "reason": "紫苑作为贫穷神，自身穷困且带来不幸，是不幸端最直接的角色；选明确主轴，避免厄神保护他人的反向理解。",
+            "difficulty": 1,
+            "confidence": 0.93
+          },
+          "dial": {
+            "dial": 97,
+            "reason": "紫苑是贫穷神，会给自身与周围带来不幸，角色核心就对应不幸极端；相较仅遭遇挫折的人物，应该贴近右端。",
+            "confidence": 0.92,
+            "requestedDial": 97
+          },
+          "defense": {
+            "A2": {
+              "estimate": 95,
+              "side": "L",
+              "reason": "紫苑是贫穷神，给自己与周围带来厄运，极强地对应不幸；97已几乎触顶，估计仅略在左侧。",
+              "confidence": 0.54
+            },
+            "A1": {
+              "estimate": 95,
+              "side": "L",
+              "reason": "紫苑的贫穷与不幸几乎直接定义角色，非常靠近右端；97已很极端，考虑端点附近仍有一段自然表达范围，估计略靠左。",
+              "confidence": 0.6
+            }
+          },
+          "startedAt": "2026-10-13T04:09:03.208Z",
+          "pair": [
+            "幸运",
+            "不幸"
+          ],
+          "opponentEstimate": 95,
+          "opponentSide": "L",
+          "target": 88.8,
+          "targetRaw": {
+            "center": 944,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "recommended"
+          },
+          "error": 8.2,
+          "pts": 3,
+          "oppPts": 1,
+          "opponentCorrect": "L",
+          "scoreAfter": {
+            "A": 10,
+            "B": 10
+          },
+          "suddenPointsAfter": {
+            "A": 1,
+            "B": 3
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T04:09:47.471Z"
+        },
+        {
+          "game": 3,
+          "round": 9,
+          "team": "A",
+          "psychic": "A1",
+          "guesser": "A2",
+          "captain": "B1",
+          "candidates": [
+            [
+              "审美积累",
+              "审美积积"
+            ],
+            [
+              "岁月静好",
+              "负重前行"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 10,
+            "B": 10
+          },
+          "sudden": true,
+          "selection": {
+            "index": 1,
+            "reason": "岁月静好与负重前行含义明确，且双方已有辉夜靠近左端的公开参考，另一题的梗义不确定。"
+          },
+          "clue": {
+            "clue": "西行寺幽幽子",
+            "reason": "幽幽子在白玉楼赏花、吃喝、由妖梦照料，日常非常悠闲；仍有冥界主人的职责，比完全宅居享清闲的辉夜略有事务。",
+            "difficulty": 2,
+            "confidence": 0.8
+          },
+          "dial": {
+            "dial": -72,
+            "reason": "幽幽子日常赏樱、品食并由妖梦照料，明显偏悠闲安逸；但作为白玉楼主人有管理职责与沉重身世，比此前-93.2的辉夜保留更多负担。",
+            "confidence": 0.71,
+            "requestedDial": -72
+          },
+          "defense": {
+            "B1": {
+              "estimate": -67,
+              "side": "R",
+              "reason": "幽幽子日常赏花享乐、由妖梦照料，明显岁月静好；但亡灵身份与过去悲剧使她比辉夜多一层负担，估计略靠近中间。",
+              "confidence": 0.56
+            },
+            "B2": {
+              "estimate": -68,
+              "side": "R",
+              "reason": "幽幽子日常赏樱、享用美食并由妖梦照料，明显偏岁月静好；但身世和能力带有沉重背景，较辉夜的闲适端点更向内，估计略高于-72。",
+              "confidence": 0.58
+            }
+          },
+          "startedAt": "2026-10-13T04:09:47.471Z",
+          "pair": [
+            "岁月静好",
+            "负重前行"
+          ],
+          "opponentEstimate": -67.5,
+          "opponentSide": "R",
+          "target": -85,
+          "targetRaw": {
+            "center": 75,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "recommended"
+          },
+          "error": 13,
+          "pts": 2,
+          "oppPts": 0,
+          "opponentCorrect": "L",
+          "scoreAfter": {
+            "A": 10,
+            "B": 10
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T04:11:09.404Z"
+        },
+        {
+          "game": 3,
+          "round": 10,
+          "team": "B",
+          "psychic": "B1",
+          "guesser": "B2",
+          "captain": "A2",
+          "candidates": [
+            [
+              "文",
+              "理"
+            ],
+            [
+              "现充",
+              "御宅族"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 10,
+            "B": 10
+          },
+          "sudden": true,
+          "selection": {
+            "index": 0,
+            "reason": "文学、史学、医学、工程及数理能力都有鲜明角色，文理比现充更少依赖恋爱和同人印象。"
+          },
+          "clue": {
+            "clue": "稗田阿求",
+            "reason": "阿求以编纂幻想乡缘起、记述历史与文字创作为核心，强烈代表人文书写，几乎没有自然科学或工程侧特征。",
+            "difficulty": 1,
+            "confidence": 0.89
+          },
+          "dial": {
+            "dial": -94,
+            "reason": "阿求的核心身份是历史记录者与著述者，工作集中于文字、史学和人文知识，几乎没有理工主轴，是非常明确的文科端角色。",
+            "confidence": 0.9,
+            "requestedDial": -94
+          },
+          "defense": {
+            "A1": {
+              "estimate": -92,
+              "side": "R",
+              "reason": "阿求以史书编纂和文字记录为核心，极偏文科；-94已很靠端点，估计目标略向中间但仍在极文一侧。",
+              "confidence": 0.57
+            },
+            "A2": {
+              "estimate": -90,
+              "side": "R",
+              "reason": "阿求以记录历史、编纂文献和文学写作为核心，极偏文科；-94已很接近绝对端点，估计稍向中间，但左右把握有限。",
+              "confidence": 0.55
+            }
+          },
+          "startedAt": "2026-10-13T04:11:09.404Z",
+          "pair": [
+            "文",
+            "理"
+          ],
+          "opponentEstimate": -91,
+          "opponentSide": "R",
+          "target": -88.8,
+          "targetRaw": {
+            "center": 56,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "recommended"
+          },
+          "error": 5.2,
+          "pts": 3,
+          "oppPts": 1,
+          "opponentCorrect": "R",
+          "scoreAfter": {
+            "A": 10,
+            "B": 10
+          },
+          "suddenPointsAfter": {
+            "A": 1,
+            "B": 3
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T04:12:08.691Z"
+        },
+        {
+          "game": 3,
+          "round": 11,
+          "team": "A",
+          "psychic": "A2",
+          "guesser": "A1",
+          "captain": "B1",
+          "candidates": [
+            [
+              "外向",
+              "内向"
+            ],
+            [
+              "大々吉",
+              "大々凶"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 10,
+            "B": 10
+          },
+          "sudden": true,
+          "selection": {
+            "index": 0,
+            "reason": "外向内向可由社交方式和日常生活表达，中间位置也有丰富角色选择，较运势符号更易细分。"
+          },
+          "clue": {
+            "clue": "东风谷早苗",
+            "reason": "早苗会积极传教、接触居民并参与异变，性格较开朗主动；但仍有礼貌拘谨的一面，不及魔理沙或射命丸文那样强烈外向，适合中等偏左。",
+            "difficulty": 2,
+            "confidence": 0.73
+          },
+          "dial": {
+            "dial": -66,
+            "reason": "早苗积极传教、热情参与异变和社交，明显外向，但仍有认真拘谨的一面，未到魔理沙或妖精那种最奔放的程度。",
+            "confidence": 0.72,
+            "requestedDial": -66
+          },
+          "defense": {
+            "B1": {
+              "estimate": -58,
+              "side": "R",
+              "reason": "早苗积极传教、热心外向，但仍有认真拘谨的少女一面，社交张扬程度不及文或魔理沙，估计比-66稍靠中间。",
+              "confidence": 0.61
+            },
+            "B2": {
+              "estimate": -60,
+              "side": "R",
+              "reason": "早苗善于交流、积极传教与行动，明显外向；但仍有认真拘谨的常识人底色，不像最奔放的角色那样极端，估计略在-66以内。",
+              "confidence": 0.59
+            }
+          },
+          "startedAt": "2026-10-13T04:12:08.691Z",
+          "pair": [
+            "外向",
+            "内向"
+          ],
+          "opponentEstimate": -59,
+          "opponentSide": "R",
+          "target": -31.8,
+          "targetRaw": {
+            "center": 341,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "recommended"
+          },
+          "error": 34.2,
+          "pts": 0,
+          "oppPts": 1,
+          "opponentCorrect": "R",
+          "scoreAfter": {
+            "A": 10,
+            "B": 10
+          },
+          "suddenPointsAfter": {
+            "A": 1,
+            "B": 4
+          },
+          "catchup": false,
+          "resultAfter": {
+            "winner": "B",
+            "sudden": true
+          },
+          "endedAt": "2026-10-13T04:13:05.323Z"
+        }
+      ],
+      "feedback": {
+        "B2": {
+          "fun": 5,
+          "fairness": 4,
+          "pace": 4,
+          "agency": 4,
+          "frustrations": [
+            "蕾米莉亚体型我估80而目标53.2，语义方向一致仍因程度差距失分。",
+            "加时主记分板固定10比10，若不另看加时得分，不易立即理解是否胜出。"
+          ],
+          "learned": "B1对幼女体型的尺度比我温和；兽人混合特征判断则相近。端点要看题目上是否存在更强的字面角色，不宜机械推到极端。",
+          "proposal": "加时阶段持续突出显示本组双方加时得分及各自是否已行动。"
+        },
+        "A1": {
+          "fun": 4,
+          "fairness": 4,
+          "pace": 3,
+          "agency": 4,
+          "frustrations": [
+            "幽香西洋目标-20.2猜-44，早苗外向目标-31.8猜-66：方向理解一致仍因程度超过20而零分。",
+            "10比10后连续两组加时共4轮，主比分一直不变，前期局面信息未直接突出加时小分时较难判断剩余目标。"
+          ],
+          "learned": "我与A2都容易将角色的一项鲜明特征读得比出题目标更极端，不能用统一线性偏移解释；猜非端点角色应更多考虑中度表达。妖梦胆小62对56较稳，早苗外向需要比直觉明显收敛。",
+          "proposal": "加时期间始终突出当前加时小分、双方是否已行动及本轮获胜条件，主比分10比10退为次要信息。"
+        },
+        "A2": {
+          "fun": 4,
+          "fairness": 4,
+          "pace": 3,
+          "agency": 4,
+          "frustrations": [
+            "幽香西洋程度我意图轻偏，队友猜到-44；早苗外向程度我意图-31.8，队友猜-66，两次中段线索丢分。",
+            "加时连续四轮主比分始终10比10，行动接口没展示加时累计分，不易直观看出本轮拿几分能赢。"
+          ],
+          "learned": "队友会把鲜明外观或社交特征读得较强，中段出题应选真正两面混合的角色；猜题也不能机械向中间收缩，幽幽子的日常悠闲应优先于沉重背景。",
+          "proposal": "加时行动界面持续显示双方本组加时积分和已行动次数，明确当前胜负条件。"
+        },
+        "B1": {
+          "fun": 5,
+          "fairness": 4,
+          "pace": 4,
+          "agency": 4,
+          "frustrations": [
+            "蕾米莉亚大小目标53.2被猜80，再次暴露体型尺度不一致。",
+            "加时第一组紫苑得3分、幽幽子得2分，但对方防守得1分令总分追平，主比分固定10比10时若未显示加时分会难理解为何继续。"
+          ],
+          "learned": "B2对幼小体型比我更极端，但八云蓝兽性与阿求人文等鲜明特征对齐较好。灵梦的中性人格线索也稳定，后续优先选可从明显设定或职业推断的题面。防守需留意出题人用次强角色表达中度偏向，例如早苗外向实际仅-31.8。",
+          "proposal": "加时始终单独展示双方本组主动得分、防守得分及是否已行动，清楚说明继续加时的原因。"
+        }
+      },
+      "result": {
+        "winner": "B",
+        "sudden": true
+      },
+      "score": {
+        "A": 10,
+        "B": 10
+      }
+    },
+    {
+      "game": 4,
+      "seed": 246397003,
+      "first": "B",
+      "settings": {
+        "winScore": 10,
+        "bandWidth": 40,
+        "maxRounds": 10,
+        "cardMode": "choice"
+      },
+      "rounds": [
+        {
+          "game": 4,
+          "round": 1,
+          "team": "B",
+          "psychic": "B2",
+          "guesser": "B1",
+          "captain": "A1",
+          "candidates": [
+            [
+              "太快乐了🤗",
+              "太痛苦了😫"
+            ],
+            [
+              "富裕",
+              "贫穷"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 1,
+            "B": 0
+          },
+          "sudden": false,
+          "selection": {
+            "index": 1,
+            "reason": "财富题有明确的资产和生活状况依据，并已有魔理沙中等偏穷的成功公开校准。"
+          },
+          "clue": {
+            "clue": "依神紫苑",
+            "reason": "贫穷神的身份与自身极度穷困生活都直指贫穷端点，是此题最明确的极端角色。",
+            "difficulty": 1,
+            "confidence": 0.98
+          },
+          "dial": {
+            "dial": 96,
+            "reason": "紫苑直接是贫穷神，衣着与生活也穷困，是贫穷轴最鲜明的端点人物；相比上一局不幸轴，贫穷与她的身份对应更加直接。",
+            "confidence": 0.92,
+            "requestedDial": 96
+          },
+          "defense": {
+            "A1": {
+              "estimate": 93,
+              "side": "L",
+              "reason": "紫苑是贫穷神，明确指向贫穷极端；但96已非常靠边，参考同角色的不幸题曾为88.8，略向内估计。",
+              "confidence": 0.66
+            },
+            "A2": {
+              "estimate": 93,
+              "side": "L",
+              "reason": "紫苑作为贫穷神几乎是贫穷端的代表；但96已极接近边界，且上一局不幸题同角色落在88.8，估计略在拨杆左侧。",
+              "confidence": 0.58
+            }
+          },
+          "startedAt": "2026-10-13T04:14:10.302Z",
+          "pair": [
+            "富裕",
+            "贫穷"
+          ],
+          "opponentEstimate": 93,
+          "opponentSide": "L",
+          "target": 97.8,
+          "targetRaw": {
+            "center": 989,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "mild"
+          },
+          "error": 1.8,
+          "pts": 4,
+          "oppPts": 0,
+          "opponentCorrect": null,
+          "scoreAfter": {
+            "A": 1,
+            "B": 4
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T04:15:29.051Z"
+        },
+        {
+          "game": 4,
+          "round": 2,
+          "team": "A",
+          "psychic": "A1",
+          "guesser": "A2",
+          "captain": "B2",
+          "candidates": [
+            [
+              "左",
+              "右"
+            ],
+            [
+              "夯",
+              "拉完了"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 1,
+            "B": 4
+          },
+          "sudden": false,
+          "selection": {
+            "index": 1,
+            "reason": "夯至拉完了可按角色综合实力与靠谱程度自然评价；单独的左右缺乏明确评价维度。"
+          },
+          "clue": {
+            "clue": "魂魄妖梦",
+            "reason": "妖梦剑术扎实、能独立解决异变，整体值得正面评价，但冒失、怕幽灵的反差让她不到顶级强者或全能可靠的程度。",
+            "difficulty": 4,
+            "confidence": 0.59
+          },
+          "dial": {
+            "dial": -52,
+            "reason": "把夯至拉完了理解为综合认可度：妖梦人气高、剑术可靠，整体显著正面；但也有胆小、天然和被捉弄的形象，尚非全面顶格。",
+            "confidence": 0.51,
+            "requestedDial": -52
+          },
+          "defense": {
+            "B2": {
+              "estimate": -45,
+              "side": "R",
+              "reason": "将题面理解为很强很赞到很差，妖梦剑术、认真程度与人气都偏优秀，但天然和受捉弄的一面使其非全面顶点，估计比-52稍靠中间。",
+              "confidence": 0.49
+            },
+            "B1": {
+              "estimate": -45,
+              "side": "R",
+              "reason": "将夯理解为强、优秀、表现好：妖梦实力和人气都较高，但认真天然与偶尔失误让她不至于最顶端；估计比-52稍靠中间。",
+              "confidence": 0.48
+            }
+          },
+          "startedAt": "2026-10-13T04:15:29.051Z",
+          "pair": [
+            "夯",
+            "拉完了"
+          ],
+          "opponentEstimate": -45,
+          "opponentSide": "R",
+          "target": -27.2,
+          "targetRaw": {
+            "center": 364,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "strong"
+          },
+          "error": 24.8,
+          "pts": 0,
+          "oppPts": 1,
+          "opponentCorrect": "R",
+          "scoreAfter": {
+            "A": 1,
+            "B": 5
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T04:16:38.691Z"
+        },
+        {
+          "game": 4,
+          "round": 3,
+          "team": "B",
+          "psychic": "B1",
+          "guesser": "B2",
+          "captain": "A1",
+          "candidates": [
+            [
+              "讨好型人格",
+              "反驳型人格"
+            ],
+            [
+              "老资历",
+              "小资历"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 1,
+            "B": 5
+          },
+          "sudden": false,
+          "selection": {
+            "index": 1,
+            "reason": "资历可依历史年龄、身份与经验判断，已有慧音的公开案例；另一题的讨好与反驳并非完全相反且容易贴标签。"
+          },
+          "clue": {
+            "clue": "十六夜咲夜",
+            "reason": "咲夜作为女仆长成熟熟练，显然不是新手，但人类身份与少女外观又远不像慧音或古老妖怪那样资深；两边因素平衡，接近中点。",
+            "difficulty": 3,
+            "confidence": 0.63
+          },
+          "dial": {
+            "dial": 22,
+            "reason": "按世界观内阅历理解，咲夜是熟练的女仆长，有工作资历却仍属人类，远不及千年妖怪；比纯新人老练，整体中间略偏小资历。",
+            "confidence": 0.52,
+            "requestedDial": 22
+          },
+          "defense": {
+            "A1": {
+              "estimate": 10,
+              "side": "L",
+              "reason": "咲夜作为人类相对千年妖怪资历较浅，但女仆长经历丰富、做事熟练，不像新人，估计比22更靠中间。",
+              "confidence": 0.58
+            },
+            "A2": {
+              "estimate": 8,
+              "side": "L",
+              "reason": "咲夜虽是相对年轻的人类，但已任女仆长且处事熟练，资历不应很浅；比慧音年轻但仍有经验，估计仅略偏小资历，落在22左侧。",
+              "confidence": 0.57
+            }
+          },
+          "startedAt": "2026-10-13T04:16:38.692Z",
+          "pair": [
+            "老资历",
+            "小资历"
+          ],
+          "opponentEstimate": 9,
+          "opponentSide": "L",
+          "target": -2,
+          "targetRaw": {
+            "center": 490,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "recommended"
+          },
+          "error": 24,
+          "pts": 0,
+          "oppPts": 1,
+          "opponentCorrect": "L",
+          "scoreAfter": {
+            "A": 2,
+            "B": 5
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T04:17:40.704Z"
+        },
+        {
+          "game": 4,
+          "round": 4,
+          "team": "A",
+          "psychic": "A2",
+          "guesser": "A1",
+          "captain": "B2",
+          "candidates": [
+            [
+              "常见",
+              "罕见"
+            ],
+            [
+              "s",
+              "m"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 2,
+            "B": 5
+          },
+          "sudden": false,
+          "selection": {
+            "index": 0,
+            "reason": "常见程度可依据角色在作品与大众印象中的出场频率判断，热门主角和少露面的角色提供清晰参照。"
+          },
+          "clue": {
+            "clue": "东风谷早苗",
+            "reason": "早苗是多次登场和可操作的主要角色，作品与同人中相当常见；但没有灵梦、魔理沙那样几乎无处不在，适合明显偏常见而非最端点。",
+            "difficulty": 2,
+            "confidence": 0.77
+          },
+          "dial": {
+            "dial": -47,
+            "reason": "按角色出场与被见到的频率理解，早苗是多次登场的常驻自机，明显常见，但不像灵梦和魔理沙几乎无处不在，取中度偏常见。",
+            "confidence": 0.57,
+            "requestedDial": -47
+          },
+          "defense": {
+            "B2": {
+              "estimate": -40,
+              "side": "R",
+              "reason": "早苗多次作为自机和主要角色登场，明显常见，但频率仍低于灵梦、魔理沙，也并非每作都出现；估计常见侧中段，略高于-47。",
+              "confidence": 0.58
+            },
+            "B1": {
+              "estimate": -35,
+              "side": "R",
+              "reason": "按登场与日常接触理解，早苗是常驻自机和重要配角，偏常见但不及灵梦魔理沙；考虑出题人此前用她表达中度外向，估计常见侧中段，略右于-47。",
+              "confidence": 0.59
+            }
+          },
+          "startedAt": "2026-10-13T04:17:40.704Z",
+          "pair": [
+            "常见",
+            "罕见"
+          ],
+          "opponentEstimate": -37.5,
+          "opponentSide": "R",
+          "target": -69.2,
+          "targetRaw": {
+            "center": 154,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "recommended"
+          },
+          "error": 22.2,
+          "pts": 0,
+          "oppPts": 0,
+          "opponentCorrect": "L",
+          "scoreAfter": {
+            "A": 2,
+            "B": 5
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T04:18:45.029Z"
+        },
+        {
+          "game": 4,
+          "round": 5,
+          "team": "B",
+          "psychic": "B2",
+          "guesser": "B1",
+          "captain": "A1",
+          "candidates": [
+            [
+              "活泼",
+              "冷静"
+            ],
+            [
+              "科技",
+              "幻想"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 2,
+            "B": 5
+          },
+          "sudden": false,
+          "selection": {
+            "index": 0,
+            "reason": "性格轴较清楚，且已有灵梦和咲夜的公开记录帮助区分温和冷静与强冷静；科技幻想的中段更难界定。"
+          },
+          "clue": {
+            "clue": "雾雨魔理沙",
+            "reason": "魔理沙精力旺盛、主动冒险、言行爽朗，是明显活泼的主角；仍有钻研魔法时的专注，活泼程度无需压到妖精闹腾的极端。",
+            "difficulty": 2,
+            "confidence": 0.82
+          },
+          "dial": {
+            "dial": -78,
+            "reason": "魔理沙热情好动、主动冒险、说话爽快，是明显活泼的代表；但研究魔法时认真专注，不像妖精那样全无沉稳一面，因此留出一段端点余量。",
+            "confidence": 0.78,
+            "requestedDial": -78
+          },
+          "defense": {
+            "A1": {
+              "estimate": -70,
+              "side": "R",
+              "reason": "魔理沙开朗好动、行动积极，明显活泼，但做魔法研究时也能认真沉静；-78较极端，估计略向中间。",
+              "confidence": 0.62
+            },
+            "A2": {
+              "estimate": -65,
+              "side": "R",
+              "reason": "魔理沙活跃外向、爱冒险，但研究和战斗时仍能专注冷静，比极端活泼的妖精留有更多克制，估计-78偏远。",
+              "confidence": 0.64
+            }
+          },
+          "startedAt": "2026-10-13T04:18:45.029Z",
+          "pair": [
+            "活泼",
+            "冷静"
+          ],
+          "opponentEstimate": -67.5,
+          "opponentSide": "R",
+          "target": -76.2,
+          "targetRaw": {
+            "center": 119,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "recommended"
+          },
+          "error": 1.8,
+          "pts": 4,
+          "oppPts": 0,
+          "opponentCorrect": null,
+          "scoreAfter": {
+            "A": 2,
+            "B": 9
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T04:19:45.264Z"
+        },
+        {
+          "game": 4,
+          "round": 6,
+          "team": "A",
+          "psychic": "A1",
+          "guesser": "A2",
+          "captain": "B2",
+          "candidates": [
+            [
+              "人气排名高",
+              "人气排名低"
+            ],
+            [
+              "强健",
+              "病弱"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 2,
+            "B": 9
+          },
+          "sudden": false,
+          "selection": {
+            "index": 1,
+            "reason": "强健与病弱有明确的体格和健康设定依据，比不确定年份的人气排名更稳定。"
+          },
+          "clue": {
+            "clue": "爱丽丝·玛格特罗依德",
+            "reason": "爱丽丝是室内制作人偶、依靠魔法的纤细少女，稍离强健一端，但没有明确疾病或虚弱设定，应该接近中点。",
+            "difficulty": 4,
+            "confidence": 0.65
+          },
+          "dial": {
+            "dial": 18,
+            "reason": "爱丽丝偏室内研究、以人偶施法，缺少体力型角色的强健感；但没有明确疾病，也能独立行动，因而只轻微偏病弱一侧。",
+            "confidence": 0.63,
+            "requestedDial": 18
+          },
+          "defense": {
+            "B2": {
+              "estimate": 5,
+              "side": "L",
+              "reason": "爱丽丝是纤细的魔法使，缺少体能强健形象，但没有帕秋莉式明确病弱设定，能正常战斗生活；更接近中间，略低于18。",
+              "confidence": 0.65
+            },
+            "B1": {
+              "estimate": 25,
+              "side": "R",
+              "reason": "爱丽丝是纤细的魔法使，主要靠人偶作战，体能形象不强；不过没有帕秋莉那样的明确疾病，放在略偏病弱的中间区域，略右于18。",
+              "confidence": 0.55
+            }
+          },
+          "startedAt": "2026-10-13T04:19:45.264Z",
+          "pair": [
+            "强健",
+            "病弱"
+          ],
+          "opponentEstimate": 15,
+          "opponentSide": "L",
+          "target": 9,
+          "targetRaw": {
+            "center": 545,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "recommended"
+          },
+          "error": 9,
+          "pts": 3,
+          "oppPts": 1,
+          "opponentCorrect": "L",
+          "scoreAfter": {
+            "A": 5,
+            "B": 10
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": {
+            "winner": "B",
+            "maxRounds": false
+          },
+          "endedAt": "2026-10-13T04:20:48.258Z"
+        }
+      ],
+      "feedback": {
+        "B1": {
+          "fun": 4,
+          "fairness": 4,
+          "pace": 5,
+          "agency": 4,
+          "frustrations": [
+            "咲夜资历目标-2却猜22，成熟经验和人类年龄两种依据没能平衡，零分。",
+            "夯与拉完了、常见与罕见的评判维度不够明确，依赖临场解释。"
+          ],
+          "learned": "魔理沙活泼与紫苑贫穷均误差1.8拿4分，鲜明自然特征的定位越来越可靠；中点仍最难表达，不能把我认为的两侧因素抵消默认成队友也会如此。最后防守我判断错误，团队合议却判对，体现独立估计的价值。",
+          "proposal": "为抽象题面增加可选的一句话释义，尤其明确常见的观察范围与资历是年龄还是经验。"
+        },
+        "B2": {
+          "fun": 4,
+          "fairness": 4,
+          "pace": 5,
+          "agency": 4,
+          "frustrations": [
+            "咲夜老资历题我按寿命侧重猜22，伙伴目标-2；身份熟练程度与年龄仍会把同一角色拉向不同位置。",
+            "夯与拉完了需要先猜题目评价口径，角色线索难同时说明是在说实力还是喜爱程度。"
+          ],
+          "learned": "魔理沙活泼侧与紫苑贫穷端点均取得精确命中，显著单一特征的线索更稳定；综合资历题须平衡职业熟练程度与年龄。",
+          "proposal": "为资历、常见等多口径题面增加可选简短维度提示。"
+        },
+        "A1": {
+          "fun": 3,
+          "fairness": 4,
+          "pace": 4,
+          "agency": 3,
+          "frustrations": [
+            "夯至拉完了与左右同时出现，两个候选维度都缺少稳定依据，只能选择相对可解释的一张。",
+            "早苗常见度目标-69.2而我猜-47，反省上局过度极端后收敛过头，三轮连续零分使追分困难。"
+          ],
+          "learned": "跨题不能给同一搭档统一加减幅度：早苗外向的目标较温和，但常见度确实很高。应按具体轴校准；爱丽丝健康接近中间的线索取得3分，是有效的中间表达。",
+          "proposal": "提供可选的清晰题库模式，将左右、夯拉等缺少解释的梗题单独归入进阶题库。"
+        },
+        "A2": {
+          "fun": 3,
+          "fairness": 4,
+          "pace": 4,
+          "agency": 3,
+          "frustrations": [
+            "常见程度的早苗我认为明显常见，队友猜-47而目标-69.2，差22.2整轮无分。",
+            "夯/拉完了缺少评价维度，我按综合认可度猜妖梦-52，实际只-27.2。",
+            "爱丽丝病弱程度已猜轻偏18，仍高于目标9；中间区域的细微区别很难用单个角色传递。"
+          ],
+          "learned": "具体身份和典型状态优先于全方面综合印象；没有明确病弱设定的角色应更靠中心。既有经验不支持统一缩放所有题，需按维度分别校准。",
+          "proposal": "对夯/拉完了等总评价梗增加题面说明，明确比较的是实力、人气还是个人喜欢程度。"
+        }
+      },
+      "result": {
+        "winner": "B",
+        "maxRounds": false
+      },
+      "score": {
+        "A": 5,
+        "B": 10
+      }
+    },
+    {
+      "game": 5,
+      "seed": 3933679559,
+      "first": "A",
+      "settings": {
+        "winScore": 10,
+        "bandWidth": 40,
+        "maxRounds": 10,
+        "cardMode": "choice"
+      },
+      "rounds": [
+        {
+          "game": 5,
+          "round": 1,
+          "team": "A",
+          "psychic": "A2",
+          "guesser": "A1",
+          "captain": "B1",
+          "candidates": [
+            [
+              "老太婆",
+              "小萝莉"
+            ],
+            [
+              "聪明",
+              "笨蛋"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 0,
+            "B": 1
+          },
+          "sudden": false,
+          "selection": {
+            "index": 1,
+            "reason": "聪明笨蛋有永琳、琪露诺等清楚两端，也有智力普通或聪明但天然的角色，避免年龄与外貌冲突。"
+          },
+          "clue": {
+            "clue": "八意永琳",
+            "reason": "永琳是月之贤者，拥有极高医学、药学与谋略才能，是聪明端最鲜明且广为理解的代表之一。",
+            "difficulty": 1,
+            "confidence": 0.94
+          },
+          "dial": {
+            "dial": -96,
+            "reason": "永琳是极高智慧的月之贤者与医药专家，几乎直接代表聪明端点，这一轴比一般性格评价更明确。",
+            "confidence": 0.91,
+            "requestedDial": -96
+          },
+          "defense": {
+            "B1": {
+              "estimate": -94,
+              "side": "R",
+              "reason": "永琳是医药与谋略上的顶尖智慧代表，明确接近聪明端点；-96已经极靠边，端点线索可覆盖稍宽范围，估计略向右。",
+              "confidence": 0.58
+            },
+            "B2": {
+              "estimate": -94,
+              "side": "R",
+              "reason": "永琳是顶尖智慧与医药知识的代表，毫无疑问接近聪明端；-96已极靠边，考虑同一线索可表达的邻近范围，估计略在其内侧。",
+              "confidence": 0.55
+            }
+          },
+          "startedAt": "2026-10-13T04:21:52.070Z",
+          "pair": [
+            "聪明",
+            "笨蛋"
+          ],
+          "opponentEstimate": -94,
+          "opponentSide": "R",
+          "target": -94,
+          "targetRaw": {
+            "center": 30,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "mild"
+          },
+          "error": 2,
+          "pts": 4,
+          "oppPts": 0,
+          "opponentCorrect": null,
+          "scoreAfter": {
+            "A": 4,
+            "B": 1
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T04:23:06.398Z"
+        },
+        {
+          "game": 5,
+          "round": 2,
+          "team": "B",
+          "psychic": "B1",
+          "guesser": "B2",
+          "captain": "A2",
+          "candidates": [
+            [
+              "威严满满",
+              "抱头蹲防"
+            ],
+            [
+              "猫",
+              "狗"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 4,
+            "B": 1
+          },
+          "sudden": false,
+          "selection": {
+            "index": 0,
+            "reason": "威严与抱头蹲防有明确的东方角色气质和常见梗，能用身份、行为及形象表达连续程度。"
+          },
+          "clue": {
+            "clue": "四季映姬·亚玛萨那度",
+            "reason": "阎魔裁判的身份、严肃训诫和对善恶的权威判断，使她几乎处在威严满满端点，缺少抱头蹲防的典型反差。",
+            "difficulty": 1,
+            "confidence": 0.89
+          },
+          "dial": {
+            "dial": -92,
+            "reason": "映姬是严肃公正、训诫众人的阎魔，权威与说教气场是核心形象，几乎没有抱头蹲防的主导联想，取很接近威严端的位置。",
+            "confidence": 0.86,
+            "requestedDial": -92
+          },
+          "defense": {
+            "A1": {
+              "estimate": -87,
+              "side": "R",
+              "reason": "映姬作为阎魔极有威严，角色语义明确偏左；-92接近绝对端点，考虑她并非压倒性气场体型，估计稍向内。",
+              "confidence": 0.6
+            },
+            "A2": {
+              "estimate": -87,
+              "side": "R",
+              "reason": "四季映姬是严厉判官，训诫他人的权威形象很强，明显接近威严端；-92已几乎绝对，估计稍向中间。",
+              "confidence": 0.58
+            }
+          },
+          "startedAt": "2026-10-13T04:23:06.398Z",
+          "pair": [
+            "威严满满",
+            "抱头蹲防"
+          ],
+          "opponentEstimate": -87,
+          "opponentSide": "R",
+          "target": -97.6,
+          "targetRaw": {
+            "center": 12,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "strong"
+          },
+          "error": 5.6,
+          "pts": 3,
+          "oppPts": 0,
+          "opponentCorrect": "L",
+          "scoreAfter": {
+            "A": 4,
+            "B": 4
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T04:24:03.896Z"
+        },
+        {
+          "game": 5,
+          "round": 3,
+          "team": "A",
+          "psychic": "A1",
+          "guesser": "A2",
+          "captain": "B1",
+          "candidates": [
+            [
+              "北大",
+              "清华"
+            ],
+            [
+              "活着的",
+              "死掉了"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 4,
+            "B": 4
+          },
+          "sudden": false,
+          "selection": {
+            "index": 1,
+            "reason": "生死有幽灵、半人半灵、僵尸与普通人类等明确设定，较北大清华的间接学科联想更稳定。"
+          },
+          "clue": {
+            "clue": "丰聪耳神子",
+            "reason": "神子曾经经历死亡般的沉睡、以尸解仙身份复活，如今有明确活跃的实体生命；偏活着，但不如普通活人那样纯粹。",
+            "difficulty": 4,
+            "confidence": 0.58
+          },
+          "dial": {
+            "dial": -36,
+            "reason": "神子曾经历尸解与长眠，后来复活成为仙人，现状偏活着；但死亡再生是其身份核心，不能当作普通生者放到极端。",
+            "confidence": 0.56,
+            "requestedDial": -36
+          },
+          "defense": {
+            "B1": {
+              "estimate": -25,
+              "side": "R",
+              "reason": "神子已复活并作为仙人活动，当前偏活着；但经历尸解与长眠，和死亡有强关联，不像普通活人那样靠左端，估计略右于-36。",
+              "confidence": 0.63
+            },
+            "B2": {
+              "estimate": -45,
+              "side": "L",
+              "reason": "神子有历史上的死亡与沉睡背景，但现在已复活并作为仙人主动生活，当前状态更偏活着；保留死亡经历的中间拉力，估计略低于-36。",
+              "confidence": 0.57
+            }
+          },
+          "startedAt": "2026-10-13T04:24:03.896Z",
+          "pair": [
+            "活着的",
+            "死掉了"
+          ],
+          "opponentEstimate": -35,
+          "opponentSide": "R",
+          "target": -44.2,
+          "targetRaw": {
+            "center": 279,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "recommended"
+          },
+          "error": 8.2,
+          "pts": 3,
+          "oppPts": 0,
+          "opponentCorrect": "L",
+          "scoreAfter": {
+            "A": 7,
+            "B": 4
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T04:25:23.999Z"
+        },
+        {
+          "game": 5,
+          "round": 4,
+          "team": "B",
+          "psychic": "B2",
+          "guesser": "B1",
+          "captain": "A2",
+          "candidates": [
+            [
+              "高",
+              "矮"
+            ],
+            [
+              "外向",
+              "内向"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 7,
+            "B": 4
+          },
+          "sudden": false,
+          "selection": {
+            "index": 0,
+            "reason": "身高视觉形象较直观，且咲夜偏高的中段已有双方接近的历史；外向程度此前分歧较大。"
+          },
+          "clue": {
+            "clue": "红美铃",
+            "reason": "美铃是修长高挑的成年武术家与门卫，通常比咲夜更有高个子印象；明显偏高且非巨人式绝对端点，适合高侧深处。",
+            "difficulty": 2,
+            "confidence": 0.86
+          },
+          "dial": {
+            "dial": -80,
+            "reason": "美铃是高挑的成年女性与武术家形象，通常显得比咲夜更高；上局咲夜在偏高半程，美铃应再明显向高端移动，但仍低于夸张巨型角色。",
+            "confidence": 0.78,
+            "requestedDial": -80
+          },
+          "defense": {
+            "A1": {
+              "estimate": -74,
+              "side": "R",
+              "reason": "美铃是高挑成年女性，明显比此前咲夜偏高，但不是巨人级体型，-80可能略向高端过头。",
+              "confidence": 0.61
+            },
+            "A2": {
+              "estimate": -72,
+              "side": "R",
+              "reason": "美铃通常比咲夜更高挑，明显属于高个角色；参照之前咲夜目标-49.8，美铃可再向左一档，但-80或略偏极端。",
+              "confidence": 0.63
+            }
+          },
+          "startedAt": "2026-10-13T04:25:23.999Z",
+          "pair": [
+            "高",
+            "矮"
+          ],
+          "opponentEstimate": -73,
+          "opponentSide": "R",
+          "target": -78.8,
+          "targetRaw": {
+            "center": 106,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "recommended"
+          },
+          "error": 1.2,
+          "pts": 4,
+          "oppPts": 0,
+          "opponentCorrect": null,
+          "scoreAfter": {
+            "A": 7,
+            "B": 8
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "endedAt": "2026-10-13T04:26:27.384Z"
+        },
+        {
+          "game": 5,
+          "round": 5,
+          "team": "A",
+          "psychic": "A2",
+          "guesser": "A1",
+          "captain": "B1",
+          "candidates": [
+            [
+              "叮咚鸡",
+              "大狗叫"
+            ],
+            [
+              "人气排名高",
+              "人气排名低"
+            ]
+          ],
+          "scoreBefore": {
+            "A": 7,
+            "B": 8
+          },
+          "sudden": false,
+          "selection": {
+            "index": 1,
+            "reason": "人气高低可以基于主角与常见热门角色的自然认知表达；叮咚鸡与大狗叫的含义不清楚。"
+          },
+          "clue": {
+            "clue": "十六夜咲夜",
+            "reason": "咲夜是长期知名、广受喜爱的核心角色，人气明显位于高位；但相对灵梦、魔理沙或屡居最前列的角色，仍给最高端留少量空间。",
+            "difficulty": 2,
+            "confidence": 0.81
+          },
+          "dial": {
+            "dial": -85,
+            "reason": "咲夜是长期高人气的核心角色，明显接近高排名端，但相比灵梦、魔理沙等最顶端代表仍留一些距离。",
+            "confidence": 0.81,
+            "requestedDial": -85
+          },
+          "defense": {
+            "B1": {
+              "estimate": -90,
+              "side": "L",
+              "reason": "咲夜属于长期高人气的核心角色，在庞大角色池里是最前列的一档；即使未必第一，也应很接近人气高端，估计略左于-85。",
+              "confidence": 0.68
+            },
+            "B2": {
+              "estimate": -90,
+              "side": "L",
+              "reason": "咲夜是长期广受欢迎的核心角色，在庞大的全角色范围里属于很靠前的一层；虽非必然第一，仍可比-85更靠近高人气端。",
+              "confidence": 0.65
+            }
+          },
+          "startedAt": "2026-10-13T04:26:27.385Z",
+          "pair": [
+            "人气排名高",
+            "人气排名低"
+          ],
+          "opponentEstimate": -90,
+          "opponentSide": "L",
+          "target": -81.8,
+          "targetRaw": {
+            "center": 91,
+            "w4": 16,
+            "w3": 56,
+            "w2": 100,
+            "dist": "recommended"
+          },
+          "error": 3.2,
+          "pts": 4,
+          "oppPts": 0,
+          "opponentCorrect": null,
+          "scoreAfter": {
+            "A": 11,
+            "B": 8
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": {
+            "winner": "A",
+            "maxRounds": false
+          },
+          "endedAt": "2026-10-13T04:27:27.573Z"
+        }
+      ],
+      "feedback": {
+        "B2": {
+          "fun": 4,
+          "fairness": 3,
+          "pace": 5,
+          "agency": 4,
+          "frustrations": [
+            "本局五轮即结束，A有三次主动行动而B只有两次；后手起始1分未必能抵消少一次出题机会。",
+            "映姬线索方向明确但我保守留端点余地，-92与-97.6差5.6，只得3分。"
+          ],
+          "learned": "红美铃身高线索与B1精确吻合；强烈单一语义以及已揭晓的自然尺度能稳定合作，但极端角色仍存在几分的不可消除误差。",
+          "proposal": "试验达到胜分后补齐双方本组常规行动，再比较比分，单独明确追赶行动如何计入。",
+          "overall": {
+            "strategyChange": "从按一般角色印象判断，转为优先检查称号与强梗、区分复合属性、用已揭晓语义校准伙伴尺度；爱丽丝七色称号的失误促使我避免主观弱联想，之后魔理沙活泼与美铃身高均精确命中。",
+            "preferredRegularRounds": 10,
+            "preferredBandWidth": 40,
+            "fairnessChange": "优先试验成对结算胜负，减少到达10分时常规出题次数不等的影响；保留双方相同防守合议机制。",
+            "tradeoff": "当前大多数局在5至6轮结束，尚无证据支持修改10轮上限。色带40保留精确命中奖励与猜测张力；若测试44可减轻3.4刚出4分区的挫败，但可能降低区分度并加速结束。成对结算最多增加一个常规行动并可能延长加时；这些是五局代理体验推测，需更多对局验证。"
+          }
+        },
+        "B1": {
+          "fun": 4,
+          "fairness": 3,
+          "pace": 5,
+          "agency": 4,
+          "frustrations": [
+            "本局A行动3次、B仅2次便结束，刚用美铃误差1.2拿4分后，没有再出题机会。",
+            "映姬威严目标-97.6猜-92，语义完全一致仍只得3分；咲夜人气误差恰好3.2则得4分，窄边界很关键。"
+          ],
+          "learned": "参照此前咲夜身高，再判断美铃更高，成功将误差控制到1.2；基于自然语义的跨局校准有效。端点人物仍难区分90与98，不能把鲜明特征等同于精确位置。",
+          "proposal": "达到10分后让双方完成同等常规行动次数再判胜负，并明确区分追赶奖励行动。",
+          "overall": {
+            "strategyChange": "从凭单个称号或刻板印象定位，转为优先选择明确职业、物种、体型和生活状态，比较已揭晓的相邻角色；避开多义题面，认识到中点的两侧因素抵消未必被队友共享。防守使用独立语义估计，减少无依据的固定向中间修正。",
+            "preferredRegularRounds": 8,
+            "preferredBandWidth": 48,
+            "fairnessChange": "优先试验成对结束常规行动，达到胜分后给另一队补齐同等常规行动机会；显示独立加时记分，并为多义词提供简短范围说明。",
+            "tradeoff": "8轮上限可保留每队4次常规行动的紧凑结构；色带48仅建议作为较宽容模式试验，能缓和3.4和24附近误差的断崖，但也会增加4分及追赶频率、削弱精确度差异。只有五局代理体验，无法断言优于当前40，应与原配置对照验证。"
+          }
+        },
+        "A1": {
+          "fun": 5,
+          "fairness": 4,
+          "pace": 4,
+          "agency": 4,
+          "frustrations": [
+            "本局5轮即结束，B队只有两次主动行动，虽然A队命中更好，比赛仍略短。",
+            "两次防守都在极端附近略向内估计，但映姬目标实际更靠端点，不能把向中间猜当作通用策略。"
+          ],
+          "learned": "永琳聪明与咲夜人气这类明确维度可以大胆靠近极端；神子复活设定成功表达中间偏活着并得3分，说明中段也能靠清楚的双重属性传达。",
+          "proposal": "先测试每两队各完成一次行动后再检查胜负，让结束时主动行动次数相同。",
+          "overall": {
+            "strategyChange": "从按直觉角色强度给位置，到利用公开历史校准；中途尝试普遍向中点收敛，却在早苗常见度题收敛过头，最终更重视具体题轴。出题优先自然语义明确且能覆盖中段的题，端点用标志性角色，中段用真实双重属性，避免称号与外观冲突。",
+            "preferredRegularRounds": 8,
+            "preferredBandWidth": 48,
+            "fairnessChange": "建议以双方各一次为结算单位检查10分，先后手继续轮换；在采用完整轮对后重新实测后手初始1分是否仍必要。当前五局不足以证明哪队或哪种先后手系统性占优。",
+            "tradeoff": "8轮是节奏偏好而非统计最优：当前多数局因10分提前结束，改单独轮数上限影响很小。基准宽48若同比例扩大，可让方向正确但误差22至24的表达获得少量分，减轻连续零分；代价是降低精度奖励差异、加快结束并可能增加追赶行动。建议先作为可选宽容模式对照测试，保留40的标准模式。"
+          }
+        },
+        "A2": {
+          "fun": 5,
+          "fairness": 4,
+          "pace": 5,
+          "agency": 4,
+          "frustrations": [
+            "本局两次防守把明显端点角色稍向中间估计，实际目标更靠极端，说明统一收缩不能替代逐题判断。",
+            "五轮就结束，单局内并非每位玩家都有同样次数的出题机会；跨局轮换有所缓解。"
+          ],
+          "learned": "永琳聪明和咲夜人气的主要特征足够清楚，分别命中4分；神子复活的双面状态也能传递中段位置。应按具体维度选择共同熟悉的核心特征，而非把所有角色强度统一修正。",
+          "proposal": "先试验基准色带宽度48，观察能否减少方向正确但差22至24点整轮无分的挫折，同时保留4分的精确奖励。",
+          "overall": {
+            "strategyChange": "起初依据角色综合印象直接定强度，随后尝试向中间收缩；多轮发现不同题的误差方向不同，最终改为优先主特征、按维度利用已揭晓参照，并避开依赖小众梗或多重解释的选题。",
+            "preferredRegularRounds": 8,
+            "preferredBandWidth": 48,
+            "fairnessChange": "建议试验固定8个常规行动后比较比分，让四位玩家各有两次出题；若保留10分终止，至少完成双方同等行动次数再结算。现有后手1分和跨局轮换可缓解差异，但五局不足以证明整体先后手优势。",
+            "tradeoff": "固定8轮增加单局参与机会与比较公平性，但会延长已拉开差距的比赛；色带48更宽容细微尺度偏差，也会降低精确猜测的区分度。建议把两项变化分开测试；这些是代理主观偏好，不代表真人结论。"
+          }
+        }
+      },
+      "result": {
+        "winner": "A",
+        "maxRounds": false
+      },
+      "score": {
+        "A": 11,
+        "B": 8
+      }
+    }
+  ],
+  "actions": [
+    {
+      "player": "A1",
+      "task": "select",
+      "game": 1,
+      "round": 1,
+      "at": "2026-10-13T03:46:41.837Z",
+      "answer": {
+        "index": 0,
+        "reason": "学业表现可通过角色知识、学习态度和笨蛋形象分层，比串子与纯良更稳定。"
+      }
+    },
+    {
+      "player": "A1",
+      "task": "clue",
+      "game": 1,
+      "round": 1,
+      "at": "2026-10-13T03:46:53.506Z",
+      "answer": {
+        "clue": "雾雨魔理沙",
+        "reason": "靠努力研究魔法，有实际学习能力，但随性、偏科且不循规蹈矩，学业应略高于中等而非满绩学霸。",
+        "difficulty": 3,
+        "confidence": 0.67
+      }
+    },
+    {
+      "player": "A2",
+      "task": "dial",
+      "game": 1,
+      "round": 1,
+      "at": "2026-10-13T03:47:22.485Z",
+      "answer": {
+        "dial": -35,
+        "reason": "魔理沙善于研究魔法且暗中勤奋，学习能力较强；但行事随性、不像循规蹈矩的满绩优等生，因此适度偏向GPA4.0。",
+        "confidence": 0.57
+      }
+    },
+    {
+      "player": "B1",
+      "task": "defend",
+      "game": 1,
+      "round": 1,
+      "at": "2026-10-13T03:47:33.205Z",
+      "answer": {
+        "estimate": -45,
+        "side": "L",
+        "reason": "魔理沙虽顽皮且不像循规蹈矩的优等生，但以自学、研究和努力见长，学业能力应明显偏高；估计比拨杆略靠GPA4.0一侧。",
+        "confidence": 0.55
+      }
+    },
+    {
+      "player": "B2",
+      "task": "defend",
+      "game": 1,
+      "round": 1,
+      "at": "2026-10-13T03:47:36.219Z",
+      "answer": {
+        "estimate": -48,
+        "side": "L",
+        "reason": "魔理沙虽有逃课式的随性气质，但长期自学魔法并勤于研究，学力更接近高绩点；相较帕秋莉或慧音等典型学霸仍留明显余地，估计比-35再偏左。",
+        "confidence": 0.59
+      }
+    },
+    {
+      "player": "B1",
+      "task": "select",
+      "game": 1,
+      "round": 2,
+      "at": "2026-10-13T03:48:02.589Z",
+      "answer": {
+        "index": 1,
+        "reason": "高矮可用角色体型和常见视觉印象表达，端点与中段均有明确角色；比s/m的二设歧义小。"
+      }
+    },
+    {
+      "player": "B1",
+      "task": "clue",
+      "game": 1,
+      "round": 2,
+      "at": "2026-10-13T03:48:10.138Z",
+      "answer": {
+        "clue": "十六夜咲夜",
+        "reason": "成熟人类女性形象，明显比少女与小型妖精高，但不及勇仪、八尺样的极高形象，适合偏高约半程。",
+        "difficulty": 2,
+        "confidence": 0.7
+      }
+    },
+    {
+      "player": "B2",
+      "task": "dial",
+      "game": 1,
+      "round": 2,
+      "at": "2026-10-13T03:48:41.731Z",
+      "answer": {
+        "dial": -55,
+        "reason": "咲夜是成熟修长的成年女性形象，明显在高的一侧；但相较美铃、八云紫等典型高个角色，不取极端。",
+        "confidence": 0.68
+      }
+    },
+    {
+      "player": "A1",
+      "task": "defend",
+      "game": 1,
+      "round": 2,
+      "at": "2026-10-13T03:48:50.018Z",
+      "answer": {
+        "estimate": -48,
+        "side": "R",
+        "reason": "咲夜属于成年女性中的偏高形象，但与八云紫、红美铃等最高一档仍有距离，-55可能略偏高端。",
+        "confidence": 0.58
+      }
+    },
+    {
+      "player": "A2",
+      "task": "defend",
+      "game": 1,
+      "round": 2,
+      "at": "2026-10-13T03:48:51.813Z",
+      "answer": {
+        "estimate": -62,
+        "side": "L",
+        "reason": "咲夜通常呈现为身材修长的成年女仆，在大量娇小角色中明显偏高，但尚非最高的一档；估计略在拨杆左侧。",
+        "confidence": 0.59
+      }
+    },
+    {
+      "player": "A2",
+      "task": "select",
+      "game": 1,
+      "round": 3,
+      "at": "2026-10-13T03:49:24.947Z",
+      "answer": {
+        "index": 0,
+        "reason": "角色服饰配色和标志物容易共享理解，黑白端有魔理沙，七彩端有芙兰朵露或爱丽丝，中间也能以服饰丰富度表达。"
+      }
+    },
+    {
+      "player": "A2",
+      "task": "clue",
+      "game": 1,
+      "round": 3,
+      "at": "2026-10-13T03:49:34.984Z",
+      "answer": {
+        "clue": "芙兰朵露·斯卡雷特",
+        "reason": "最醒目的标志就是七彩水晶翅膀，直接对应接近七彩极端。",
+        "difficulty": 1,
+        "confidence": 0.94
+      }
+    },
+    {
+      "player": "A1",
+      "task": "dial",
+      "game": 1,
+      "round": 3,
+      "at": "2026-10-13T03:51:32.952Z",
+      "answer": {
+        "dial": 94,
+        "reason": "芙兰朵露的标志性翅膀由多色宝石组成，几乎直接对应七彩端点，整体服装仍以红白为主，略留余量。",
+        "confidence": 0.91
+      }
+    },
+    {
+      "player": "B1",
+      "task": "defend",
+      "game": 1,
+      "round": 3,
+      "at": "2026-10-13T03:51:41.048Z",
+      "answer": {
+        "estimate": 92,
+        "side": "L",
+        "reason": "芙兰朵露的多彩水晶翼直接对应七彩端点；94已非常极端，考虑端点附近目标仍有分散，估计略左为92。",
+        "confidence": 0.58
+      }
+    },
+    {
+      "player": "B2",
+      "task": "defend",
+      "game": 1,
+      "round": 3,
+      "at": "2026-10-13T03:51:46.807Z",
+      "answer": {
+        "estimate": 90,
+        "side": "L",
+        "reason": "芙兰朵露的多彩晶体翼是非常直接的七彩意象，目标应接近右端；94已极端靠右，我估计略向内的90。",
+        "confidence": 0.58
+      }
+    },
+    {
+      "player": "B2",
+      "task": "select",
+      "game": 1,
+      "round": 4,
+      "at": "2026-10-13T03:52:11.108Z",
+      "answer": {
+        "index": 0,
+        "reason": "财富有红魔馆、普通经营者、贫困神社及贫穷神等较清楚的自然层次；资历容易混淆年龄与登场年份。"
+      }
+    },
+    {
+      "player": "B2",
+      "task": "clue",
+      "game": 1,
+      "round": 4,
+      "at": "2026-10-13T03:52:19.288Z",
+      "answer": {
+        "clue": "雾雨魔理沙",
+        "reason": "魔理沙独居森林、经营生意不旺的魔法店，经济偏拮据，但仍有自宅和研究资源，贫穷程度应明显弱于灵梦或依神紫苑，适合贫穷侧中段。",
+        "difficulty": 3,
+        "confidence": 0.67
+      }
+    },
+    {
+      "player": "B1",
+      "task": "dial",
+      "game": 1,
+      "round": 4,
+      "at": "2026-10-13T03:52:42.702Z",
+      "answer": {
+        "dial": 50,
+        "reason": "魔理沙经营规模很小的魔法店，生活朴素又常借走别人的书，明显偏贫穷；但仍有住所、藏品且出身商家，未到灵梦或贫穷神的极端。",
+        "confidence": 0.64
+      }
+    },
+    {
+      "player": "A1",
+      "task": "defend",
+      "game": 1,
+      "round": 4,
+      "at": "2026-10-13T03:52:50.660Z",
+      "answer": {
+        "estimate": 36,
+        "side": "L",
+        "reason": "魔理沙生活朴素且爱借东西，但有独立魔法店和研究收藏，贫穷程度应弱于灵梦或依神紫苑，50略偏贫穷。",
+        "confidence": 0.63
+      }
+    },
+    {
+      "player": "A2",
+      "task": "defend",
+      "game": 1,
+      "round": 4,
+      "at": "2026-10-13T03:52:55.564Z",
+      "answer": {
+        "estimate": 35,
+        "side": "L",
+        "reason": "魔理沙独居经营魔法店，常借取物品，经济偏拮据；但有商家出身和大量收藏，通常不像灵梦那样接近贫穷极端，估计比50更靠中间。",
+        "confidence": 0.62
+      }
+    },
+    {
+      "player": "A1",
+      "task": "select",
+      "game": 1,
+      "round": 5,
+      "at": "2026-10-13T03:53:01.838Z",
+      "answer": {
+        "index": 0,
+        "reason": "活泼与冷静能依据角色稳定性格覆盖整个光谱，人类友好度更容易混入危险度歧义。"
+      }
+    },
+    {
+      "player": "A1",
+      "task": "clue",
+      "game": 1,
+      "round": 5,
+      "at": "2026-10-13T03:53:07.859Z",
+      "answer": {
+        "clue": "十六夜咲夜",
+        "reason": "成熟从容、办事沉着的女仆长，明显偏冷静，但仍有幽默和积极行动的一面，不是最极端的无波动。",
+        "difficulty": 2,
+        "confidence": 0.83
+      }
+    },
+    {
+      "player": "A2",
+      "task": "dial",
+      "game": 1,
+      "round": 5,
+      "at": "2026-10-13T03:53:33.568Z",
+      "answer": {
+        "dial": 87,
+        "reason": "咲夜以从容、优雅和精准执行的女仆长形象著称，战斗也能冷静掌控局面，明显接近冷静端；保留少量日常天然和幽默的余地。",
+        "confidence": 0.8
+      }
+    },
+    {
+      "player": "B1",
+      "task": "defend",
+      "game": 1,
+      "round": 5,
+      "at": "2026-10-13T03:53:39.662Z",
+      "answer": {
+        "estimate": 85,
+        "side": "L",
+        "reason": "咲夜是从容冷静的女仆长，强烈靠右，但偶有天然和玩笑，87已接近她语义的上沿，估计略左。",
+        "confidence": 0.55
+      }
+    },
+    {
+      "player": "B2",
+      "task": "defend",
+      "game": 1,
+      "round": 5,
+      "at": "2026-10-13T03:53:45.714Z",
+      "answer": {
+        "estimate": 82,
+        "side": "L",
+        "reason": "咲夜以从容冷静的女仆长形象为主，但仍有调侃和天然的一面；87已很接近冷静极端，我估计稍向内。",
+        "confidence": 0.59
+      }
+    },
+    {
+      "player": "B1",
+      "task": "select",
+      "game": 1,
+      "round": 6,
+      "at": "2026-10-13T03:53:51.453Z",
+      "answer": {
+        "index": 1,
+        "reason": "精英与草根能依据出身、地位、修行途径构造较连续的角色谱，猫狗中段过于依赖性格类比。"
+      }
+    },
+    {
+      "player": "B1",
+      "task": "clue",
+      "game": 1,
+      "round": 6,
+      "at": "2026-10-13T03:54:07.046Z",
+      "answer": {
+        "clue": "若鹭姬",
+        "reason": "普通而弱小的人鱼妖怪，与草根妖怪网络有直接设定联系，没有精英身份或权势，适合草根端点。",
+        "difficulty": 2,
+        "confidence": 0.81
+      }
+    },
+    {
+      "player": "B2",
+      "task": "dial",
+      "game": 1,
+      "round": 6,
+      "at": "2026-10-13T03:54:25.481Z",
+      "answer": {
+        "dial": 82,
+        "reason": "若鹭姬是雾之湖里安静生活的弱小妖怪，没有权势、组织地位或精英气质，非常偏草根；仍有明确能力与独立生活，因此略留端点余地。",
+        "confidence": 0.75
+      }
+    },
+    {
+      "player": "A1",
+      "task": "defend",
+      "game": 1,
+      "round": 6,
+      "at": "2026-10-13T03:54:32.830Z",
+      "answer": {
+        "estimate": 88,
+        "side": "R",
+        "reason": "若鹭姬是缺乏权势与组织地位的普通弱小妖怪，很贴近草根端点，82还可能保守了一点。",
+        "confidence": 0.65
+      }
+    },
+    {
+      "player": "A2",
+      "task": "defend",
+      "game": 1,
+      "round": 6,
+      "at": "2026-10-13T03:54:36.916Z",
+      "answer": {
+        "estimate": 90,
+        "side": "R",
+        "reason": "若鹭姬是雾之湖的弱小妖怪，缺少组织权力与精英身份，并与弱者反抗的故事相关，虽然名字带姬，整体仍很接近草根端。",
+        "confidence": 0.65
+      }
+    },
+    {
+      "player": "A2",
+      "task": "feedback",
+      "game": 1,
+      "round": 6,
+      "at": "2026-10-13T03:54:45.397Z",
+      "answer": {
+        "fun": 4,
+        "fairness": 4,
+        "pace": 4,
+        "agency": 4,
+        "frustrations": [
+          "七彩芙兰朵露传达了接近端点，94对98.8仍差一点才能拿4分。",
+          "冷静咲夜我猜87，目标73；角色特征共识较强，强度尺度仍有14点分歧。"
+        ],
+        "learned": "A1对魔理沙学业和咲夜冷静程度都比我的第一直觉更向中间，后续类似人格与能力题需适度收缩；标志物题可以大胆靠近端点。",
+        "proposal": "揭晓时把目标、拨杆与各得分带同时展示，便于玩家直观建立强度尺度。"
+      }
+    },
+    {
+      "player": "A1",
+      "task": "feedback",
+      "game": 1,
+      "round": 6,
+      "at": "2026-10-13T03:55:32.146Z",
+      "answer": {
+        "fun": 4,
+        "fairness": 4,
+        "pace": 4,
+        "agency": 4,
+        "frustrations": [
+          "第5轮咲夜冷静的目标73被理解为87，角色方向一致但程度分歧损失分数。",
+          "第3轮七彩芙兰朵露猜94，距目标98.8仅4.8仍错过4分窄带。"
+        ],
+        "learned": "A2对明显特质倾向给更极端的位置：魔理沙学习与咲夜冷静均比我的预期远离中点约14；后续选线索会据此校准。猜端点鲜明的角色时更敢靠近边界。",
+        "proposal": "揭晓后保留题面、角色、目标和拨杆的紧凑历史，方便双方自然校准尺度。"
+      }
+    },
+    {
+      "player": "B1",
+      "task": "feedback",
+      "game": 1,
+      "round": 6,
+      "at": "2026-10-13T03:55:38.966Z",
+      "answer": {
+        "fun": 4,
+        "fairness": 4,
+        "pace": 5,
+        "agency": 4,
+        "frustrations": [
+          "若鹭姬的草根网络设定能传达方向，但96.6被猜到82，端点强度仍难达成默契。",
+          "七彩芙兰朵露98.8与拨杆94仅差4.8却错过4分，端点精度对输赢影响明显。"
+        ],
+        "learned": "我与B2对中等程度语义较一致：咲夜身高误差5.2，魔理沙贫穷误差1.4；对极端目标应优先用最显著的端点形象，并在猜题时考虑端点偏重先验。防守不能机械把极端拨杆向中心修正。",
+        "proposal": "揭晓时并列显示目标、拨杆、得分色带及短历史，帮助玩家自然校准语义强度。"
+      }
+    },
+    {
+      "player": "B2",
+      "task": "feedback",
+      "game": 1,
+      "round": 6,
+      "at": "2026-10-13T03:55:41.310Z",
+      "answer": {
+        "fun": 4,
+        "fairness": 4,
+        "pace": 5,
+        "agency": 4,
+        "frustrations": [
+          "若鹭姬的草根线索我停在82，目标96.6；明确端点意象仍容易因保守留余地失分。",
+          "芙兰朵露七彩翼的防守也因向中间收缩误判。"
+        ],
+        "learned": "与B1对魔理沙财富中段的理解吻合；对缺乏明显反面特征的典型端点角色，应更愿意贴近端点，而咲夜冷静等仍保留层次。",
+        "proposal": "揭晓时展示双方估计及短理由，让跨轮校准更直观。"
+      }
+    },
+    {
+      "player": "B2",
+      "task": "select",
+      "game": 2,
+      "round": 1,
+      "at": "2026-10-13T03:55:46.402Z",
+      "answer": {
+        "index": 1,
+        "reason": "服饰与角色视觉配色可形成明确层次，且已有芙兰朵露作为七彩端点的公开记录；波长题面物理与比喻解释容易分歧。"
+      }
+    },
+    {
+      "player": "B2",
+      "task": "clue",
+      "game": 2,
+      "round": 1,
+      "at": "2026-10-13T03:55:58.088Z",
+      "answer": {
+        "clue": "爱丽丝·玛格特罗依德",
+        "reason": "金发、蓝裙、白披肩和红发带形成清楚的多色视觉，明显比黑白鲜艳，但没有芙兰朵露的七彩翼那样接近彩虹端点，表达偏七彩的中段。",
+        "difficulty": 3,
+        "confidence": 0.68
+      }
+    },
+    {
+      "player": "B1",
+      "task": "dial",
+      "game": 2,
+      "round": 1,
+      "at": "2026-10-13T03:56:24.109Z",
+      "answer": {
+        "dial": 85,
+        "reason": "爱丽丝有七色人偶使的称号，明确靠七彩端；但视觉色彩不如上局芙兰朵露彩翼那样直接覆盖全谱，放在靠近右端而略留余地的位置。",
+        "confidence": 0.77
+      }
+    },
+    {
+      "player": "A1",
+      "task": "defend",
+      "game": 2,
+      "round": 1,
+      "at": "2026-10-13T03:56:31.353Z",
+      "answer": {
+        "estimate": 92,
+        "side": "R",
+        "reason": "爱丽丝有七色的人偶使这一直接称号，对七彩端的指向比单纯服装配色更强，我估计比85还靠右。",
+        "confidence": 0.68
+      }
+    },
+    {
+      "player": "A2",
+      "task": "defend",
+      "game": 2,
+      "round": 1,
+      "at": "2026-10-13T03:56:33.467Z",
+      "answer": {
+        "estimate": 93,
+        "side": "R",
+        "reason": "爱丽丝拥有七色人偶使的标志性称号，对七彩的指向很直接，虽服饰自身不是全彩，仍应比85更接近右端。",
+        "confidence": 0.72
+      }
+    },
+    {
+      "player": "A2",
+      "task": "select",
+      "game": 2,
+      "round": 2,
+      "at": "2026-10-13T03:56:41.562Z",
+      "answer": {
+        "index": 0,
+        "reason": "从琪露诺等孩子气角色到八云蓝等照料者，关系与性格足以表达多个强度，较香臭更少依赖小众梗。"
+      }
+    },
+    {
+      "player": "A2",
+      "task": "clue",
+      "game": 2,
+      "round": 2,
+      "at": "2026-10-13T03:56:54.793Z",
+      "answer": {
+        "clue": "博丽灵梦",
+        "reason": "灵梦承担守护与收拾异变的责任，也会照顾来往者，有些可靠照料者气质；但本人仍是随性、会闹情绪的少女，仅小幅偏妈妈。",
+        "difficulty": 4,
+        "confidence": 0.57
+      }
+    },
+    {
+      "player": "A1",
+      "task": "dial",
+      "game": 2,
+      "round": 2,
+      "at": "2026-10-13T03:57:16.175Z",
+      "answer": {
+        "dial": 26,
+        "reason": "灵梦年轻且会任性，但经常负责收拾异变、照看神社和应付妖精，整体稍有照料者与管事人的妈妈感，远不及八云蓝或圣白莲。",
+        "confidence": 0.56
+      }
+    },
+    {
+      "player": "B1",
+      "task": "defend",
+      "game": 2,
+      "round": 2,
+      "at": "2026-10-13T03:57:23.921Z",
+      "answer": {
+        "estimate": 12,
+        "side": "L",
+        "reason": "灵梦有照顾神社众人与处理异变的成熟一面，但懒散、贪财和直接脾气也很少女；妈妈感仅略高于中点，估计在26左边。",
+        "confidence": 0.6
+      }
+    },
+    {
+      "player": "B2",
+      "task": "defend",
+      "game": 2,
+      "round": 2,
+      "at": "2026-10-13T03:57:26.229Z",
+      "answer": {
+        "estimate": 10,
+        "side": "L",
+        "reason": "灵梦有照顾小妖怪和维持秩序的监护者气质，但也常任性、懒散、为钱发愁；整体仅略偏妈妈，不如26那样明显。",
+        "confidence": 0.6
+      }
+    },
+    {
+      "player": "B1",
+      "task": "select",
+      "game": 2,
+      "round": 3,
+      "at": "2026-10-13T03:57:31.827Z",
+      "answer": {
+        "index": 1,
+        "reason": "大小可以依据整体体型及角色设定表达；0与1含义依赖圈内语境，难形成可靠的自然尺度。"
+      }
+    },
+    {
+      "player": "B1",
+      "task": "clue",
+      "game": 2,
+      "round": 3,
+      "at": "2026-10-13T03:57:38.049Z",
+      "answer": {
+        "clue": "博丽灵梦",
+        "reason": "标准人类少女体型，在高大成熟角色与幼小妖精之间，整体接近中等而略偏小。",
+        "difficulty": 3,
+        "confidence": 0.65
+      }
+    },
+    {
+      "player": "B2",
+      "task": "dial",
+      "game": 2,
+      "round": 3,
+      "at": "2026-10-13T03:58:04.229Z",
+      "answer": {
+        "dial": 18,
+        "reason": "按整体体格理解，灵梦是普通少女，远大于幼小妖精和针妙丸，但比成年御姐型角色纤小；位于中间略偏小。",
+        "confidence": 0.48
+      }
+    },
+    {
+      "player": "A2",
+      "task": "defend",
+      "game": 2,
+      "round": 3,
+      "at": "2026-10-13T03:58:11.849Z",
+      "answer": {
+        "estimate": 6,
+        "side": "L",
+        "reason": "按整体体型理解，灵梦是普通少女，介于成熟高大角色与幼小妖精之间，略偏小但很接近中间；18可能偏小过多。",
+        "confidence": 0.54
+      }
+    },
+    {
+      "player": "A1",
+      "task": "defend",
+      "game": 2,
+      "round": 3,
+      "at": "2026-10-13T03:58:12.642Z",
+      "answer": {
+        "estimate": 5,
+        "side": "L",
+        "reason": "灵梦属于体型中等的少女，相比许多幼小妖精不算小，也没有成年高大角色的体型，估计更靠近中点。",
+        "confidence": 0.57
+      }
+    },
+    {
+      "player": "A1",
+      "task": "select",
+      "game": 2,
+      "round": 4,
+      "at": "2026-10-13T03:58:21.818Z",
+      "answer": {
+        "index": 1,
+        "reason": "角色的阅历、年龄和组织地位可自然表达资历梯度，猫狗在中间段更难给出稳定的单角色线索。"
+      }
+    },
+    {
+      "player": "A1",
+      "task": "clue",
+      "game": 2,
+      "round": 4,
+      "at": "2026-10-13T03:58:32.736Z",
+      "answer": {
+        "clue": "上白泽慧音",
+        "reason": "慧音是有学识与阅历的教师和人里守护者，属于资深可靠的一档，但远没有贤者或古老神明那种元老地位。",
+        "difficulty": 3,
+        "confidence": 0.65
+      }
+    },
+    {
+      "player": "A2",
+      "task": "dial",
+      "game": 2,
+      "round": 4,
+      "at": "2026-10-13T03:59:03.533Z",
+      "answer": {
+        "dial": -45,
+        "reason": "慧音是熟悉历史、承担教导与守护职责的老师，明显具有前辈资历；但相较永琳、八云紫等远古人物，还未到老资历极端，取中等偏左。",
+        "confidence": 0.65
+      }
+    },
+    {
+      "player": "B1",
+      "task": "defend",
+      "game": 2,
+      "round": 4,
+      "at": "2026-10-13T03:59:10.991Z",
+      "answer": {
+        "estimate": -32,
+        "side": "R",
+        "reason": "慧音有教师与历史知识带来的资深感，但并非紫、永琳那种远古人物，半兽身份也不直接意味着极老；相比-45稍向中间。",
+        "confidence": 0.61
+      }
+    },
+    {
+      "player": "B2",
+      "task": "defend",
+      "game": 2,
+      "round": 4,
+      "at": "2026-10-13T03:59:14.771Z",
+      "answer": {
+        "estimate": -38,
+        "side": "R",
+        "reason": "慧音是历史教师和可靠前辈，明显有资历，但与古老神灵、大妖怪相比并非最老一层；估计老资历侧中段，比-45略靠中间。",
+        "confidence": 0.55
+      }
+    },
+    {
+      "player": "B2",
+      "task": "select",
+      "game": 2,
+      "round": 5,
+      "at": "2026-10-13T03:59:20.078Z",
+      "answer": {
+        "index": 0,
+        "reason": "年龄形象有明确的长辈、少女和幼女角色层次；另一题面的审美积积含义不够明确。"
+      }
+    },
+    {
+      "player": "B2",
+      "task": "clue",
+      "game": 2,
+      "round": 5,
+      "at": "2026-10-13T03:59:28.890Z",
+      "answer": {
+        "clue": "琪露诺",
+        "reason": "琪露诺的外形与心智都鲜明幼小，孩子气的妖精形象几乎完全落在小萝莉一端，且没有吸血鬼式的高龄反差干扰。",
+        "difficulty": 1,
+        "confidence": 0.89
+      }
+    },
+    {
+      "player": "B1",
+      "task": "dial",
+      "game": 2,
+      "round": 5,
+      "at": "2026-10-13T03:59:51.223Z",
+      "answer": {
+        "dial": 94,
+        "reason": "琪露诺外形幼小、心智也明显孩子气，是小萝莉端非常鲜明的角色；没有蕾米莉亚那种高龄反差，结合端点偏重先验放到94。",
+        "confidence": 0.85
+      }
+    },
+    {
+      "player": "A1",
+      "task": "defend",
+      "game": 2,
+      "round": 5,
+      "at": "2026-10-13T03:59:59.022Z",
+      "answer": {
+        "estimate": 88,
+        "side": "L",
+        "reason": "琪露诺外形与心智都明显偏小萝莉，但仍不是最幼小的角色形象，94接近绝对端点，我略向内估计。",
+        "confidence": 0.59
+      }
+    },
+    {
+      "player": "A2",
+      "task": "defend",
+      "game": 2,
+      "round": 5,
+      "at": "2026-10-13T04:00:04.186Z",
+      "answer": {
+        "estimate": 90,
+        "side": "L",
+        "reason": "琪露诺外形和心智都很幼小，明显靠近小萝莉端；但妖精年龄不等于外貌，94已非常极端，估计略向中间。",
+        "confidence": 0.55
+      }
+    },
+    {
+      "player": "A2",
+      "task": "select",
+      "game": 2,
+      "round": 6,
+      "at": "2026-10-13T04:00:08.984Z",
+      "answer": {
+        "index": 1,
+        "reason": "悠闲生活与承担责任可以用角色日常职责及经历自然表达，尺度比星宇梗稳定。"
+      }
+    },
+    {
+      "player": "A2",
+      "task": "clue",
+      "game": 2,
+      "round": 6,
+      "at": "2026-10-13T04:00:17.886Z",
+      "answer": {
+        "clue": "蓬莱山辉夜",
+        "reason": "长居永远亭、由永琳和兔子们照料的公主，日常悠闲且常见宅居印象，非常接近岁月静好端。",
+        "difficulty": 1,
+        "confidence": 0.86
+      }
+    },
+    {
+      "player": "A1",
+      "task": "dial",
+      "game": 2,
+      "round": 6,
+      "at": "2026-10-13T04:00:45.222Z",
+      "answer": {
+        "dial": -92,
+        "reason": "辉夜作为永远亭公主，日常生活受到照料、悠闲安逸，尤其有宅居享清闲的典型印象，非常接近岁月静好端。",
+        "confidence": 0.85
+      }
+    },
+    {
+      "player": "B1",
+      "task": "defend",
+      "game": 2,
+      "round": 6,
+      "at": "2026-10-13T04:00:53.481Z",
+      "answer": {
+        "estimate": -87,
+        "side": "R",
+        "reason": "辉夜在永远亭由永琳等照顾，生活悠闲，明显接近岁月静好端；但流放与永生背景使她并非毫无负担，估计略高于-92。",
+        "confidence": 0.61
+      }
+    },
+    {
+      "player": "B2",
+      "task": "defend",
+      "game": 2,
+      "round": 6,
+      "at": "2026-10-13T04:00:56.222Z",
+      "answer": {
+        "estimate": -90,
+        "side": "R",
+        "reason": "辉夜长期在永远亭受照顾，悠闲公主形象非常接近岁月静好；但仍有月都旧事与妹红争斗，估计略在-92以内。",
+        "confidence": 0.54
+      }
+    },
+    {
+      "player": "B1",
+      "task": "feedback",
+      "game": 2,
+      "round": 6,
+      "at": "2026-10-13T04:01:06.042Z",
+      "answer": {
+        "fun": 4,
+        "fairness": 4,
+        "pace": 5,
+        "agency": 4,
+        "frustrations": [
+          "爱丽丝七彩目标31.8，我因七色人偶使称号猜85，语义维度分叉导致整轮零分。",
+          "琪露诺误差3.4，距4分仅0.2，同时对方拿1分，临界差异对比分影响很大。"
+        ],
+        "learned": "B2在颜色题更按外观配色而非称号取值，未来须同时评估视觉和设定，不用单一称号覆盖其余信息。中段角色需预留更宽的不确定性；防守灵梦与慧音的方向判断有效。",
+        "proposal": "题面可补一个简短范围说明，例如颜色轴明确以外观配色为主，减少同一词被当作称号或视觉印象的分歧。"
+      }
+    },
+    {
+      "player": "B2",
+      "task": "feedback",
+      "game": 2,
+      "round": 6,
+      "at": "2026-10-13T04:01:06.642Z",
+      "answer": {
+        "fun": 4,
+        "fairness": 4,
+        "pace": 5,
+        "agency": 4,
+        "frustrations": [
+          "我用爱丽丝的服饰表达中等多彩，却忽略七色人偶使称号，伙伴猜85而目标31.8，出现本局最大语义分歧。",
+          "琪露诺拨94与目标90.6只差3.4，刚错过4分，同时让对手得分，边界体感很尖锐。"
+        ],
+        "learned": "角色称号和强梗应优先于一般外观；出题先排除会把人引向另一位置的显著联想。中间型普通少女线索应更贴近中心。",
+        "proposal": "揭晓界面明确呈现距下一档得分还差多少及对手得分原因，帮助理解临界结果。"
+      }
+    },
+    {
+      "player": "A2",
+      "task": "feedback",
+      "game": 2,
+      "round": 6,
+      "at": "2026-10-13T04:01:52.325Z",
+      "answer": {
+        "fun": 4,
+        "fairness": 4,
+        "pace": 5,
+        "agency": 4,
+        "frustrations": [
+          "爱丽丝的七色称号让我估93，实际目标31.8，称号和服装两个自然解释产生很大偏差。",
+          "慧音资历我猜-45而目标-33，再次把人格身份特征推得略远，刚好掉出3分区。"
+        ],
+        "learned": "日常身份明确的端点角色容易建立共识，辉夜悠闲端取得4分；中段题需继续收缩强度，并警惕称号、外观和剧情给出不同答案。",
+        "proposal": "为大/小、资历等多义题面增加简短的维度说明，减少猜测作者究竟采用哪种解释。"
+      }
+    },
+    {
+      "player": "A1",
+      "task": "feedback",
+      "game": 2,
+      "round": 6,
+      "at": "2026-10-13T04:01:57.667Z",
+      "answer": {
+        "fun": 4,
+        "fairness": 4,
+        "pace": 5,
+        "agency": 4,
+        "frustrations": [
+          "老资历的慧音目标-33、拨杆-45，仍有约12点的程度分歧。",
+          "爱丽丝在黑白至七彩轴触发七色称号联想，但目标实际31.8，说明外观与称号两种依据会严重错位。"
+        ],
+        "learned": "明确极端特质时更接近端点，辉夜猜-92命中-93.2得4分；继续校准A2对我所选角色特征强度的较极端解读，出线索避免同时具有相反尺度的称号与外观。",
+        "proposal": "为容易产生多种依据的题目提供简短维度说明，例如黑白至七彩明确主要看外观还是允许称号。"
+      }
+    },
+    {
+      "player": "A1",
+      "task": "select",
+      "game": 3,
+      "round": 1,
+      "at": "2026-10-13T04:02:03.646Z",
+      "answer": {
+        "index": 1,
+        "reason": "维新与传统可由科技态度、宗教和生活方式形成梯度，生死轴中间段较难稳定表达。"
+      }
+    },
+    {
+      "player": "A1",
+      "task": "clue",
+      "game": 3,
+      "round": 1,
+      "at": "2026-10-13T04:02:10.440Z",
+      "answer": {
+        "clue": "博丽灵梦",
+        "reason": "继承巫女职责、维护幻想乡既有秩序、穿传统巫女服，鲜明偏传统；但本人务实随性，并非极端守旧的古老权威。",
+        "difficulty": 2,
+        "confidence": 0.8
+      }
+    },
+    {
+      "player": "A2",
+      "task": "dial",
+      "game": 3,
+      "round": 1,
+      "at": "2026-10-13T04:02:46.606Z",
+      "answer": {
+        "dial": 65,
+        "reason": "灵梦继承博丽巫女职责并维护幻想乡既有秩序，明显偏传统；但处理异变和与妖怪相处很灵活，不是守旧极端。结合此前与A1的尺度差异，取中高强度。",
+        "confidence": 0.68
+      }
+    },
+    {
+      "player": "B2",
+      "task": "defend",
+      "game": 3,
+      "round": 1,
+      "at": "2026-10-13T04:03:00.703Z",
+      "answer": {
+        "estimate": 60,
+        "side": "L",
+        "reason": "灵梦继承巫女职责、维护幻想乡现有秩序，明显偏传统；但本人处事随性，也会接受新办法，并非最顽固守旧者，估计略低于65。",
+        "confidence": 0.58
+      }
+    },
+    {
+      "player": "B1",
+      "task": "defend",
+      "game": 3,
+      "round": 1,
+      "at": "2026-10-13T04:03:01.263Z",
+      "answer": {
+        "estimate": 63,
+        "side": "L",
+        "reason": "博丽巫女维护结界与秩序，传统侧明确，但灵梦实际处事随性、也参与新事物，不属于最顽固守旧者；65附近而略低。",
+        "confidence": 0.54
+      }
+    },
+    {
+      "player": "B1",
+      "task": "select",
+      "game": 3,
+      "round": 2,
+      "at": "2026-10-13T04:03:08.304Z",
+      "answer": {
+        "index": 0,
+        "reason": "已有灵梦在大小轴的共同揭晓，可自然校准中段；大小也有清楚的极端体型可用。"
+      }
+    },
+    {
+      "player": "B1",
+      "task": "clue",
+      "game": 3,
+      "round": 2,
+      "at": "2026-10-13T04:03:16.434Z",
+      "answer": {
+        "clue": "蕾米莉亚·斯卡雷特",
+        "reason": "蕾米莉亚是明显娇小的幼女体型，比灵梦小一档以上；但仍是正常人形大小，远不到少名针妙丸那种极小端点。",
+        "difficulty": 2,
+        "confidence": 0.76
+      }
+    },
+    {
+      "player": "B2",
+      "task": "dial",
+      "game": 3,
+      "round": 2,
+      "at": "2026-10-13T04:03:49.936Z",
+      "answer": {
+        "dial": 80,
+        "reason": "沿用上局大与小按体格理解，蕾米莉亚是鲜明幼女体型，比灵梦显著小；但尚非针妙丸那种字面微型角色，取偏小的高位。",
+        "confidence": 0.76
+      }
+    },
+    {
+      "player": "A1",
+      "task": "defend",
+      "game": 3,
+      "round": 2,
+      "at": "2026-10-13T04:03:55.900Z",
+      "answer": {
+        "estimate": 72,
+        "side": "L",
+        "reason": "蕾米莉亚外形娇小，但仍是普通幼女体型，距离针妙丸或小型妖精那种极小端点有空间，80可能稍偏右。",
+        "confidence": 0.66
+      }
+    },
+    {
+      "player": "A2",
+      "task": "defend",
+      "game": 3,
+      "round": 2,
+      "at": "2026-10-13T04:04:10.096Z",
+      "answer": {
+        "estimate": 72,
+        "side": "L",
+        "reason": "延续此前大/小按外形理解，蕾米莉亚是娇小少女，明显偏小；但还有少名针妙丸等更极端角色，80可能略偏远。",
+        "confidence": 0.57
+      }
+    },
+    {
+      "player": "A2",
+      "task": "select",
+      "game": 3,
+      "round": 3,
+      "at": "2026-10-13T04:04:15.885Z",
+      "answer": {
+        "index": 1,
+        "reason": "西洋与东洋可由服饰、神话来源及生活环境表达，角色有明确的两端和混合特征，较院校联想稳定。"
+      }
+    },
+    {
+      "player": "A2",
+      "task": "clue",
+      "game": 3,
+      "round": 3,
+      "at": "2026-10-13T04:04:30.999Z",
+      "answer": {
+        "clue": "风见幽香",
+        "reason": "洋伞、格纹裙和花园气质略偏西洋，但本身是日式姓名与妖怪设定，缺少吸血鬼或西方魔女那样强烈的西洋身份，适合小幅偏左。",
+        "difficulty": 4,
+        "confidence": 0.58
+      }
+    },
+    {
+      "player": "A1",
+      "task": "dial",
+      "game": 3,
+      "round": 3,
+      "at": "2026-10-13T04:05:05.428Z",
+      "answer": {
+        "dial": -44,
+        "reason": "幽香的格纹马甲、长裙和阳伞偏西式淑女风，但没有吸血鬼或西洋魔女那种明确的西方身份，取中度偏西洋。",
+        "confidence": 0.63
+      }
+    },
+    {
+      "player": "B1",
+      "task": "defend",
+      "game": 3,
+      "round": 3,
+      "at": "2026-10-13T04:05:16.738Z",
+      "answer": {
+        "estimate": -50,
+        "side": "L",
+        "reason": "幽香的格纹裙、衬衫和洋伞形成清晰西洋外观，不过名字与妖怪身份仍有东洋成分，估计西洋侧约半程，略左于-44。",
+        "confidence": 0.56
+      }
+    },
+    {
+      "player": "B2",
+      "task": "defend",
+      "game": 3,
+      "round": 3,
+      "at": "2026-10-13T04:05:19.874Z",
+      "answer": {
+        "estimate": -35,
+        "side": "R",
+        "reason": "幽香的洋伞、格纹裙和花园形象偏西洋，但日本妖怪身份仍明显，西洋关联不及吸血鬼和魔女，估计比-44略靠中间。",
+        "confidence": 0.58
+      }
+    },
+    {
+      "player": "B2",
+      "task": "select",
+      "game": 3,
+      "round": 4,
+      "at": "2026-10-13T04:05:25.695Z",
+      "answer": {
+        "index": 1,
+        "reason": "开朗与孤僻可根据角色稳定性格表达层次，另一题面的梗义不确定。"
+      }
+    },
+    {
+      "player": "B2",
+      "task": "clue",
+      "game": 3,
+      "round": 4,
+      "at": "2026-10-13T04:05:33.002Z",
+      "answer": {
+        "clue": "博丽灵梦",
+        "reason": "灵梦不算热情阳光，经常淡漠嫌麻烦，但社交广泛、宴会正常，也没有阴暗孤僻的核心设定，整体处于中间略偏冷淡。",
+        "difficulty": 3,
+        "confidence": 0.73
+      }
+    },
+    {
+      "player": "B1",
+      "task": "dial",
+      "game": 3,
+      "round": 4,
+      "at": "2026-10-13T04:06:26.578Z",
+      "answer": {
+        "dial": 12,
+        "reason": "灵梦待人较淡、独居神社，常显得慵懒不耐烦，稍偏疏离；但能自在参加宴会，与许多人往来，远不算明显阴暗孤僻，放在中点稍右。",
+        "confidence": 0.62
+      }
+    },
+    {
+      "player": "A1",
+      "task": "defend",
+      "game": 3,
+      "round": 4,
+      "at": "2026-10-13T04:06:33.523Z",
+      "answer": {
+        "estimate": 3,
+        "side": "L",
+        "reason": "灵梦有冷淡懒散的一面，但频繁交际、举办宴会，也没有明显阴暗心理，更接近中间，12略偏孤僻。",
+        "confidence": 0.56
+      }
+    },
+    {
+      "player": "A2",
+      "task": "defend",
+      "game": 3,
+      "round": 4,
+      "at": "2026-10-13T04:06:35.225Z",
+      "answer": {
+        "estimate": 24,
+        "side": "R",
+        "reason": "灵梦待人较淡、独居神社且常嫌麻烦，略偏孤僻；她也经常参加宴会，不到阴暗极端，估计在12右侧但仍属中间区域。",
+        "confidence": 0.58
+      }
+    },
+    {
+      "player": "A1",
+      "task": "select",
+      "game": 3,
+      "round": 5,
+      "at": "2026-10-13T04:06:39.535Z",
+      "answer": {
+        "index": 0,
+        "reason": "性格轴熟悉且已有咲夜的公开尺度可校准；音乐梗含义不够确定。"
+      }
+    },
+    {
+      "player": "A1",
+      "task": "clue",
+      "game": 3,
+      "round": 5,
+      "at": "2026-10-13T04:06:45.966Z",
+      "answer": {
+        "clue": "博丽灵梦",
+        "reason": "灵梦平时淡定、懒散、不太闹腾，略偏冷静，但有直接冲动和活跃解决异变的一面，远弱于咲夜的冷静程度。",
+        "difficulty": 3,
+        "confidence": 0.74
+      }
+    },
+    {
+      "player": "A2",
+      "task": "dial",
+      "game": 3,
+      "round": 5,
+      "at": "2026-10-13T04:07:02.885Z",
+      "answer": {
+        "dial": 38,
+        "reason": "灵梦通常淡定、随性，较少持续活蹦乱跳，但也容易吐槽和动怒；冷静程度明显低于此前目标73的咲夜，因此取适度偏冷静。",
+        "confidence": 0.7
+      }
+    },
+    {
+      "player": "B1",
+      "task": "defend",
+      "game": 3,
+      "round": 5,
+      "at": "2026-10-13T04:07:08.331Z",
+      "answer": {
+        "estimate": 28,
+        "side": "L",
+        "reason": "灵梦日常淡定慵懒，但遇到异变或钱财会急躁直接，冷静程度低于咲夜很多，估计中间偏右而稍低于38。",
+        "confidence": 0.62
+      }
+    },
+    {
+      "player": "B2",
+      "task": "defend",
+      "game": 3,
+      "round": 5,
+      "at": "2026-10-13T04:07:13.582Z",
+      "answer": {
+        "estimate": 30,
+        "side": "L",
+        "reason": "灵梦平时淡然、嫌麻烦，确实偏冷静，但比曾表达73的咲夜随性且易动怒；估计是温和偏冷静的位置，略低于38。",
+        "confidence": 0.61
+      }
+    },
+    {
+      "player": "B1",
+      "task": "select",
+      "game": 3,
+      "round": 6,
+      "at": "2026-10-13T04:07:20.684Z",
+      "answer": {
+        "index": 1,
+        "reason": "兽与人可依据物种及兽耳、尾巴等直接外观特征判断，连续谱较清楚。"
+      }
+    },
+    {
+      "player": "B1",
+      "task": "clue",
+      "game": 3,
+      "round": 6,
+      "at": "2026-10-13T04:07:26.919Z",
+      "answer": {
+        "clue": "八云蓝",
+        "reason": "九尾狐本体与醒目九条尾巴使兽性特征很强，但日常呈完整人形、举止理性成熟，适合明显偏兽而非纯兽端点。",
+        "difficulty": 2,
+        "confidence": 0.77
+      }
+    },
+    {
+      "player": "B2",
+      "task": "dial",
+      "game": 3,
+      "round": 6,
+      "at": "2026-10-13T04:08:00.425Z",
+      "answer": {
+        "dial": -68,
+        "reason": "蓝本体为九尾妖狐，兽耳与九尾使兽的特征很强；同时保持完整人形、语言与理性生活，故取明显偏兽而未到纯动物端点。",
+        "confidence": 0.67
+      }
+    },
+    {
+      "player": "A1",
+      "task": "defend",
+      "game": 3,
+      "round": 6,
+      "at": "2026-10-13T04:08:11.045Z",
+      "answer": {
+        "estimate": -55,
+        "side": "R",
+        "reason": "蓝有明确九尾狐本体和浓厚兽类特征，但人形、语言与社会行为也很突出，-68可能比出题人想表达的更兽化。",
+        "confidence": 0.66
+      }
+    },
+    {
+      "player": "A2",
+      "task": "defend",
+      "game": 3,
+      "round": 6,
+      "at": "2026-10-13T04:08:11.664Z",
+      "answer": {
+        "estimate": -60,
+        "side": "R",
+        "reason": "蓝本体是九尾狐，兽性标志强烈，但通常维持完整人形、具高度理性和家务职责；相较纯动物应留明显距离，估计比-68稍向人端。",
+        "confidence": 0.58
+      }
+    },
+    {
+      "player": "A2",
+      "task": "select",
+      "game": 3,
+      "round": 7,
+      "at": "2026-10-13T04:08:16.600Z",
+      "answer": {
+        "index": 0,
+        "reason": "胆量可依照面对危险、鬼怪和强敌的表现表达，正作支撑比恋爱关系梗清楚。"
+      }
+    },
+    {
+      "player": "A2",
+      "task": "clue",
+      "game": 3,
+      "round": 7,
+      "at": "2026-10-13T04:08:24.243Z",
+      "answer": {
+        "clue": "魂魄妖梦",
+        "reason": "妖梦有怕鬼、容易被吓到的鲜明印象，明显偏胆小；但她仍是敢于持剑应战的异变解决者，因此不是极端怯懦。",
+        "difficulty": 2,
+        "confidence": 0.76
+      }
+    },
+    {
+      "player": "A1",
+      "task": "dial",
+      "game": 3,
+      "round": 7,
+      "at": "2026-10-13T04:08:47.073Z",
+      "answer": {
+        "dial": 62,
+        "reason": "妖梦怕幽灵、容易受惊是鲜明反差特征，明显偏胆小；同时能认真战斗、独自解决事件，因此未到最胆怯端点。",
+        "confidence": 0.72
+      }
+    },
+    {
+      "player": "B1",
+      "task": "defend",
+      "game": 3,
+      "round": 7,
+      "at": "2026-10-13T04:08:55.737Z",
+      "answer": {
+        "estimate": 50,
+        "side": "L",
+        "reason": "妖梦怕鬼的反差使她偏胆小，但面对战斗和异变仍敢正面行动，并非普遍畏缩；62可能略高，估计50。",
+        "confidence": 0.67
+      }
+    },
+    {
+      "player": "B2",
+      "task": "defend",
+      "game": 3,
+      "round": 7,
+      "at": "2026-10-13T04:09:03.208Z",
+      "answer": {
+        "estimate": 55,
+        "side": "L",
+        "reason": "妖梦怕鬼且容易受惊，是偏胆小的明确联想，但能主动战斗和处理异变，胆量并非一贯很低，估计略低于62。",
+        "confidence": 0.64
+      }
+    },
+    {
+      "player": "B2",
+      "task": "select",
+      "game": 3,
+      "round": 8,
+      "at": "2026-10-13T04:09:08.963Z",
+      "answer": {
+        "index": 1,
+        "reason": "幸运与不幸有因幡帝、依神紫苑等明确角色锚点，且中段可按经历与处境表达，CP数量更依赖同人圈口径。"
+      }
+    },
+    {
+      "player": "B2",
+      "task": "clue",
+      "game": 3,
+      "round": 8,
+      "at": "2026-10-13T04:09:18.770Z",
+      "answer": {
+        "clue": "依神紫苑",
+        "reason": "紫苑作为贫穷神，自身穷困且带来不幸，是不幸端最直接的角色；选明确主轴，避免厄神保护他人的反向理解。",
+        "difficulty": 1,
+        "confidence": 0.93
+      }
+    },
+    {
+      "player": "B1",
+      "task": "dial",
+      "game": 3,
+      "round": 8,
+      "at": "2026-10-13T04:09:38.607Z",
+      "answer": {
+        "dial": 97,
+        "reason": "紫苑是贫穷神，会给自身与周围带来不幸，角色核心就对应不幸极端；相较仅遭遇挫折的人物，应该贴近右端。",
+        "confidence": 0.92
+      }
+    },
+    {
+      "player": "A2",
+      "task": "defend",
+      "game": 3,
+      "round": 8,
+      "at": "2026-10-13T04:09:46.787Z",
+      "answer": {
+        "estimate": 95,
+        "side": "L",
+        "reason": "紫苑是贫穷神，给自己与周围带来厄运，极强地对应不幸；97已几乎触顶，估计仅略在左侧。",
+        "confidence": 0.54
+      }
+    },
+    {
+      "player": "A1",
+      "task": "defend",
+      "game": 3,
+      "round": 8,
+      "at": "2026-10-13T04:09:47.471Z",
+      "answer": {
+        "estimate": 95,
+        "side": "L",
+        "reason": "紫苑的贫穷与不幸几乎直接定义角色，非常靠近右端；97已很极端，考虑端点附近仍有一段自然表达范围，估计略靠左。",
+        "confidence": 0.6
+      }
+    },
+    {
+      "player": "A1",
+      "task": "select",
+      "game": 3,
+      "round": 9,
+      "at": "2026-10-13T04:09:55.009Z",
+      "answer": {
+        "index": 1,
+        "reason": "岁月静好与负重前行含义明确，且双方已有辉夜靠近左端的公开参考，另一题的梗义不确定。"
+      }
+    },
+    {
+      "player": "A1",
+      "task": "clue",
+      "game": 3,
+      "round": 9,
+      "at": "2026-10-13T04:10:07.145Z",
+      "answer": {
+        "clue": "西行寺幽幽子",
+        "reason": "幽幽子在白玉楼赏花、吃喝、由妖梦照料，日常非常悠闲；仍有冥界主人的职责，比完全宅居享清闲的辉夜略有事务。",
+        "difficulty": 2,
+        "confidence": 0.8
+      }
+    },
+    {
+      "player": "A2",
+      "task": "dial",
+      "game": 3,
+      "round": 9,
+      "at": "2026-10-13T04:10:53.376Z",
+      "answer": {
+        "dial": -72,
+        "reason": "幽幽子日常赏樱、品食并由妖梦照料，明显偏悠闲安逸；但作为白玉楼主人有管理职责与沉重身世，比此前-93.2的辉夜保留更多负担。",
+        "confidence": 0.71
+      }
+    },
+    {
+      "player": "B1",
+      "task": "defend",
+      "game": 3,
+      "round": 9,
+      "at": "2026-10-13T04:11:05.162Z",
+      "answer": {
+        "estimate": -67,
+        "side": "R",
+        "reason": "幽幽子日常赏花享乐、由妖梦照料，明显岁月静好；但亡灵身份与过去悲剧使她比辉夜多一层负担，估计略靠近中间。",
+        "confidence": 0.56
+      }
+    },
+    {
+      "player": "B2",
+      "task": "defend",
+      "game": 3,
+      "round": 9,
+      "at": "2026-10-13T04:11:09.404Z",
+      "answer": {
+        "estimate": -68,
+        "side": "R",
+        "reason": "幽幽子日常赏樱、享用美食并由妖梦照料，明显偏岁月静好；但身世和能力带有沉重背景，较辉夜的闲适端点更向内，估计略高于-72。",
+        "confidence": 0.58
+      }
+    },
+    {
+      "player": "B1",
+      "task": "select",
+      "game": 3,
+      "round": 10,
+      "at": "2026-10-13T04:11:15.690Z",
+      "answer": {
+        "index": 0,
+        "reason": "文学、史学、医学、工程及数理能力都有鲜明角色，文理比现充更少依赖恋爱和同人印象。"
+      }
+    },
+    {
+      "player": "B1",
+      "task": "clue",
+      "game": 3,
+      "round": 10,
+      "at": "2026-10-13T04:11:23.775Z",
+      "answer": {
+        "clue": "稗田阿求",
+        "reason": "阿求以编纂幻想乡缘起、记述历史与文字创作为核心，强烈代表人文书写，几乎没有自然科学或工程侧特征。",
+        "difficulty": 1,
+        "confidence": 0.89
+      }
+    },
+    {
+      "player": "B2",
+      "task": "dial",
+      "game": 3,
+      "round": 10,
+      "at": "2026-10-13T04:11:53.918Z",
+      "answer": {
+        "dial": -94,
+        "reason": "阿求的核心身份是历史记录者与著述者，工作集中于文字、史学和人文知识，几乎没有理工主轴，是非常明确的文科端角色。",
+        "confidence": 0.9
+      }
+    },
+    {
+      "player": "A1",
+      "task": "defend",
+      "game": 3,
+      "round": 10,
+      "at": "2026-10-13T04:12:04.087Z",
+      "answer": {
+        "estimate": -92,
+        "side": "R",
+        "reason": "阿求以史书编纂和文字记录为核心，极偏文科；-94已很靠端点，估计目标略向中间但仍在极文一侧。",
+        "confidence": 0.57
+      }
+    },
+    {
+      "player": "A2",
+      "task": "defend",
+      "game": 3,
+      "round": 10,
+      "at": "2026-10-13T04:12:08.691Z",
+      "answer": {
+        "estimate": -90,
+        "side": "R",
+        "reason": "阿求以记录历史、编纂文献和文学写作为核心，极偏文科；-94已很接近绝对端点，估计稍向中间，但左右把握有限。",
+        "confidence": 0.55
+      }
+    },
+    {
+      "player": "A2",
+      "task": "select",
+      "game": 3,
+      "round": 11,
+      "at": "2026-10-13T04:12:15.731Z",
+      "answer": {
+        "index": 0,
+        "reason": "外向内向可由社交方式和日常生活表达，中间位置也有丰富角色选择，较运势符号更易细分。"
+      }
+    },
+    {
+      "player": "A2",
+      "task": "clue",
+      "game": 3,
+      "round": 11,
+      "at": "2026-10-13T04:12:22.935Z",
+      "answer": {
+        "clue": "东风谷早苗",
+        "reason": "早苗会积极传教、接触居民并参与异变，性格较开朗主动；但仍有礼貌拘谨的一面，不及魔理沙或射命丸文那样强烈外向，适合中等偏左。",
+        "difficulty": 2,
+        "confidence": 0.73
+      }
+    },
+    {
+      "player": "A1",
+      "task": "dial",
+      "game": 3,
+      "round": 11,
+      "at": "2026-10-13T04:12:50.502Z",
+      "answer": {
+        "dial": -66,
+        "reason": "早苗积极传教、热情参与异变和社交，明显外向，但仍有认真拘谨的一面，未到魔理沙或妖精那种最奔放的程度。",
+        "confidence": 0.72
+      }
+    },
+    {
+      "player": "B1",
+      "task": "defend",
+      "game": 3,
+      "round": 11,
+      "at": "2026-10-13T04:12:58.188Z",
+      "answer": {
+        "estimate": -58,
+        "side": "R",
+        "reason": "早苗积极传教、热心外向，但仍有认真拘谨的少女一面，社交张扬程度不及文或魔理沙，估计比-66稍靠中间。",
+        "confidence": 0.61
+      }
+    },
+    {
+      "player": "B2",
+      "task": "defend",
+      "game": 3,
+      "round": 11,
+      "at": "2026-10-13T04:13:05.322Z",
+      "answer": {
+        "estimate": -60,
+        "side": "R",
+        "reason": "早苗善于交流、积极传教与行动，明显外向；但仍有认真拘谨的常识人底色，不像最奔放的角色那样极端，估计略在-66以内。",
+        "confidence": 0.59
+      }
+    },
+    {
+      "player": "B2",
+      "task": "feedback",
+      "game": 3,
+      "round": 11,
+      "at": "2026-10-13T04:13:14.130Z",
+      "answer": {
+        "fun": 5,
+        "fairness": 4,
+        "pace": 4,
+        "agency": 4,
+        "frustrations": [
+          "蕾米莉亚体型我估80而目标53.2，语义方向一致仍因程度差距失分。",
+          "加时主记分板固定10比10，若不另看加时得分，不易立即理解是否胜出。"
+        ],
+        "learned": "B1对幼女体型的尺度比我温和；兽人混合特征判断则相近。端点要看题目上是否存在更强的字面角色，不宜机械推到极端。",
+        "proposal": "加时阶段持续突出显示本组双方加时得分及各自是否已行动。"
+      }
+    },
+    {
+      "player": "A1",
+      "task": "feedback",
+      "game": 3,
+      "round": 11,
+      "at": "2026-10-13T04:13:57.879Z",
+      "answer": {
+        "fun": 4,
+        "fairness": 4,
+        "pace": 3,
+        "agency": 4,
+        "frustrations": [
+          "幽香西洋目标-20.2猜-44，早苗外向目标-31.8猜-66：方向理解一致仍因程度超过20而零分。",
+          "10比10后连续两组加时共4轮，主比分一直不变，前期局面信息未直接突出加时小分时较难判断剩余目标。"
+        ],
+        "learned": "我与A2都容易将角色的一项鲜明特征读得比出题目标更极端，不能用统一线性偏移解释；猜非端点角色应更多考虑中度表达。妖梦胆小62对56较稳，早苗外向需要比直觉明显收敛。",
+        "proposal": "加时期间始终突出当前加时小分、双方是否已行动及本轮获胜条件，主比分10比10退为次要信息。"
+      }
+    },
+    {
+      "player": "A2",
+      "task": "feedback",
+      "game": 3,
+      "round": 11,
+      "at": "2026-10-13T04:14:04.553Z",
+      "answer": {
+        "fun": 4,
+        "fairness": 4,
+        "pace": 3,
+        "agency": 4,
+        "frustrations": [
+          "幽香西洋程度我意图轻偏，队友猜到-44；早苗外向程度我意图-31.8，队友猜-66，两次中段线索丢分。",
+          "加时连续四轮主比分始终10比10，行动接口没展示加时累计分，不易直观看出本轮拿几分能赢。"
+        ],
+        "learned": "队友会把鲜明外观或社交特征读得较强，中段出题应选真正两面混合的角色；猜题也不能机械向中间收缩，幽幽子的日常悠闲应优先于沉重背景。",
+        "proposal": "加时行动界面持续显示双方本组加时积分和已行动次数，明确当前胜负条件。"
+      }
+    },
+    {
+      "player": "B1",
+      "task": "feedback",
+      "game": 3,
+      "round": 11,
+      "at": "2026-10-13T04:14:10.301Z",
+      "answer": {
+        "fun": 5,
+        "fairness": 4,
+        "pace": 4,
+        "agency": 4,
+        "frustrations": [
+          "蕾米莉亚大小目标53.2被猜80，再次暴露体型尺度不一致。",
+          "加时第一组紫苑得3分、幽幽子得2分，但对方防守得1分令总分追平，主比分固定10比10时若未显示加时分会难理解为何继续。"
+        ],
+        "learned": "B2对幼小体型比我更极端，但八云蓝兽性与阿求人文等鲜明特征对齐较好。灵梦的中性人格线索也稳定，后续优先选可从明显设定或职业推断的题面。防守需留意出题人用次强角色表达中度偏向，例如早苗外向实际仅-31.8。",
+        "proposal": "加时始终单独展示双方本组主动得分、防守得分及是否已行动，清楚说明继续加时的原因。"
+      }
+    },
+    {
+      "player": "B2",
+      "task": "select",
+      "game": 4,
+      "round": 1,
+      "at": "2026-10-13T04:14:24.560Z",
+      "answer": {
+        "index": 1,
+        "reason": "财富题有明确的资产和生活状况依据，并已有魔理沙中等偏穷的成功公开校准。"
+      }
+    },
+    {
+      "player": "B2",
+      "task": "clue",
+      "game": 4,
+      "round": 1,
+      "at": "2026-10-13T04:14:32.157Z",
+      "answer": {
+        "clue": "依神紫苑",
+        "reason": "贫穷神的身份与自身极度穷困生活都直指贫穷端点，是此题最明确的极端角色。",
+        "difficulty": 1,
+        "confidence": 0.98
+      }
+    },
+    {
+      "player": "B1",
+      "task": "dial",
+      "game": 4,
+      "round": 1,
+      "at": "2026-10-13T04:15:01.705Z",
+      "answer": {
+        "dial": 96,
+        "reason": "紫苑直接是贫穷神，衣着与生活也穷困，是贫穷轴最鲜明的端点人物；相比上一局不幸轴，贫穷与她的身份对应更加直接。",
+        "confidence": 0.92
+      }
+    },
+    {
+      "player": "A1",
+      "task": "defend",
+      "game": 4,
+      "round": 1,
+      "at": "2026-10-13T04:15:10.526Z",
+      "answer": {
+        "estimate": 93,
+        "side": "L",
+        "reason": "紫苑是贫穷神，明确指向贫穷极端；但96已非常靠边，参考同角色的不幸题曾为88.8，略向内估计。",
+        "confidence": 0.66
+      }
+    },
+    {
+      "player": "A2",
+      "task": "defend",
+      "game": 4,
+      "round": 1,
+      "at": "2026-10-13T04:15:29.050Z",
+      "answer": {
+        "estimate": 93,
+        "side": "L",
+        "reason": "紫苑作为贫穷神几乎是贫穷端的代表；但96已极接近边界，且上一局不幸题同角色落在88.8，估计略在拨杆左侧。",
+        "confidence": 0.58
+      }
+    },
+    {
+      "player": "A1",
+      "task": "select",
+      "game": 4,
+      "round": 2,
+      "at": "2026-10-13T04:15:34.876Z",
+      "answer": {
+        "index": 1,
+        "reason": "夯至拉完了可按角色综合实力与靠谱程度自然评价；单独的左右缺乏明确评价维度。"
+      }
+    },
+    {
+      "player": "A1",
+      "task": "clue",
+      "game": 4,
+      "round": 2,
+      "at": "2026-10-13T04:15:47.629Z",
+      "answer": {
+        "clue": "魂魄妖梦",
+        "reason": "妖梦剑术扎实、能独立解决异变，整体值得正面评价，但冒失、怕幽灵的反差让她不到顶级强者或全能可靠的程度。",
+        "difficulty": 4,
+        "confidence": 0.59
+      }
+    },
+    {
+      "player": "A2",
+      "task": "dial",
+      "game": 4,
+      "round": 2,
+      "at": "2026-10-13T04:16:30.401Z",
+      "answer": {
+        "dial": -52,
+        "reason": "把夯至拉完了理解为综合认可度：妖梦人气高、剑术可靠，整体显著正面；但也有胆小、天然和被捉弄的形象，尚非全面顶格。",
+        "confidence": 0.51
+      }
+    },
+    {
+      "player": "B2",
+      "task": "defend",
+      "game": 4,
+      "round": 2,
+      "at": "2026-10-13T04:16:37.820Z",
+      "answer": {
+        "estimate": -45,
+        "side": "R",
+        "reason": "将题面理解为很强很赞到很差，妖梦剑术、认真程度与人气都偏优秀，但天然和受捉弄的一面使其非全面顶点，估计比-52稍靠中间。",
+        "confidence": 0.49
+      }
+    },
+    {
+      "player": "B1",
+      "task": "defend",
+      "game": 4,
+      "round": 2,
+      "at": "2026-10-13T04:16:38.691Z",
+      "answer": {
+        "estimate": -45,
+        "side": "R",
+        "reason": "将夯理解为强、优秀、表现好：妖梦实力和人气都较高，但认真天然与偶尔失误让她不至于最顶端；估计比-52稍靠中间。",
+        "confidence": 0.48
+      }
+    },
+    {
+      "player": "B1",
+      "task": "select",
+      "game": 4,
+      "round": 3,
+      "at": "2026-10-13T04:16:43.042Z",
+      "answer": {
+        "index": 1,
+        "reason": "资历可依历史年龄、身份与经验判断，已有慧音的公开案例；另一题的讨好与反驳并非完全相反且容易贴标签。"
+      }
+    },
+    {
+      "player": "B1",
+      "task": "clue",
+      "game": 4,
+      "round": 3,
+      "at": "2026-10-13T04:16:56.411Z",
+      "answer": {
+        "clue": "十六夜咲夜",
+        "reason": "咲夜作为女仆长成熟熟练，显然不是新手，但人类身份与少女外观又远不像慧音或古老妖怪那样资深；两边因素平衡，接近中点。",
+        "difficulty": 3,
+        "confidence": 0.63
+      }
+    },
+    {
+      "player": "B2",
+      "task": "dial",
+      "game": 4,
+      "round": 3,
+      "at": "2026-10-13T04:17:33.264Z",
+      "answer": {
+        "dial": 22,
+        "reason": "按世界观内阅历理解，咲夜是熟练的女仆长，有工作资历却仍属人类，远不及千年妖怪；比纯新人老练，整体中间略偏小资历。",
+        "confidence": 0.52
+      }
+    },
+    {
+      "player": "A1",
+      "task": "defend",
+      "game": 4,
+      "round": 3,
+      "at": "2026-10-13T04:17:38.911Z",
+      "answer": {
+        "estimate": 10,
+        "side": "L",
+        "reason": "咲夜作为人类相对千年妖怪资历较浅，但女仆长经历丰富、做事熟练，不像新人，估计比22更靠中间。",
+        "confidence": 0.58
+      }
+    },
+    {
+      "player": "A2",
+      "task": "defend",
+      "game": 4,
+      "round": 3,
+      "at": "2026-10-13T04:17:40.704Z",
+      "answer": {
+        "estimate": 8,
+        "side": "L",
+        "reason": "咲夜虽是相对年轻的人类，但已任女仆长且处事熟练，资历不应很浅；比慧音年轻但仍有经验，估计仅略偏小资历，落在22左侧。",
+        "confidence": 0.57
+      }
+    },
+    {
+      "player": "A2",
+      "task": "select",
+      "game": 4,
+      "round": 4,
+      "at": "2026-10-13T04:17:46.176Z",
+      "answer": {
+        "index": 0,
+        "reason": "常见程度可依据角色在作品与大众印象中的出场频率判断，热门主角和少露面的角色提供清晰参照。"
+      }
+    },
+    {
+      "player": "A2",
+      "task": "clue",
+      "game": 4,
+      "round": 4,
+      "at": "2026-10-13T04:17:55.137Z",
+      "answer": {
+        "clue": "东风谷早苗",
+        "reason": "早苗是多次登场和可操作的主要角色，作品与同人中相当常见；但没有灵梦、魔理沙那样几乎无处不在，适合明显偏常见而非最端点。",
+        "difficulty": 2,
+        "confidence": 0.77
+      }
+    },
+    {
+      "player": "A1",
+      "task": "dial",
+      "game": 4,
+      "round": 4,
+      "at": "2026-10-13T04:18:30.873Z",
+      "answer": {
+        "dial": -47,
+        "reason": "按角色出场与被见到的频率理解，早苗是多次登场的常驻自机，明显常见，但不像灵梦和魔理沙几乎无处不在，取中度偏常见。",
+        "confidence": 0.57
+      }
+    },
+    {
+      "player": "B2",
+      "task": "defend",
+      "game": 4,
+      "round": 4,
+      "at": "2026-10-13T04:18:40.689Z",
+      "answer": {
+        "estimate": -40,
+        "side": "R",
+        "reason": "早苗多次作为自机和主要角色登场，明显常见，但频率仍低于灵梦、魔理沙，也并非每作都出现；估计常见侧中段，略高于-47。",
+        "confidence": 0.58
+      }
+    },
+    {
+      "player": "B1",
+      "task": "defend",
+      "game": 4,
+      "round": 4,
+      "at": "2026-10-13T04:18:45.028Z",
+      "answer": {
+        "estimate": -35,
+        "side": "R",
+        "reason": "按登场与日常接触理解，早苗是常驻自机和重要配角，偏常见但不及灵梦魔理沙；考虑出题人此前用她表达中度外向，估计常见侧中段，略右于-47。",
+        "confidence": 0.59
+      }
+    },
+    {
+      "player": "B2",
+      "task": "select",
+      "game": 4,
+      "round": 5,
+      "at": "2026-10-13T04:18:51.744Z",
+      "answer": {
+        "index": 0,
+        "reason": "性格轴较清楚，且已有灵梦和咲夜的公开记录帮助区分温和冷静与强冷静；科技幻想的中段更难界定。"
+      }
+    },
+    {
+      "player": "B2",
+      "task": "clue",
+      "game": 4,
+      "round": 5,
+      "at": "2026-10-13T04:18:57.713Z",
+      "answer": {
+        "clue": "雾雨魔理沙",
+        "reason": "魔理沙精力旺盛、主动冒险、言行爽朗，是明显活泼的主角；仍有钻研魔法时的专注，活泼程度无需压到妖精闹腾的极端。",
+        "difficulty": 2,
+        "confidence": 0.82
+      }
+    },
+    {
+      "player": "B1",
+      "task": "dial",
+      "game": 4,
+      "round": 5,
+      "at": "2026-10-13T04:19:30.173Z",
+      "answer": {
+        "dial": -78,
+        "reason": "魔理沙热情好动、主动冒险、说话爽快，是明显活泼的代表；但研究魔法时认真专注，不像妖精那样全无沉稳一面，因此留出一段端点余量。",
+        "confidence": 0.78
+      }
+    },
+    {
+      "player": "A1",
+      "task": "defend",
+      "game": 4,
+      "round": 5,
+      "at": "2026-10-13T04:19:39.225Z",
+      "answer": {
+        "estimate": -70,
+        "side": "R",
+        "reason": "魔理沙开朗好动、行动积极，明显活泼，但做魔法研究时也能认真沉静；-78较极端，估计略向中间。",
+        "confidence": 0.62
+      }
+    },
+    {
+      "player": "A2",
+      "task": "defend",
+      "game": 4,
+      "round": 5,
+      "at": "2026-10-13T04:19:45.264Z",
+      "answer": {
+        "estimate": -65,
+        "side": "R",
+        "reason": "魔理沙活跃外向、爱冒险，但研究和战斗时仍能专注冷静，比极端活泼的妖精留有更多克制，估计-78偏远。",
+        "confidence": 0.64
+      }
+    },
+    {
+      "player": "A1",
+      "task": "select",
+      "game": 4,
+      "round": 6,
+      "at": "2026-10-13T04:19:50.167Z",
+      "answer": {
+        "index": 1,
+        "reason": "强健与病弱有明确的体格和健康设定依据，比不确定年份的人气排名更稳定。"
+      }
+    },
+    {
+      "player": "A1",
+      "task": "clue",
+      "game": 4,
+      "round": 6,
+      "at": "2026-10-13T04:19:58.378Z",
+      "answer": {
+        "clue": "爱丽丝·玛格特罗依德",
+        "reason": "爱丽丝是室内制作人偶、依靠魔法的纤细少女，稍离强健一端，但没有明确疾病或虚弱设定，应该接近中点。",
+        "difficulty": 4,
+        "confidence": 0.65
+      }
+    },
+    {
+      "player": "A2",
+      "task": "dial",
+      "game": 4,
+      "round": 6,
+      "at": "2026-10-13T04:20:39.735Z",
+      "answer": {
+        "dial": 18,
+        "reason": "爱丽丝偏室内研究、以人偶施法，缺少体力型角色的强健感；但没有明确疾病，也能独立行动，因而只轻微偏病弱一侧。",
+        "confidence": 0.63
+      }
+    },
+    {
+      "player": "B2",
+      "task": "defend",
+      "game": 4,
+      "round": 6,
+      "at": "2026-10-13T04:20:47.259Z",
+      "answer": {
+        "estimate": 5,
+        "side": "L",
+        "reason": "爱丽丝是纤细的魔法使，缺少体能强健形象，但没有帕秋莉式明确病弱设定，能正常战斗生活；更接近中间，略低于18。",
+        "confidence": 0.65
+      }
+    },
+    {
+      "player": "B1",
+      "task": "defend",
+      "game": 4,
+      "round": 6,
+      "at": "2026-10-13T04:20:48.258Z",
+      "answer": {
+        "estimate": 25,
+        "side": "R",
+        "reason": "爱丽丝是纤细的魔法使，主要靠人偶作战，体能形象不强；不过没有帕秋莉那样的明确疾病，放在略偏病弱的中间区域，略右于18。",
+        "confidence": 0.55
+      }
+    },
+    {
+      "player": "B1",
+      "task": "feedback",
+      "game": 4,
+      "round": 6,
+      "at": "2026-10-13T04:21:00.215Z",
+      "answer": {
+        "fun": 4,
+        "fairness": 4,
+        "pace": 5,
+        "agency": 4,
+        "frustrations": [
+          "咲夜资历目标-2却猜22，成熟经验和人类年龄两种依据没能平衡，零分。",
+          "夯与拉完了、常见与罕见的评判维度不够明确，依赖临场解释。"
+        ],
+        "learned": "魔理沙活泼与紫苑贫穷均误差1.8拿4分，鲜明自然特征的定位越来越可靠；中点仍最难表达，不能把我认为的两侧因素抵消默认成队友也会如此。最后防守我判断错误，团队合议却判对，体现独立估计的价值。",
+        "proposal": "为抽象题面增加可选的一句话释义，尤其明确常见的观察范围与资历是年龄还是经验。"
+      }
+    },
+    {
+      "player": "B2",
+      "task": "feedback",
+      "game": 4,
+      "round": 6,
+      "at": "2026-10-13T04:21:44.386Z",
+      "answer": {
+        "fun": 4,
+        "fairness": 4,
+        "pace": 5,
+        "agency": 4,
+        "frustrations": [
+          "咲夜老资历题我按寿命侧重猜22，伙伴目标-2；身份熟练程度与年龄仍会把同一角色拉向不同位置。",
+          "夯与拉完了需要先猜题目评价口径，角色线索难同时说明是在说实力还是喜爱程度。"
+        ],
+        "learned": "魔理沙活泼侧与紫苑贫穷端点均取得精确命中，显著单一特征的线索更稳定；综合资历题须平衡职业熟练程度与年龄。",
+        "proposal": "为资历、常见等多口径题面增加可选简短维度提示。"
+      }
+    },
+    {
+      "player": "A1",
+      "task": "feedback",
+      "game": 4,
+      "round": 6,
+      "at": "2026-10-13T04:21:44.877Z",
+      "answer": {
+        "fun": 3,
+        "fairness": 4,
+        "pace": 4,
+        "agency": 3,
+        "frustrations": [
+          "夯至拉完了与左右同时出现，两个候选维度都缺少稳定依据，只能选择相对可解释的一张。",
+          "早苗常见度目标-69.2而我猜-47，反省上局过度极端后收敛过头，三轮连续零分使追分困难。"
+        ],
+        "learned": "跨题不能给同一搭档统一加减幅度：早苗外向的目标较温和，但常见度确实很高。应按具体轴校准；爱丽丝健康接近中间的线索取得3分，是有效的中间表达。",
+        "proposal": "提供可选的清晰题库模式，将左右、夯拉等缺少解释的梗题单独归入进阶题库。"
+      }
+    },
+    {
+      "player": "A2",
+      "task": "feedback",
+      "game": 4,
+      "round": 6,
+      "at": "2026-10-13T04:21:52.069Z",
+      "answer": {
+        "fun": 3,
+        "fairness": 4,
+        "pace": 4,
+        "agency": 3,
+        "frustrations": [
+          "常见程度的早苗我认为明显常见，队友猜-47而目标-69.2，差22.2整轮无分。",
+          "夯/拉完了缺少评价维度，我按综合认可度猜妖梦-52，实际只-27.2。",
+          "爱丽丝病弱程度已猜轻偏18，仍高于目标9；中间区域的细微区别很难用单个角色传递。"
+        ],
+        "learned": "具体身份和典型状态优先于全方面综合印象；没有明确病弱设定的角色应更靠中心。既有经验不支持统一缩放所有题，需按维度分别校准。",
+        "proposal": "对夯/拉完了等总评价梗增加题面说明，明确比较的是实力、人气还是个人喜欢程度。"
+      }
+    },
+    {
+      "player": "A2",
+      "task": "select",
+      "game": 5,
+      "round": 1,
+      "at": "2026-10-13T04:21:58.774Z",
+      "answer": {
+        "index": 1,
+        "reason": "聪明笨蛋有永琳、琪露诺等清楚两端，也有智力普通或聪明但天然的角色，避免年龄与外貌冲突。"
+      }
+    },
+    {
+      "player": "A2",
+      "task": "clue",
+      "game": 5,
+      "round": 1,
+      "at": "2026-10-13T04:22:06.062Z",
+      "answer": {
+        "clue": "八意永琳",
+        "reason": "永琳是月之贤者，拥有极高医学、药学与谋略才能，是聪明端最鲜明且广为理解的代表之一。",
+        "difficulty": 1,
+        "confidence": 0.94
+      }
+    },
+    {
+      "player": "A1",
+      "task": "dial",
+      "game": 5,
+      "round": 1,
+      "at": "2026-10-13T04:22:51.311Z",
+      "answer": {
+        "dial": -96,
+        "reason": "永琳是极高智慧的月之贤者与医药专家，几乎直接代表聪明端点，这一轴比一般性格评价更明确。",
+        "confidence": 0.91
+      }
+    },
+    {
+      "player": "B1",
+      "task": "defend",
+      "game": 5,
+      "round": 1,
+      "at": "2026-10-13T04:22:57.543Z",
+      "answer": {
+        "estimate": -94,
+        "side": "R",
+        "reason": "永琳是医药与谋略上的顶尖智慧代表，明确接近聪明端点；-96已经极靠边，端点线索可覆盖稍宽范围，估计略向右。",
+        "confidence": 0.58
+      }
+    },
+    {
+      "player": "B2",
+      "task": "defend",
+      "game": 5,
+      "round": 1,
+      "at": "2026-10-13T04:23:06.398Z",
+      "answer": {
+        "estimate": -94,
+        "side": "R",
+        "reason": "永琳是顶尖智慧与医药知识的代表，毫无疑问接近聪明端；-96已极靠边，考虑同一线索可表达的邻近范围，估计略在其内侧。",
+        "confidence": 0.55
+      }
+    },
+    {
+      "player": "B1",
+      "task": "select",
+      "game": 5,
+      "round": 2,
+      "at": "2026-10-13T04:23:18.197Z",
+      "answer": {
+        "index": 0,
+        "reason": "威严与抱头蹲防有明确的东方角色气质和常见梗，能用身份、行为及形象表达连续程度。"
+      }
+    },
+    {
+      "player": "B1",
+      "task": "clue",
+      "game": 5,
+      "round": 2,
+      "at": "2026-10-13T04:23:25.690Z",
+      "answer": {
+        "clue": "四季映姬·亚玛萨那度",
+        "reason": "阎魔裁判的身份、严肃训诫和对善恶的权威判断，使她几乎处在威严满满端点，缺少抱头蹲防的典型反差。",
+        "difficulty": 1,
+        "confidence": 0.89
+      }
+    },
+    {
+      "player": "B2",
+      "task": "dial",
+      "game": 5,
+      "round": 2,
+      "at": "2026-10-13T04:23:53.706Z",
+      "answer": {
+        "dial": -92,
+        "reason": "映姬是严肃公正、训诫众人的阎魔，权威与说教气场是核心形象，几乎没有抱头蹲防的主导联想，取很接近威严端的位置。",
+        "confidence": 0.86
+      }
+    },
+    {
+      "player": "A1",
+      "task": "defend",
+      "game": 5,
+      "round": 2,
+      "at": "2026-10-13T04:24:02.445Z",
+      "answer": {
+        "estimate": -87,
+        "side": "R",
+        "reason": "映姬作为阎魔极有威严，角色语义明确偏左；-92接近绝对端点，考虑她并非压倒性气场体型，估计稍向内。",
+        "confidence": 0.6
+      }
+    },
+    {
+      "player": "A2",
+      "task": "defend",
+      "game": 5,
+      "round": 2,
+      "at": "2026-10-13T04:24:03.896Z",
+      "answer": {
+        "estimate": -87,
+        "side": "R",
+        "reason": "四季映姬是严厉判官，训诫他人的权威形象很强，明显接近威严端；-92已几乎绝对，估计稍向中间。",
+        "confidence": 0.58
+      }
+    },
+    {
+      "player": "A1",
+      "task": "select",
+      "game": 5,
+      "round": 3,
+      "at": "2026-10-13T04:24:09.746Z",
+      "answer": {
+        "index": 1,
+        "reason": "生死有幽灵、半人半灵、僵尸与普通人类等明确设定，较北大清华的间接学科联想更稳定。"
+      }
+    },
+    {
+      "player": "A1",
+      "task": "clue",
+      "game": 5,
+      "round": 3,
+      "at": "2026-10-13T04:24:26.250Z",
+      "answer": {
+        "clue": "丰聪耳神子",
+        "reason": "神子曾经经历死亡般的沉睡、以尸解仙身份复活，如今有明确活跃的实体生命；偏活着，但不如普通活人那样纯粹。",
+        "difficulty": 4,
+        "confidence": 0.58
+      }
+    },
+    {
+      "player": "A2",
+      "task": "dial",
+      "game": 5,
+      "round": 3,
+      "at": "2026-10-13T04:25:16.134Z",
+      "answer": {
+        "dial": -36,
+        "reason": "神子曾经历尸解与长眠，后来复活成为仙人，现状偏活着；但死亡再生是其身份核心，不能当作普通生者放到极端。",
+        "confidence": 0.56
+      }
+    },
+    {
+      "player": "B1",
+      "task": "defend",
+      "game": 5,
+      "round": 3,
+      "at": "2026-10-13T04:25:23.438Z",
+      "answer": {
+        "estimate": -25,
+        "side": "R",
+        "reason": "神子已复活并作为仙人活动，当前偏活着；但经历尸解与长眠，和死亡有强关联，不像普通活人那样靠左端，估计略右于-36。",
+        "confidence": 0.63
+      }
+    },
+    {
+      "player": "B2",
+      "task": "defend",
+      "game": 5,
+      "round": 3,
+      "at": "2026-10-13T04:25:23.999Z",
+      "answer": {
+        "estimate": -45,
+        "side": "L",
+        "reason": "神子有历史上的死亡与沉睡背景，但现在已复活并作为仙人主动生活，当前状态更偏活着；保留死亡经历的中间拉力，估计略低于-36。",
+        "confidence": 0.57
+      }
+    },
+    {
+      "player": "B2",
+      "task": "select",
+      "game": 5,
+      "round": 4,
+      "at": "2026-10-13T04:25:29.873Z",
+      "answer": {
+        "index": 0,
+        "reason": "身高视觉形象较直观，且咲夜偏高的中段已有双方接近的历史；外向程度此前分歧较大。"
+      }
+    },
+    {
+      "player": "B2",
+      "task": "clue",
+      "game": 5,
+      "round": 4,
+      "at": "2026-10-13T04:25:38.071Z",
+      "answer": {
+        "clue": "红美铃",
+        "reason": "美铃是修长高挑的成年武术家与门卫，通常比咲夜更有高个子印象；明显偏高且非巨人式绝对端点，适合高侧深处。",
+        "difficulty": 2,
+        "confidence": 0.86
+      }
+    },
+    {
+      "player": "B1",
+      "task": "dial",
+      "game": 5,
+      "round": 4,
+      "at": "2026-10-13T04:26:13.473Z",
+      "answer": {
+        "dial": -80,
+        "reason": "美铃是高挑的成年女性与武术家形象，通常显得比咲夜更高；上局咲夜在偏高半程，美铃应再明显向高端移动，但仍低于夸张巨型角色。",
+        "confidence": 0.78
+      }
+    },
+    {
+      "player": "A1",
+      "task": "defend",
+      "game": 5,
+      "round": 4,
+      "at": "2026-10-13T04:26:21.930Z",
+      "answer": {
+        "estimate": -74,
+        "side": "R",
+        "reason": "美铃是高挑成年女性，明显比此前咲夜偏高，但不是巨人级体型，-80可能略向高端过头。",
+        "confidence": 0.61
+      }
+    },
+    {
+      "player": "A2",
+      "task": "defend",
+      "game": 5,
+      "round": 4,
+      "at": "2026-10-13T04:26:27.384Z",
+      "answer": {
+        "estimate": -72,
+        "side": "R",
+        "reason": "美铃通常比咲夜更高挑，明显属于高个角色；参照之前咲夜目标-49.8，美铃可再向左一档，但-80或略偏极端。",
+        "confidence": 0.63
+      }
+    },
+    {
+      "player": "A2",
+      "task": "select",
+      "game": 5,
+      "round": 5,
+      "at": "2026-10-13T04:26:31.816Z",
+      "answer": {
+        "index": 1,
+        "reason": "人气高低可以基于主角与常见热门角色的自然认知表达；叮咚鸡与大狗叫的含义不清楚。"
+      }
+    },
+    {
+      "player": "A2",
+      "task": "clue",
+      "game": 5,
+      "round": 5,
+      "at": "2026-10-13T04:26:46.308Z",
+      "answer": {
+        "clue": "十六夜咲夜",
+        "reason": "咲夜是长期知名、广受喜爱的核心角色，人气明显位于高位；但相对灵梦、魔理沙或屡居最前列的角色，仍给最高端留少量空间。",
+        "difficulty": 2,
+        "confidence": 0.81
+      }
+    },
+    {
+      "player": "A1",
+      "task": "dial",
+      "game": 5,
+      "round": 5,
+      "at": "2026-10-13T04:27:07.886Z",
+      "answer": {
+        "dial": -85,
+        "reason": "咲夜是长期高人气的核心角色，明显接近高排名端，但相比灵梦、魔理沙等最顶端代表仍留一些距离。",
+        "confidence": 0.81
+      }
+    },
+    {
+      "player": "B1",
+      "task": "defend",
+      "game": 5,
+      "round": 5,
+      "at": "2026-10-13T04:27:13.913Z",
+      "answer": {
+        "estimate": -90,
+        "side": "L",
+        "reason": "咲夜属于长期高人气的核心角色，在庞大角色池里是最前列的一档；即使未必第一，也应很接近人气高端，估计略左于-85。",
+        "confidence": 0.68
+      }
+    },
+    {
+      "player": "B2",
+      "task": "defend",
+      "game": 5,
+      "round": 5,
+      "at": "2026-10-13T04:27:27.573Z",
+      "answer": {
+        "estimate": -90,
+        "side": "L",
+        "reason": "咲夜是长期广受欢迎的核心角色，在庞大的全角色范围里属于很靠前的一层；虽非必然第一，仍可比-85更靠近高人气端。",
+        "confidence": 0.65
+      }
+    },
+    {
+      "player": "B2",
+      "task": "feedback",
+      "game": 5,
+      "round": 5,
+      "at": "2026-10-13T04:27:53.387Z",
+      "answer": {
+        "fun": 4,
+        "fairness": 3,
+        "pace": 5,
+        "agency": 4,
+        "frustrations": [
+          "本局五轮即结束，A有三次主动行动而B只有两次；后手起始1分未必能抵消少一次出题机会。",
+          "映姬线索方向明确但我保守留端点余地，-92与-97.6差5.6，只得3分。"
+        ],
+        "learned": "红美铃身高线索与B1精确吻合；强烈单一语义以及已揭晓的自然尺度能稳定合作，但极端角色仍存在几分的不可消除误差。",
+        "proposal": "试验达到胜分后补齐双方本组常规行动，再比较比分，单独明确追赶行动如何计入。",
+        "overall": {
+          "strategyChange": "从按一般角色印象判断，转为优先检查称号与强梗、区分复合属性、用已揭晓语义校准伙伴尺度；爱丽丝七色称号的失误促使我避免主观弱联想，之后魔理沙活泼与美铃身高均精确命中。",
+          "preferredRegularRounds": 10,
+          "preferredBandWidth": 40,
+          "fairnessChange": "优先试验成对结算胜负，减少到达10分时常规出题次数不等的影响；保留双方相同防守合议机制。",
+          "tradeoff": "当前大多数局在5至6轮结束，尚无证据支持修改10轮上限。色带40保留精确命中奖励与猜测张力；若测试44可减轻3.4刚出4分区的挫败，但可能降低区分度并加速结束。成对结算最多增加一个常规行动并可能延长加时；这些是五局代理体验推测，需更多对局验证。"
+        }
+      }
+    },
+    {
+      "player": "B1",
+      "task": "feedback",
+      "game": 5,
+      "round": 5,
+      "at": "2026-10-13T04:27:54.369Z",
+      "answer": {
+        "fun": 4,
+        "fairness": 3,
+        "pace": 5,
+        "agency": 4,
+        "frustrations": [
+          "本局A行动3次、B仅2次便结束，刚用美铃误差1.2拿4分后，没有再出题机会。",
+          "映姬威严目标-97.6猜-92，语义完全一致仍只得3分；咲夜人气误差恰好3.2则得4分，窄边界很关键。"
+        ],
+        "learned": "参照此前咲夜身高，再判断美铃更高，成功将误差控制到1.2；基于自然语义的跨局校准有效。端点人物仍难区分90与98，不能把鲜明特征等同于精确位置。",
+        "proposal": "达到10分后让双方完成同等常规行动次数再判胜负，并明确区分追赶奖励行动。",
+        "overall": {
+          "strategyChange": "从凭单个称号或刻板印象定位，转为优先选择明确职业、物种、体型和生活状态，比较已揭晓的相邻角色；避开多义题面，认识到中点的两侧因素抵消未必被队友共享。防守使用独立语义估计，减少无依据的固定向中间修正。",
+          "preferredRegularRounds": 8,
+          "preferredBandWidth": 48,
+          "fairnessChange": "优先试验成对结束常规行动，达到胜分后给另一队补齐同等常规行动机会；显示独立加时记分，并为多义词提供简短范围说明。",
+          "tradeoff": "8轮上限可保留每队4次常规行动的紧凑结构；色带48仅建议作为较宽容模式试验，能缓和3.4和24附近误差的断崖，但也会增加4分及追赶频率、削弱精确度差异。只有五局代理体验，无法断言优于当前40，应与原配置对照验证。"
+        }
+      }
+    },
+    {
+      "player": "A1",
+      "task": "feedback",
+      "game": 5,
+      "round": 5,
+      "at": "2026-10-13T04:28:27.831Z",
+      "answer": {
+        "fun": 5,
+        "fairness": 4,
+        "pace": 4,
+        "agency": 4,
+        "frustrations": [
+          "本局5轮即结束，B队只有两次主动行动，虽然A队命中更好，比赛仍略短。",
+          "两次防守都在极端附近略向内估计，但映姬目标实际更靠端点，不能把向中间猜当作通用策略。"
+        ],
+        "learned": "永琳聪明与咲夜人气这类明确维度可以大胆靠近极端；神子复活设定成功表达中间偏活着并得3分，说明中段也能靠清楚的双重属性传达。",
+        "proposal": "先测试每两队各完成一次行动后再检查胜负，让结束时主动行动次数相同。",
+        "overall": {
+          "strategyChange": "从按直觉角色强度给位置，到利用公开历史校准；中途尝试普遍向中点收敛，却在早苗常见度题收敛过头，最终更重视具体题轴。出题优先自然语义明确且能覆盖中段的题，端点用标志性角色，中段用真实双重属性，避免称号与外观冲突。",
+          "preferredRegularRounds": 8,
+          "preferredBandWidth": 48,
+          "fairnessChange": "建议以双方各一次为结算单位检查10分，先后手继续轮换；在采用完整轮对后重新实测后手初始1分是否仍必要。当前五局不足以证明哪队或哪种先后手系统性占优。",
+          "tradeoff": "8轮是节奏偏好而非统计最优：当前多数局因10分提前结束，改单独轮数上限影响很小。基准宽48若同比例扩大，可让方向正确但误差22至24的表达获得少量分，减轻连续零分；代价是降低精度奖励差异、加快结束并可能增加追赶行动。建议先作为可选宽容模式对照测试，保留40的标准模式。"
+        }
+      }
+    },
+    {
+      "player": "A2",
+      "task": "feedback",
+      "game": 5,
+      "round": 5,
+      "at": "2026-10-13T04:28:50.553Z",
+      "answer": {
+        "fun": 5,
+        "fairness": 4,
+        "pace": 5,
+        "agency": 4,
+        "frustrations": [
+          "本局两次防守把明显端点角色稍向中间估计，实际目标更靠极端，说明统一收缩不能替代逐题判断。",
+          "五轮就结束，单局内并非每位玩家都有同样次数的出题机会；跨局轮换有所缓解。"
+        ],
+        "learned": "永琳聪明和咲夜人气的主要特征足够清楚，分别命中4分；神子复活的双面状态也能传递中段位置。应按具体维度选择共同熟悉的核心特征，而非把所有角色强度统一修正。",
+        "proposal": "先试验基准色带宽度48，观察能否减少方向正确但差22至24点整轮无分的挫折，同时保留4分的精确奖励。",
+        "overall": {
+          "strategyChange": "起初依据角色综合印象直接定强度，随后尝试向中间收缩；多轮发现不同题的误差方向不同，最终改为优先主特征、按维度利用已揭晓参照，并避开依赖小众梗或多重解释的选题。",
+          "preferredRegularRounds": 8,
+          "preferredBandWidth": 48,
+          "fairnessChange": "建议试验固定8个常规行动后比较比分，让四位玩家各有两次出题；若保留10分终止，至少完成双方同等行动次数再结算。现有后手1分和跨局轮换可缓解差异，但五局不足以证明整体先后手优势。",
+          "tradeoff": "固定8轮增加单局参与机会与比较公平性，但会延长已拉开差距的比赛；色带48更宽容细微尺度偏差，也会降低精确猜测的区分度。建议把两项变化分开测试；这些是代理主观偏好，不代表真人结论。"
+        }
+      }
+    }
+  ],
+  "rng": 2094537446,
+  "game": {
+    "phase": "over",
+    "rulesOpen": false,
+    "active": "A",
+    "first": "A",
+    "teams": {
+      "A": {
+        "name": "A1 + A2",
+        "score": 11
+      },
+      "B": {
+        "name": "B1 + B2",
+        "score": 8
+      }
+    },
+    "round": 5,
+    "dial": 75,
+    "target": {
+      "center": 91,
+      "w4": 16,
+      "w3": 56,
+      "w2": 100,
+      "dist": "recommended"
+    },
+    "card": [
+      "人气排名高",
+      "人气排名低"
+    ],
+    "cardChoices": [],
+    "cardMode": "choice",
+    "side": 0,
+    "guess": "L",
+    "cards": [
+      [
+        "大",
+        "小"
+      ],
+      [
+        "像男的",
+        "像女的"
+      ],
+      [
+        "老资历",
+        "小资历"
+      ],
+      [
+        "老太婆",
+        "小萝莉"
+      ],
+      [
+        "人类",
+        "妖怪"
+      ],
+      [
+        "人类友好度高",
+        "人类友好度低"
+      ],
+      [
+        "强强",
+        "弱弱"
+      ],
+      [
+        "居住点海拔高",
+        "居住点海拔低"
+      ],
+      [
+        "审美积累",
+        "审美积积"
+      ],
+      [
+        "人气排名高",
+        "人气排名低"
+      ],
+      [
+        "活泼",
+        "冷静"
+      ],
+      [
+        "聪明",
+        "笨蛋"
+      ],
+      [
+        "有文化底蕴",
+        "没有文化底蕴"
+      ],
+      [
+        "幸运",
+        "不幸"
+      ],
+      [
+        "富裕",
+        "贫穷"
+      ],
+      [
+        "开朗阳光",
+        "孤僻阴暗"
+      ],
+      [
+        "孩子气",
+        "妈妈"
+      ],
+      [
+        "维新",
+        "传统"
+      ],
+      [
+        "现充",
+        "御宅族"
+      ],
+      [
+        "精英",
+        "草根"
+      ],
+      [
+        "纯情",
+        "海王"
+      ],
+      [
+        "0",
+        "1"
+      ],
+      [
+        "s",
+        "m"
+      ],
+      [
+        "香",
+        "臭"
+      ],
+      [
+        "威严满满",
+        "抱头蹲防"
+      ],
+      [
+        "左",
+        "右"
+      ],
+      [
+        "黑白",
+        "七彩"
+      ],
+      [
+        "西洋",
+        "东洋"
+      ],
+      [
+        "外向",
+        "内向"
+      ],
+      [
+        "兽",
+        "人"
+      ],
+      [
+        "高",
+        "矮"
+      ],
+      [
+        "长发",
+        "短发"
+      ],
+      [
+        "文",
+        "理"
+      ],
+      [
+        "CP多",
+        "CP少"
+      ],
+      [
+        "活着的",
+        "死掉了"
+      ],
+      [
+        "科技",
+        "幻想"
+      ],
+      [
+        "北大",
+        "清华"
+      ],
+      [
+        "大々吉",
+        "大々凶"
+      ],
+      [
+        "清真",
+        "不清真"
+      ],
+      [
+        "（音乐）豪庭的钥匙",
+        "（音乐）南亭的钥匙"
+      ],
+      [
+        "常见",
+        "罕见"
+      ],
+      [
+        "夯",
+        "拉完了"
+      ],
+      [
+        "强健",
+        "病弱"
+      ],
+      [
+        "胆子大",
+        "胆子小"
+      ],
+      [
+        "文明",
+        "野蛮"
+      ],
+      [
+        "猫",
+        "狗"
+      ],
+      [
+        "GPA4.0",
+        "GPA1.0"
+      ],
+      [
+        "讨好型人格",
+        "反驳型人格"
+      ],
+      [
+        "波长长",
+        "波长短"
+      ],
+      [
+        "岁月静好",
+        "负重前行"
+      ],
+      [
+        "太快乐了🤗",
+        "太痛苦了😫"
+      ],
+      [
+        "叮咚鸡",
+        "大狗叫"
+      ],
+      [
+        "星宇旺盛",
+        "星宇low"
+      ],
+      [
+        "串子",
+        "纯良"
+      ]
+    ],
+    "deckName": "车万版",
+    "deck": [
+      [
+        "（音乐）豪庭的钥匙",
+        "（音乐）南亭的钥匙"
+      ],
+      [
+        "文明",
+        "野蛮"
+      ],
+      [
+        "西洋",
+        "东洋"
+      ],
+      [
+        "波长长",
+        "波长短"
+      ],
+      [
+        "审美积累",
+        "审美积积"
+      ],
+      [
+        "大",
+        "小"
+      ],
+      [
+        "串子",
+        "纯良"
+      ],
+      [
+        "夯",
+        "拉完了"
+      ],
+      [
+        "人类",
+        "妖怪"
+      ],
+      [
+        "大々吉",
+        "大々凶"
+      ],
+      [
+        "强强",
+        "弱弱"
+      ],
+      [
+        "孩子气",
+        "妈妈"
+      ],
+      [
+        "像男的",
+        "像女的"
+      ],
+      [
+        "居住点海拔高",
+        "居住点海拔低"
+      ],
+      [
+        "岁月静好",
+        "负重前行"
+      ],
+      [
+        "文",
+        "理"
+      ],
+      [
+        "左",
+        "右"
+      ],
+      [
+        "胆子大",
+        "胆子小"
+      ],
+      [
+        "CP多",
+        "CP少"
+      ],
+      [
+        "幸运",
+        "不幸"
+      ],
+      [
+        "活泼",
+        "冷静"
+      ],
+      [
+        "科技",
+        "幻想"
+      ],
+      [
+        "黑白",
+        "七彩"
+      ],
+      [
+        "兽",
+        "人"
+      ],
+      [
+        "老资历",
+        "小资历"
+      ],
+      [
+        "强健",
+        "病弱"
+      ],
+      [
+        "开朗阳光",
+        "孤僻阴暗"
+      ],
+      [
+        "清真",
+        "不清真"
+      ],
+      [
+        "0",
+        "1"
+      ],
+      [
+        "纯情",
+        "海王"
+      ],
+      [
+        "星宇旺盛",
+        "星宇low"
+      ],
+      [
+        "讨好型人格",
+        "反驳型人格"
+      ],
+      [
+        "现充",
+        "御宅族"
+      ],
+      [
+        "香",
+        "臭"
+      ],
+      [
+        "s",
+        "m"
+      ],
+      [
+        "精英",
+        "草根"
+      ],
+      [
+        "长发",
+        "短发"
+      ],
+      [
+        "GPA4.0",
+        "GPA1.0"
+      ],
+      [
+        "人类友好度高",
+        "人类友好度低"
+      ],
+      [
+        "太快乐了🤗",
+        "太痛苦了😫"
+      ],
+      [
+        "有文化底蕴",
+        "没有文化底蕴"
+      ],
+      [
+        "维新",
+        "传统"
+      ],
+      [
+        "常见",
+        "罕见"
+      ],
+      [
+        "富裕",
+        "贫穷"
+      ]
+    ],
+    "ordered": false,
+    "winScore": 10,
+    "bandWidth": 40,
+    "sudden": false,
+    "sdPts": {
+      "A": 0,
+      "B": 0
+    },
+    "sdTurns": {
+      "A": false,
+      "B": false
+    },
+    "catchup": false,
+    "result": {
+      "winner": "A",
+      "maxRounds": false
+    },
+    "reveal": {
+      "pts": 4,
+      "oppPts": 0,
+      "oppCorrect": null,
+      "guess": "L",
+      "pair": [
+        "人气排名高",
+        "人气排名低"
+      ]
+    },
+    "timerKind": null,
+    "timerEnd": null,
+    "log": [
+      {
+        "round": 5,
+        "team": "A",
+        "targetPct": 9,
+        "dialPct": 8,
+        "pair": [
+          "人气排名高",
+          "人气排名低"
+        ],
+        "pts": 4,
+        "oppPts": 0,
+        "sudden": false
+      },
+      {
+        "round": 4,
+        "team": "B",
+        "targetPct": 11,
+        "dialPct": 10,
+        "pair": [
+          "高",
+          "矮"
+        ],
+        "pts": 4,
+        "oppPts": 0,
+        "sudden": false
+      },
+      {
+        "round": 3,
+        "team": "A",
+        "targetPct": 28,
+        "dialPct": 32,
+        "pair": [
+          "活着的",
+          "死掉了"
+        ],
+        "pts": 3,
+        "oppPts": 0,
+        "sudden": false
+      },
+      {
+        "round": 2,
+        "team": "B",
+        "targetPct": 1,
+        "dialPct": 4,
+        "pair": [
+          "威严满满",
+          "抱头蹲防"
+        ],
+        "pts": 3,
+        "oppPts": 0,
+        "sudden": false
+      },
+      {
+        "round": 1,
+        "team": "A",
+        "targetPct": 3,
+        "dialPct": 2,
+        "pair": [
+          "聪明",
+          "笨蛋"
+        ],
+        "pts": 4,
+        "oppPts": 0,
+        "sudden": false
+      }
+    ]
+  },
+  "current": {
+    "game": 5,
+    "round": 5,
+    "team": "A",
+    "psychic": "A2",
+    "guesser": "A1",
+    "captain": "B1",
+    "candidates": [
+      [
+        "叮咚鸡",
+        "大狗叫"
+      ],
+      [
+        "人气排名高",
+        "人气排名低"
+      ]
+    ],
+    "scoreBefore": {
+      "A": 7,
+      "B": 8
+    },
+    "sudden": false,
+    "selection": {
+      "index": 1,
+      "reason": "人气高低可以基于主角与常见热门角色的自然认知表达；叮咚鸡与大狗叫的含义不清楚。"
+    },
+    "clue": {
+      "clue": "十六夜咲夜",
+      "reason": "咲夜是长期知名、广受喜爱的核心角色，人气明显位于高位；但相对灵梦、魔理沙或屡居最前列的角色，仍给最高端留少量空间。",
+      "difficulty": 2,
+      "confidence": 0.81
+    },
+    "dial": {
+      "dial": -85,
+      "reason": "咲夜是长期高人气的核心角色，明显接近高排名端，但相比灵梦、魔理沙等最顶端代表仍留一些距离。",
+      "confidence": 0.81,
+      "requestedDial": -85
+    },
+    "defense": {
+      "B1": {
+        "estimate": -90,
+        "side": "L",
+        "reason": "咲夜属于长期高人气的核心角色，在庞大角色池里是最前列的一档；即使未必第一，也应很接近人气高端，估计略左于-85。",
+        "confidence": 0.68
+      },
+      "B2": {
+        "estimate": -90,
+        "side": "L",
+        "reason": "咲夜是长期广受欢迎的核心角色，在庞大的全角色范围里属于很靠前的一层；虽非必然第一，仍可比-85更靠近高人气端。",
+        "confidence": 0.65
+      }
+    },
+    "startedAt": "2026-10-13T04:26:27.385Z",
+    "pair": [
+      "人气排名高",
+      "人气排名低"
+    ],
+    "opponentEstimate": -90,
+    "opponentSide": "L",
+    "target": -81.8,
+    "targetRaw": {
+      "center": 91,
+      "w4": 16,
+      "w3": 56,
+      "w2": 100,
+      "dist": "recommended"
+    },
+    "error": 3.2,
+    "pts": 4,
+    "oppPts": 0,
+    "opponentCorrect": null,
+    "scoreAfter": {
+      "A": 11,
+      "B": 8
+    },
+    "suddenPointsAfter": {
+      "A": 0,
+      "B": 0
+    },
+    "catchup": false,
+    "resultAfter": {
+      "winner": "A",
+      "maxRounds": false
+    },
+    "endedAt": "2026-10-13T04:27:27.573Z"
+  },
+  "stage": "complete"
+}

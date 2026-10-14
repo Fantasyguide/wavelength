@@ -4,11 +4,15 @@ var path = require("path");
 var os = require("os");
 var crypto = require("crypto");
 var WL = require("./game.js");
+var QQ = require("./satori.js");
+var createAudience = require("./audience.js").createAudience;
+var createArchive = require("./audience-archive.js");
 
 var PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3100;
 var ROOT = __dirname;
 var CONFIG_PATH = process.env.WL_CONFIG || path.join(ROOT, "config.json");
 var AUTH_SESSIONS_PATH = process.env.WL_AUTH_SESSIONS || path.join(ROOT, "auth-sessions.json");
+var QQ_RESULTS_PATH = process.env.WL_QQ_RESULTS || path.join(ROOT, "data", "qq-rounds.jsonl");
 var AUTH_COOKIE = "wl_auth";
 var AUTH_MAX_AGE_SECONDS = 180 * 24 * 60 * 60;
 var MAX_BODY_BYTES = 256 * 1024;
@@ -17,7 +21,16 @@ var MIME = {
   ".css": "text/css; charset=utf-8",
   ".js": "application/javascript; charset=utf-8",
   ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp",
+  ".gif": "image/gif",
+  ".ico": "image/x-icon",
   ".otf": "font/otf",
+  ".ttf": "font/ttf",
+  ".woff": "font/woff",
+  ".woff2": "font/woff2",
   ".json": "application/json; charset=utf-8",
   ".yaml": "text/plain; charset=utf-8",
   ".yml": "text/plain; charset=utf-8"
@@ -30,13 +43,19 @@ var DECKS_DIR = path.join(ROOT, "decks");
 function loadConfig() {
   try {
     var c = JSON.parse(fs.readFileSync(CONFIG_PATH, "utf8"));
-    return { password: typeof c.password === "string" ? c.password : "" };
+    return { password: typeof c.password === "string" ? c.password : "", qq: c.qq };
   } catch (e) {
+    if (e.code !== "ENOENT") throw new Error("无法读取服务器配置：" + e.message);
     return { password: "" };
   }
 }
 
 var config = loadConfig();
+var audienceDemo = process.env.WL_AUDIENCE_DEMO === "1" ? require("./audience-demo.js") : null;
+var qqConfig = QQ.normalizeConfig(audienceDemo ? { enabled: false } : config.qq);
+var archive = qqConfig.enabled ? createArchive(QQ_RESULTS_PATH) : null;
+var audience = createAudience(qqConfig, Date.now, function (record) { if (archive) archive.enqueue(record); });
+var satori;
 var passwordHash = crypto.createHash("sha256").update(config.password).digest("hex");
 var authStore = { version: 1, passwordHash: passwordHash, sessions: [] };
 
@@ -155,8 +174,13 @@ var defaultDeck = {
   cards: state.cards.map(function (card) { return card.slice(); })
 };
 
+function publicState() {
+  audience.sync(state);
+  return Object.assign({}, state, { audience: audienceDemo ? audienceDemo(state) : audience.snapshot(!!satori && satori.connected()) });
+}
+
 function broadcast() {
-  var payload = "data: " + JSON.stringify(state) + "\n\n";
+  var payload = "data: " + JSON.stringify(publicState()) + "\n\n";
   clients.forEach(function (res) {
     try {
       res.write(payload);
@@ -229,7 +253,10 @@ function authCookie(req, token, maxAge) {
 }
 
 var server = http.createServer(function (req, res) {
-  var url = decodeURIComponent((req.url || "/").split("?")[0]);
+  var url;
+  try { url = decodeURIComponent((req.url || "/").split("?")[0]); }
+  catch (e) { return sendJson(res, 400, { ok: false, error: "无效路径" }); }
+  if (url.includes("\0") || url.includes("\\")) return sendJson(res, 400, { ok: false, error: "无效路径" });
 
   if (req.method === "GET" && url === "/api/ping") {
     return sendJson(res, 200, {
@@ -310,7 +337,7 @@ var server = http.createServer(function (req, res) {
         "Connection": "keep-alive"
       });
       res.write("retry: 2000\n\n");
-      res.write("data: " + JSON.stringify(state) + "\n\n");
+      res.write("data: " + JSON.stringify(publicState()) + "\n\n");
       clients.add(res);
       req.on("close", function () { clients.delete(res); });
     });
@@ -325,6 +352,7 @@ var server = http.createServer(function (req, res) {
             name: defaultDeck.name,
             cards: defaultDeck.cards.map(function (card) { return card.slice(); })
           } : intent);
+          if (intent && (intent.type === "setup" || intent.type === "newGame")) audience.newGame();
           broadcast();
           sendJson(res, 200, { ok: true, phase: state.phase });
         } catch (e) {
@@ -353,18 +381,39 @@ var server = http.createServer(function (req, res) {
     });
   }
 
-  var filePath = path.normalize(path.join(ROOT, url === "/" ? "index.html" : url));
-  if (filePath.indexOf(ROOT) !== 0) {
-    return sendJson(res, 403, { ok: false, error: "forbidden" });
+  // Serve only browser assets. Config, bot tokens, sessions and backend code are private.
+  var asset = url === "/" ? "index.html" : url.replace(/^\//, "");
+  var isAsset = asset.startsWith("assets/") && asset.split("/").every(function (part) {
+    return part && !part.startsWith(".");
+  }) && /\.(svg|png|jpe?g|webp|gif|ico|otf|ttf|woff2?)$/i.test(asset);
+  if (!["index.html", "app.css", "app.js", "game.js", "cards.yaml", "cards.json", "names.json"].includes(asset) &&
+      !isAsset) {
+    return sendJson(res, 404, { ok: false, error: "not found" });
   }
-  fs.readFile(filePath, function (err, data) {
-    if (err) {
-      sendJson(res, 404, { ok: false, error: "not found" });
-      return;
-    }
-    res.writeHead(200, { "Content-Type": MIME[path.extname(filePath)] || "application/octet-stream" });
-    res.end(data);
+  var filePath = path.resolve(ROOT, asset);
+  if (!filePath.startsWith(ROOT + path.sep)) return sendJson(res, 404, { ok: false, error: "not found" });
+  fs.realpath(filePath, function (err, realPath) {
+    var publicRoot = isAsset ? path.join(ROOT, "assets") : ROOT;
+    if (err || !realPath.startsWith(publicRoot + path.sep) ||
+        [CONFIG_PATH, AUTH_SESSIONS_PATH, QQ_RESULTS_PATH].some(function (privatePath) {
+          return path.resolve(privatePath) === realPath;
+        })) return sendJson(res, 404, { ok: false, error: "not found" });
+    fs.readFile(realPath, function (readError, data) {
+      if (readError) return sendJson(res, 404, { ok: false, error: "not found" });
+      res.writeHead(200, { "Content-Type": MIME[path.extname(filePath).toLowerCase()] || "application/octet-stream" });
+      res.end(data);
+    });
   });
+});
+
+satori = QQ.connectSatori(qqConfig, function (event) {
+  audience.sync(state);
+  if (audience.receive(event)) broadcast();
+}, broadcast);
+server.on("close", function () {
+  clearInterval(keepalive);
+  satori.stop();
+  if (archive) void archive.close();
 });
 
 function lanAddresses() {
@@ -385,6 +434,8 @@ server.listen(PORT, function () {
     console.log("局域网访问： http://" + ip + ":" + PORT);
   });
   console.log("iPad 选「控制器」，电脑开监视器，即可开始游戏");
+  if (qqConfig.enabled) console.log("QQ 群竞猜已启用，正在连接 LLBot Satori 服务");
+  if (audienceDemo) console.log("群互动使用固定演示数据（不连接 QQ）");
 });
 
 module.exports = { server: server, state: state, MAX_BODY_BYTES: MAX_BODY_BYTES };

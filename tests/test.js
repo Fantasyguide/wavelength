@@ -99,7 +99,7 @@ async function pickFile(name, content, inputId) {
   assert(doc.getElementById("trackA").children.length === 40, "win score 100 caps score dots at 40");
   const tickPositions = Array.from(doc.querySelectorAll("#ticks .tick-mark")).map((el) => parseFloat(el.style.left));
   assert(tickPositions.length === 19 && tickPositions.every((x, i) => x === (i + 1) * 5), "ticks use fixed 5% spacing without endpoint lines");
-  assert(Array.from(doc.querySelectorAll("#tick-labels .tick-number")).map((el) => el.textContent).join(",") === "0%,25%,50%,75%,100%", "percentage labels render below the bar");
+  assert(Array.from(doc.querySelectorAll("#tick-labels .tick-number")).map((el) => el.textContent).join(",") === "-100%,-50%,0%,+50%,+100%", "signed percentage labels render below the bar");
 
   const skipBtn = Array.from(doc.getElementById("controls").children).find((b) => b.textContent.indexOf("跳过此题") !== -1);
   assert(!!skipBtn, "skip button present in psychic phase");
@@ -159,11 +159,12 @@ async function pickFile(name, content, inputId) {
   assert(logA.indexOf("color:var(--cA)") !== -1, "team name colored in log");
   assert(logA.indexOf("目标") !== -1 && logA.indexOf("拨杆") !== -1, "log shows target-dial range");
   const logText = doc.getElementById("log").children[0].textContent;
-  assert(logText.indexOf("%-") !== -1, "log percentages joined with dash");
-  const pcts = logA.match(/\d+%/g).map((s) => parseInt(s, 10));
+  assert(logText.indexOf("% / ") !== -1, "log uses an unambiguous separator for signed values");
+  const pcts = logText.match(/[+-]?\d+(?:\.\d)?%/g).map((s) => parseFloat(s));
   assert(pcts.length === 2 && pcts[0] <= pcts[1], "log percents sorted ascending");
-  assert(logA.indexOf('本队 <span style="color:var(--cA)">+') !== -1, "log own pts in team color");
-  assert(logA.indexOf('对方 <span style="color:var(--cB)">+') !== -1, "log opp pts in other color");
+  const pointsA = [...doc.querySelectorAll("#log li:first-child .log-points")];
+  assert(pointsA.map(el => el.dataset.team).join() === "A,B", "history gains follow physical left/right team order");
+  assert(pointsA[0].getAttribute("style").includes("var(--cA)") && pointsA[1].getAttribute("style").includes("var(--cB)"), "history gains keep their team's colors");
 
   click(doc.getElementById("controls").children[0]);
   assert(doc.getElementById("screen").className.indexOf("open") === -1, "screen reset for new round");

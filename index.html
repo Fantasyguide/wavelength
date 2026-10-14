@@ -6,7 +6,14 @@
 <title>Wavelength 心灵波长</title>
 <link rel="icon" href="data:,">
 <meta name="theme-color" content="#ffffff">
+<link rel="preload" href="assets/fantasyguide/FZPingXianYaSong-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fantasyguide/FZYaShiHei-Medium.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fantasyguide/FZCYSJW.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fantasyguide/SourceHanSerifCN-Bold-Numeric.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fantasyguide/ZaoZiGongFangYanSongTi-1.otf" as="font" type="font/otf" crossorigin>
+<link rel="preload" href="assets/fantasyguide/SourceHanSerifCN-Medium.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fantasyguide/SourceHanSerifCN-SemiBold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fantasyguide/WavelengthNumeric-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="app.css">
 </head>
 <!-- 倒计时秒数可在这里调整；设为 0 可关闭对应倒计时。 -->
@@ -31,14 +38,18 @@
   <section class="scoreboard" aria-label="两队比分">
     <div class="scoreboard-caption" aria-hidden="true">两队对局 <span>TEAM SCORE</span></div>
     <div class="team a">
-      <div class="tname" id="nameA"></div>
+      <span class="team-direction" id="directionA" role="img"></span>
+      <div class="team-heading"><div class="tname" id="nameA"></div></div>
       <div class="tscore" id="scoreA">0</div>
+      <span class="team-gain" id="gainA" aria-live="polite"></span>
       <div class="score-track" id="trackA"></div>
     </div>
     <div class="vs" aria-label="对阵">对</div>
     <div class="team b">
-      <div class="tname" id="nameB"></div>
+      <span class="team-direction" id="directionB" role="img"></span>
+      <div class="team-heading"><div class="tname" id="nameB"></div></div>
       <div class="tscore" id="scoreB">1</div>
+      <span class="team-gain" id="gainB" aria-live="polite"></span>
       <div class="score-track" id="trackB"></div>
     </div>
     <div class="active-turn" id="turn-indicator"></div>
@@ -69,15 +80,27 @@
 
   <section class="controls" id="controls"></section>
   <div class="score-pop" id="score-pop"></div>
+  <div class="display-footer" id="display-footer"></div>
+
+  <section class="audience-panel hidden" id="audience-panel" aria-labelledby="audience-title">
+    <div class="audience-heading">
+      <h3 id="audience-title">群友猜波长</h3>
+      <span class="audience-connection" id="audience-connection" role="img" aria-label="群互动未启用"></span>
+    </div>
+    <p class="audience-prompt" id="audience-prompt"></p>
+    <p class="audience-status" id="audience-status" aria-live="polite"></p>
+    <ol class="audience-winners" id="audience-winners" data-auto-scroll></ol>
+  </section>
 
   <section class="log">
-    <h3>回合记录 <span class="section-subtitle" aria-hidden="true">ROUND CHRONICLE</span></h3>
-    <ul id="log"></ul>
+    <h3>回合记录 <span class="section-subtitle" aria-hidden="true">ROUND CHRONICLE</span><span class="auto-scroll-note">自动滚动</span></h3>
+    <ul id="log" data-auto-scroll></ul>
   </section>
 
   <details class="rules">
     <summary><span class="rules-summary-label">规则速查</span></summary>
     <ul>
+      <li>波长刻度：最左 −100%，中央 0%，最右 +100%。群友发送 g-50%、g0% 或 g+50% 作答，揭晓前可以修改。</li>
       <li>默认「二选一」模式：每轮抽取两道题，出题人先选一道，再查看目标并给出线索；也可在开始前切换为「经典单题」。</li>
       <li>Psychic（出题人）看目标位置后，给一个落在卡片两个概念之间的线索，之后不能再说话。</li>
       <li>本队讨论后把金色拨杆拖到猜测位置并锁定。</li>
@@ -124,19 +147,19 @@
     <p>两队轮流派出一位「Psychic」出题，本队猜目标位置，对方猜左右。先拿 10 分或 10 局后领先者获胜。</p>
     <div class="field-row">
       <div class="field">
-        <label>蓝队名称（先手 0 分）</label>
+        <label>左队名称（先手 0 分）</label>
         <input id="input-nameA" value="左脑" maxlength="8">
       </div>
       <div class="field">
-        <label>粉队名称（后手 1 分）</label>
+        <label>右队名称（后手 1 分）</label>
         <input id="input-nameB" value="右脑" maxlength="8">
       </div>
     </div>
     <div class="field">
       <label>先手队伍</label>
       <select id="select-first">
-        <option value="A">蓝队先手（蓝 0 分 / 粉 1 分）</option>
-        <option value="B">粉队先手（粉 0 分 / 蓝 1 分）</option>
+        <option value="A">左队先手（左 0 分 / 右 1 分）</option>
+        <option value="B">右队先手（右 0 分 / 左 1 分）</option>
         <option value="R" selected>随机</option>
       </select>
     </div>
@@ -225,6 +248,11 @@
     <div class="modal-kicker" aria-hidden="true">终局 · 此刻同频</div>
     <div class="winner" id="winner-text"></div>
     <div class="final-score" id="final-score"></div>
+    <div class="audience-final hidden" id="audience-final">
+      <h3>本轮群友榜</h3>
+      <p class="audience-status" id="audience-final-status"></p>
+      <ol class="audience-winners" id="audience-final-winners"></ol>
+    </div>
     <button class="btn primary" id="btn-playagain" style="width:100%">再来一局</button>
     <button class="btn" id="btn-over-close" style="width:100%;margin-top:10px">返回复盘</button>
   </div>

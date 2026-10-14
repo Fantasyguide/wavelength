@@ -35,6 +35,7 @@ function assert(cond, msg) {
 
   await page.goto(base + "/", { waitUntil: "domcontentloaded", timeout: 20000 });
   await page.waitForSelector("#setup-modal:not(.hidden)", { timeout: 5000 });
+  await page.evaluate(() => document.fonts.ready);
   assert(await page.$eval("#conn-badge", (el) => el.textContent.indexOf("本地模式") !== -1), "static host: badge shows local mode");
 
   async function expectDeck(deck, label) {
@@ -49,6 +50,8 @@ function assert(cond, msg) {
     await page.reload({ waitUntil: "domcontentloaded", timeout: 20000 });
     await page.waitForSelector("#setup-modal:not(.hidden)", { timeout: 5000 });
     await expectDeck(deck, label);
+    // Custom fonts can change the setup dialog's height after DOMContentLoaded.
+    await page.evaluate(() => document.fonts.ready);
     await page.$eval("details.advanced", (el) => { el.open = true; });
   }
 

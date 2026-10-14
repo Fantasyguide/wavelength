@@ -8,6 +8,43 @@
   var dragging = false;
   var lastDialSync = 0;
   var overDismissed = false;
+  var displayScroll = new Map();
+  var previousDisplay = null;
+  var scoreAnimations = new Map();
+  var teamEffectTimers = new Map();
+
+  function wideMonitor() {
+    return ROLE === "monitor" && window.matchMedia && window.matchMedia("(min-width: 1800px) and (max-height: 900px)").matches;
+  }
+
+  // Passive displays advance long records and rankings without requiring a mouse.
+  function scrollDisplayPanels() {
+    if (!wideMonitor() || G.rulesOpen || document.hidden) return;
+    var now = Date.now();
+    document.querySelectorAll("[data-auto-scroll]").forEach(function (list) {
+      if (!list.clientHeight) return;
+      var key = list.dataset.entries + ":" + list.clientHeight + ":" + G.phase;
+      var progress = displayScroll.get(list);
+      if (!progress || progress.key !== key) {
+        list.scrollTop = 0;
+        displayScroll.set(list, { key: key, holdUntil: now + 4000, last: now, position: 0 });
+        return;
+      }
+      var elapsed = Math.min(250, now - progress.last);
+      progress.last = now;
+      var end = list.scrollHeight - list.clientHeight;
+      if (end <= 0 || now < progress.holdUntil) return;
+      if (progress.position >= end) {
+        progress.position = 0;
+        list.scrollTop = 0;
+        progress.holdUntil = now + 4000;
+      } else {
+        progress.position = Math.min(end, progress.position + elapsed / 1000 * 24 * Math.min(innerWidth / 3904, innerHeight / 672));
+        list.scrollTop = progress.position;
+        if (progress.position >= end) progress.holdUntil = now + 4000;
+      }
+    });
+  }
 
   var connState = "local";
   var sse = null;
@@ -62,6 +99,9 @@
   function renderTimer() {
     var el = $("timer-display");
     if (!el) return;
+    var footer = $("display-footer");
+    var host = wideMonitor() ? footer : document.querySelector("header");
+    if (el.parentElement !== host) host.insertBefore(el, wideMonitor() ? null : $("btn-restart"));
     if (!G.timerEnd || !G.timerKind) {
       el.className = "timer-display hidden";
       el.textContent = "00:00";
@@ -373,17 +413,29 @@
 
   function render() {
     var A = G.teams.A, B = G.teams.B;
+    // Keep progress in the name column, leaving room for larger score digits.
+    var trackCount = G.winScore > 0 ? Math.min(G.winScore, 40) : 31;
+    var scoreDigits = Math.max(String(G.teams.A.score).length, String(G.teams.B.score).length);
+    var trackColumns = Math.max(1, Math.floor((790 - scoreDigits * 140) / 44));
+    document.body.style.setProperty("--team-card-height", 344 + (Math.ceil(trackCount / trackColumns) - 1) * 44);
     $("nameA").textContent = A.name;
     $("nameB").textContent = B.name;
     [A, B].forEach(function (team, index) {
-      var panel = $(index === 0 ? "nameA" : "nameB").parentElement;
+      var panel = $(index === 0 ? "nameA" : "nameB").closest(".team");
       panel.style.setProperty("--name-length", Math.max(1, Array.from(team.name).length));
       panel.style.setProperty("--score-digits", String(team.score).length);
     });
-    $("scoreA").textContent = A.score;
-    $("scoreB").textContent = B.score;
+    ["A", "B"].forEach(function (letter) {
+      var animation = scoreAnimations.get(letter);
+      if (!animation || animation.target !== G.teams[letter].score) {
+        if (animation) cancelAnimationFrame(animation.frame);
+        scoreAnimations.delete(letter);
+        $("score" + letter).textContent = G.teams[letter].score;
+      }
+    });
     renderTrack("trackA", A.score, "a");
     renderTrack("trackB", B.score, "b");
+    renderTeamFeedback();
     renderDeckInfo();
     renderTurn();
     renderCard();
@@ -394,16 +446,189 @@
     renderTargetVisibility();
     renderModals();
     renderTimer();
+    renderAudience();
+  }
+
+  function monitorPhase() {
+    return { setup: "待开局", chooseCard: "选题", psychic: "出题", dial: "讨论", guess: "猜左右",
+      reveal: "揭晓", revealed: "结算", over: "复盘" }[G.phase] || "";
+  }
+
+  function renderTeamFeedback() {
+    var revealed = !!G.reveal && (G.phase === "revealed" || G.phase === "over");
+    var actor = G.phase === "guess" || G.phase === "reveal" ? WL.other(G.active) : G.active;
+    if (G.phase === "revealed") actor = G.catchup ? G.active : WL.other(G.active);
+    if (G.phase === "over") actor = G.result && G.result.winner;
+    var newReveal = revealed && previousDisplay && previousDisplay.role === ROLE &&
+      previousDisplay.round === G.round && previousDisplay.phase !== "setup" &&
+      previousDisplay.phase !== "revealed" && previousDisplay.phase !== "over";
+    ["A", "B"].forEach(function (letter) {
+      var panel = $("name" + letter).closest(".team");
+      var direction = $("direction" + letter);
+      var hasGuess = G.guess && letter === WL.other(G.active) && ["reveal", "revealed", "over"].includes(G.phase);
+      direction.textContent = hasGuess ? (G.guess === "L" ? "←" : "→") : "";
+      direction.dataset.direction = hasGuess ? G.guess : "";
+      direction.setAttribute("aria-label", hasGuess ? G.teams[letter].name + "选择" + (G.guess === "L" ? "左边" : "右边") : "");
+      direction.setAttribute("aria-hidden", hasGuess && wideMonitor() ? "false" : "true");
+      panel.classList.toggle("is-active", G.phase !== "setup" && actor === letter);
+      panel.classList.toggle("is-winner", G.phase === "over" && actor === letter);
+      panel.setAttribute("aria-label", G.teams[letter].name + "，" + G.teams[letter].score + " 分" +
+        (G.phase === "over" && actor === letter ? "，获胜" : actor === letter && G.phase !== "setup" ? "，行动中" : ""));
+      if (!revealed || !wideMonitor()) {
+        var running = scoreAnimations.get(letter);
+        if (running) {
+          cancelAnimationFrame(running.frame);
+          scoreAnimations.delete(letter);
+          $("score" + letter).textContent = G.teams[letter].score;
+        }
+        clearTimeout(teamEffectTimers.get(letter));
+        teamEffectTimers.delete(letter);
+        panel.classList.remove("is-scoring", "perfect-hit");
+        $("gain" + letter).textContent = "";
+      }
+      if (!newReveal || !wideMonitor()) return;
+      var points = letter === G.active ? G.reveal.pts : G.reveal.oppPts;
+      if (!points) return;
+      $("gain" + letter).textContent = "+" + points;
+      panel.classList.add("is-scoring");
+      panel.classList.toggle("perfect-hit", letter === G.active && points === 4);
+      clearTimeout(teamEffectTimers.get(letter));
+      teamEffectTimers.set(letter, setTimeout(function () {
+        panel.classList.remove("is-scoring", "perfect-hit");
+        $("gain" + letter).textContent = "";
+        teamEffectTimers.delete(letter);
+      }, 3600));
+      var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (reduced || typeof requestAnimationFrame !== "function") return;
+      var from = previousDisplay.scores[letter], to = G.teams[letter].score;
+      // Overtime points do not change the main scoreboard.
+      if (from === to) return;
+      var animation = { target: to, frame: null, start: performance.now() };
+      scoreAnimations.set(letter, animation);
+      $("score" + letter).textContent = from;
+      function step(now) {
+        var progress = Math.min(1, (now - animation.start) / 650);
+        $("score" + letter).textContent = Math.round(from + (to - from) * (1 - Math.pow(1 - progress, 3)));
+        if (progress < 1) animation.frame = requestAnimationFrame(step);
+        else scoreAnimations.delete(letter);
+      }
+      animation.frame = requestAnimationFrame(step);
+    });
+    previousDisplay = { role: ROLE, round: G.round, phase: G.phase, scores: { A: G.teams.A.score, B: G.teams.B.score } };
+  }
+
+  function renderAudienceList(id, winners) {
+    var list = $(id);
+    var compact = wideMonitor() && id === "audience-winners";
+    var signature = JSON.stringify([winners, compact]);
+    if (list.dataset.entries === signature) return;
+    list.dataset.entries = signature;
+    list.textContent = "";
+    winners.forEach(function (winner) {
+      var row = document.createElement("li");
+      var rank = document.createElement("span");
+      rank.className = "audience-rank";
+      rank.textContent = winner.rank;
+      var avatar = document.createElement("span");
+      avatar.className = "audience-avatar";
+      avatar.textContent = Array.from(winner.nickname)[0] || "友";
+      var img = document.createElement("img");
+      img.alt = "";
+      img.referrerPolicy = "no-referrer";
+      img.src = winner.avatarUrl;
+      img.addEventListener("error", function () { img.remove(); });
+      avatar.appendChild(img);
+      var info = document.createElement("span");
+      info.className = "audience-person";
+      var name = document.createElement("strong");
+      name.textContent = winner.nickname;
+      name.title = winner.nickname;
+      var guess = document.createElement("span");
+      guess.textContent = (compact ? "" : "猜 ") + WL.formatPercent(winner.guessPct);
+      info.appendChild(name);
+      info.appendChild(guess);
+      var error = document.createElement("span");
+      error.className = "audience-error";
+      error.textContent = winner.errorPct == null ? "" : winner.errorPct === 0 ? (compact ? "✓" : "精准命中") : "差 " + winner.errorPct + (compact ? "" : " 点");
+      error.setAttribute("aria-label", winner.errorPct == null ? "等待揭晓" : winner.errorPct === 0 ? "精准命中" : "相差 " + winner.errorPct + " 个百分点");
+      error.classList.toggle("exact", winner.errorPct === 0);
+      row.appendChild(rank);
+      row.appendChild(avatar);
+      row.appendChild(info);
+      row.appendChild(error);
+      list.appendChild(row);
+    });
+  }
+
+  function renderAudience() {
+    var a = G.audience;
+    var compact = wideMonitor();
+    var enabled = ONLINE && ROLE !== "local" && a && a.enabled;
+    $("audience-panel").classList.toggle("hidden", !enabled && !wideMonitor());
+    document.body.classList.toggle("audience-mode", !!enabled);
+    $("audience-final").classList.toggle("hidden", !enabled || !a.revealed);
+    if (!enabled) {
+      $("audience-connection").textContent = compact ? "" : "未启用";
+      $("audience-connection").setAttribute("aria-label", "群互动未启用");
+      $("audience-connection").title = "群互动未启用";
+      $("audience-connection").classList.remove("connected");
+      $("audience-prompt").textContent = compact ? "" : "群友猜波长尚未开启";
+      $("audience-status").textContent = compact ? "未启用" : "开启群互动后，作答结果将在此展示。";
+      renderAudienceList("audience-winners", []);
+      return;
+    }
+    var connected = a.connected && connState === "ok";
+    var revealed = a.revealed || G.phase === "over";
+    var targetPct = a.revealed ? a.targetPct : (revealed && G.target ? WL.toSignedPercent(G.target.center) : null);
+    var connectionLabel = a.demo ? "固定数据演示" : connected ? "QQ 已连接" : "QQ 未连接";
+    $("audience-connection").textContent = compact ? "" : connectionLabel;
+    $("audience-connection").setAttribute("aria-label", connectionLabel);
+    $("audience-connection").title = connectionLabel;
+    $("audience-connection").classList.toggle("connected", connected);
+    $("audience-prompt").textContent = compact
+      ? (revealed ? "目标 " + WL.formatPercent(targetPct) : "发送 g+50%")
+      : revealed
+      ? "目标 " + WL.formatPercent(targetPct) + " · 前 " + a.topN + " 名 · 自动滚动"
+      : "群 " + a.groupId + " · 发送 g-50% / g0% / g+50%（−100～+100%） · " +
+        (a.guessPolicy === "first" ? "首次作答有效" : "揭晓前可修改，以最后一次为准");
+    var status = revealed
+      ? (a.count ? "本轮 " + a.count + " 人作答 · 已截止" : "本轮暂无有效作答")
+      : (a.accepting ? "正在收答 · 已有 " + a.count + " 人参与" : "等待出题人关闭目标后开始收答");
+    if (compact) {
+      var count = document.createElement("span");
+      count.className = "audience-count";
+      count.textContent = a.count + " 人";
+      var badge = document.createElement("span");
+      badge.className = "audience-state";
+      badge.dataset.state = revealed ? "closed" : a.accepting ? "accepting" : "waiting";
+      badge.textContent = revealed ? "已截止" : a.accepting ? "收答中" : "待开始";
+      $("audience-status").replaceChildren(badge, count);
+    } else {
+      $("audience-status").textContent = status + (!connected && !revealed ? " · 请检查 LLBot 连接" : "");
+    }
+    $("audience-final-status").textContent = "目标 " + WL.formatPercent(a.targetPct) + " · " + status;
+    var winners = a.revealed || a.demo ? a.winners : [];
+    renderAudienceList("audience-winners", winners);
+    renderAudienceList("audience-final-winners", winners);
   }
 
   function renderTrack(id, score, cls) {
     var el = $(id);
+    var signature = JSON.stringify([score, G.winScore]);
+    if (el.dataset.entries === signature) return;
+    var previousScore = Number(el.dataset.score || 0);
+    el.dataset.entries = signature;
+    el.dataset.score = score;
     el.innerHTML = "";
     el.className = "score-track " + cls;
     var limit = G.winScore > 0 ? Math.min(G.winScore, 40) : 30;
     for (var i = 0; i < limit; i++) {
       var d = document.createElement("i");
       if (i < score) d.className = "on";
+      if (i >= previousScore && i < score) {
+        d.classList.add("just-scored");
+        d.style.setProperty("--gain-index", i - previousScore);
+      }
       el.appendChild(d);
     }
     if (G.winScore === 0) {
@@ -416,7 +641,10 @@
   function renderTurn() {
     var t = G.teams[G.active];
     var who = "<b class='" + (G.active === "A" ? "a" : "b") + "'>" + t.name + "</b>";
-    if (G.catchup) {
+    if (G.phase === "over") {
+      $("turn-indicator").textContent = "对局结束 · 自动复盘";
+      $("banner").classList.add("hidden");
+    } else if (G.catchup) {
       $("turn-indicator").innerHTML = ROLE === "monitor"
         ? T("catchup") + " · " + who + " 继续行动"
         : "🔥 " + T("catchup") + "触发：" + who + " 本轮 4 分且仍落后，继续行动！";
@@ -435,8 +663,9 @@
     box.classList.toggle("choosing", G.phase === "chooseCard");
     $("card-frame").classList.toggle("choosing", G.phase === "chooseCard");
     var label = "第 " + G.round + " " + T("roundUnit") + " · " + G.teams[G.active].name + " 的 " + T("psychic");
+    if (wideMonitor()) label = "第 " + G.round + " " + T("roundUnit") + " · " + (G.sudden ? "加时 · " : "") + monitorPhase();
     if (G.phase === "chooseCard") {
-      $("card-label").textContent = label + " 选题";
+      $("card-label").textContent = label + (wideMonitor() ? "" : " 选题");
       G.cardChoices.forEach(function (card, index) {
         var b = document.createElement("button");
         b.className = "side card-choice" + (G.cardChoices.length === 1 ? " only" : "");
@@ -467,7 +696,7 @@
       $("card-label").textContent = "等待开始游戏";
       return;
     }
-    $("card-label").textContent = label + " 读卡";
+    $("card-label").textContent = label + (wideMonitor() ? "" : " 读卡");
     var opts = WL.cardSides(c);
     opts.forEach(function (pair, i) {
       var b = document.createElement("button");
@@ -516,7 +745,7 @@
       label.className = "tick-number" +
         (position === 0 ? " edge-left" : position === 100 ? " edge-right" : "");
       label.style.left = position + "%";
-      label.textContent = position + "%";
+      label.textContent = WL.formatPercent(WL.toSignedPercent(position * WL.UNIT / 100));
       labelBox.appendChild(label);
     }
     for (var position = 5; position < 100; position += 5) addTick(position, position % 25 === 0);
@@ -541,15 +770,16 @@
         var s = document.createElement("span");
         s.className = "band-label";
         s.textContent = label;
+        s.setAttribute("aria-label", label + "分区间");
         d.appendChild(s);
       }
       box.appendChild(d);
     }
-    add("b2", t.center - t.w2, t.center - t.w3, "2分");
-    add("b3", t.center - t.w3, t.center - t.w4, "3分");
-    add("b4", t.center - t.w4, t.center + t.w4, "4分");
-    add("b3", t.center + t.w4, t.center + t.w3, "3分");
-    add("b2", t.center + t.w3, t.center + t.w2, "2分");
+    add("b2", t.center - t.w2, t.center - t.w3, "2");
+    add("b3", t.center - t.w3, t.center - t.w4, "3");
+    add("b4", t.center - t.w4, t.center + t.w4, "4");
+    add("b3", t.center + t.w4, t.center + t.w3, "3");
+    add("b2", t.center + t.w3, t.center + t.w2, "2");
     $("center-mark").style.left = (t.center / WL.UNIT * 100) + "%";
   }
 
@@ -563,7 +793,7 @@
   function setDialFromEvent(e) {
     var rect = $("axis").getBoundingClientRect();
     var pct = (e.clientX - rect.left) / rect.width;
-    G.dial = WL.clampDial(Math.round(pct * WL.UNIT));
+    WL.applyIntent(G, { type: "setDial", value: Math.round(pct * WL.UNIT) });
     renderDial();
   }
 
@@ -653,8 +883,10 @@
       hint.innerHTML = "";
     }
 
-    // The event display has one fixed headline row; controller instructions stay detailed.
-    if (ROLE === "monitor") {
+    // The wide display communicates turns through its team cards and phase label.
+    if (wideMonitor()) {
+      hint.textContent = "第 " + G.round + " " + T("roundUnit") + " · " + (G.sudden ? "加时 · " : "") + monitorPhase();
+    } else if (ROLE === "monitor") {
       if (G.phase === "chooseCard") {
         hint.innerHTML = teamName(G.active, t.name) + " 的 " + T("psychic") + " 正在选择本轮题目，等待控制器确认。";
       } else if (G.phase === "psychic") {
@@ -665,14 +897,17 @@
         hint.innerHTML = (G.sudden ? "<b>" + T("suddenDeath") + " · </b>" : "") + "下一轮由 " +
           (G.catchup ? teamName(G.active, t.name) : teamName(WL.other(G.active), o.name)) +
           " 行动，请换一位新 " + T("psychic") + " 出题。";
+      } else if (G.phase === "over" && G.result) {
+        hint.innerHTML = teamName(G.result.winner, G.teams[G.result.winner].name) + " 获胜！ · 对局复盘" +
+          (G.result.sudden ? "（加时赛决出）" : "");
       }
     }
 
-    if (hint.innerHTML) {
+    if (hint.innerHTML || wideMonitor()) {
       hint.innerHTML = "<span class='phase-message'>" + hint.innerHTML + "</span>";
     }
 
-    if (G.guess && (G.phase === "reveal" || G.phase === "revealed" || G.phase === "over")) {
+    if (!wideMonitor() && G.guess && (G.phase === "reveal" || G.phase === "revealed" || G.phase === "over")) {
       var guessSide = G.guess === "L"
         ? T("target") + "在" + T("dial") + "左边 ←"
         : T("target") + "在" + T("dial") + "右边 →";
@@ -695,10 +930,12 @@
         teamName(WL.other(G.active), o.name) +
         "<span>的选择：</span><strong>" + guessSide + "</strong>" +
         "<span class='guess-result'>· " + guessStatus + "</span></span>");
+      hint.querySelector(".guess-choice").setAttribute("aria-label", o.name + " 选择" + (G.guess === "L" ? "左边" : "右边") +
+        (G.reveal ? G.reveal.pts === 4 ? "，本次不计分" : G.reveal.oppPts ? "，猜对" : "，猜错" : "，等待揭晓"));
     }
 
     var pop = $("score-pop");
-    if (G.reveal && (G.phase === "revealed" || G.phase === "over")) {
+    if (!wideMonitor() && G.reveal && (G.phase === "revealed" || G.phase === "over")) {
       var r = G.reveal;
       var txt = teamName(G.active, t.name) + " 获得 <span class='pts" + (r.pts === 4 ? " pts4" : "") + "'>+" + r.pts + "</span> 分";
       if (r.oppPts === 1) {
@@ -714,12 +951,15 @@
     }
 
     var ul = $("log");
+    var logSignature = JSON.stringify([G.log, G.teams.A.name, G.teams.B.name, NAMES, wideMonitor()]);
+    if (ul.dataset.entries === logSignature) return;
+    ul.dataset.entries = logSignature;
     ul.innerHTML = "";
     G.log.forEach(function (e) {
       var li = document.createElement("li");
       var items = [
-        { label: T("target"), val: e.targetPct, team: false },
-        { label: T("dial"), val: e.dialPct, team: true }
+        { label: T("dial"), val: e.dialPct, team: true },
+        { label: T("target"), val: e.targetPct, team: false }
       ].sort(function (a, b) { return a.val - b.val; });
       var labels = items.map(function (it) {
         return it.team
@@ -727,16 +967,27 @@
           : it.label;
       }).join("-");
       var vals = items.map(function (it) {
-        return it.team
-          ? "<span style='color:" + teamColor(e.team) + "'>" + it.val + "%</span>"
-          : it.val + "%";
-      }).join("-");
-      var opp = WL.other(e.team);
+        return "<span class='log-value " + (it.team ? "log-dial" : "log-target") + "' style='color:" + (it.team ? teamColor(e.team) : "#000") + "' aria-label='" + (it.team ? "拨杆" : "目标") + "'>" + WL.formatPercent(WL.toSignedPercent(it.val * WL.UNIT / 100)) + "</span>";
+      }).join(" / ");
+      var leftPoints = e.team === "A" ? e.pts : e.oppPts;
+      var rightPoints = e.team === "B" ? e.pts : e.oppPts;
+      var points = "<span class='log-points' data-team='A' style='color:" + teamColor("A") + "' aria-label='左队得分'>+" + leftPoints + "</span> / " +
+        "<span class='log-points' data-team='B' style='color:" + teamColor("B") + "' aria-label='右队得分'>+" + rightPoints + "</span>";
       li.innerHTML = "<span class='log-round'>第 " + e.round + " " + T("roundUnit") + " · " + teamName(e.team, G.teams[e.team].name) +
         "（" + labels + " " + vals + "）</span><span class='log-separator'> · </span>" +
         "<span class='log-card'>卡片：<b></b></span><span class='log-separator'> · </span>" +
-        "<span class='log-score'>本队 <span style='color:" + teamColor(e.team) + "'>+" + e.pts + "</span> / 对方 <span style='color:" + teamColor(opp) + "'>+" + e.oppPts + "</span></span>";
+        "<span class='log-score'>左队 / 右队 " + points + "</span>";
       li.querySelector(".log-card b").textContent = e.pair[0] + " — " + e.pair[1];
+      if (wideMonitor()) {
+        li.querySelector(".log-round").textContent = "第 " + e.round + " " + T("roundUnit");
+        li.querySelector(".log-card").firstChild.textContent = "";
+        var title = document.createElement("span");
+        title.className = "log-title";
+        title.appendChild(li.querySelector(".log-round"));
+        title.appendChild(li.querySelector(".log-card"));
+        li.prepend(title);
+        li.querySelector(".log-score").innerHTML = teamName(e.team, G.teams[e.team].name) + " · " + vals + " · " + points;
+      }
       ul.appendChild(li);
     });
   }
@@ -756,18 +1007,21 @@
     $("deck-server").style.display = showDeckServer ? "" : "none";
     if (showDeckServer && $("deck-select").options.length <= 1) refreshDeckList();
 
-    var showOver = G.phase === "over" && G.result && !overDismissed;
+    var showOver = G.phase === "over" && G.result && !overDismissed && ROLE !== "monitor";
     $("over-modal").classList.toggle("hidden", !showOver);
     if (showOver) {
       var w = G.teams[G.result.winner];
       $("winner-text").textContent = "🏆 " + w.name + " 获胜！";
       $("winner-text").className = "winner " + (G.result.winner === "A" ? "a" : "b");
-      $("final-score").textContent = "蓝队（" + G.teams.A.name + "）" + G.teams.A.score + " 分　VS　粉队（" + G.teams.B.name + "）" + G.teams.B.score + " 分" + (G.result.sudden ? "（加时赛决出）" : G.result.maxRounds ? "（10 局结算）" : "");
+      $("final-score").textContent = G.teams.A.name + " " + G.teams.A.score + " 分　VS　" + G.teams.B.name + " " + G.teams.B.score + " 分" + (G.result.sudden ? "（加时赛决出）" : G.result.maxRounds ? "（10 局结算）" : "");
     }
 
     var isMonitor = ROLE === "monitor";
     document.body.classList.toggle("monitor-mode", isMonitor);
     document.body.dataset.phase = G.phase;
+    var rules = document.querySelector("details.rules");
+    rules.open = !!G.rulesOpen;
+    rules.querySelector("summary").tabIndex = isMonitor ? -1 : 0;
     $("btn-restart").style.display = isMonitor ? "none" : "";
     $("btn-playagain").style.display = isMonitor ? "none" : "";
   }
@@ -785,7 +1039,7 @@
   }
 
   function teamName(letter, name) {
-    return "<b style='color:" + teamColor(letter) + "'>" + name + "</b>";
+    return "<b class='team-name' style='color:" + teamColor(letter) + "'>" + name + "</b>";
   }
 
   function startGame() {
@@ -1001,6 +1255,10 @@
     dragging = true;
     if (interact.setPointerCapture) interact.setPointerCapture(e.pointerId);
     setDialFromEvent(e);
+    if (ONLINE && ROLE === "controller") {
+      lastDialSync = Date.now();
+      postIntent({ type: "setDial", value: G.dial });
+    }
   });
   interact.addEventListener("pointermove", function (e) {
     if (!dragging || G.phase !== "dial") return;
@@ -1042,6 +1300,11 @@
     dispatch({ type: "setBandWidth", value: v });
   });
   $("btn-playagain").onclick = function () { dispatch({ type: "newGame" }); };
+  document.querySelector("details.rules > summary").addEventListener("click", function (event) {
+    event.preventDefault();
+    if (ROLE === "monitor") return;
+    dispatch({ type: "setRulesOpen", value: !G.rulesOpen });
+  });
   $("btn-over-close").onclick = function () {
     overDismissed = true;
     render();
@@ -1115,4 +1378,6 @@
   initNames();
   checkOnline();
   setInterval(renderTimer, 200);
+  setInterval(scrollDisplayPanels, 100);
+  window.addEventListener("resize", render);
 })();

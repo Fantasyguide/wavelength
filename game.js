@@ -89,6 +89,11 @@
 
   function other(t) { return t === "A" ? "B" : "A"; }
 
+  // Keep game positions in 0..1000; the public scale is -100%..+100%.
+  function toSignedPercent(position) { return Math.round((position / UNIT * 200 - 100) * 10) / 10; }
+  function fromSignedPercent(percent) { return Math.round((percent + 100) / 200 * UNIT * 10) / 10; }
+  function formatPercent(percent) { return (percent > 0 ? "+" : "") + percent + "%"; }
+
   function sampleTargetX(dist) {
     var pr = DIST_PRESETS[dist] || DIST_PRESETS[DIST_DEFAULT];
     var pmax = pr.E;
@@ -132,6 +137,7 @@
   function createGame() {
     return {
       phase: "setup",
+      rulesOpen: false,
       active: "A",
       first: "A",
       teams: { A: { name: "左脑", score: 0 }, B: { name: "右脑", score: 1 } },
@@ -190,6 +196,7 @@
   }
 
   function doSetup(s, intent) {
+    s.rulesOpen = false;
     if (intent.cardMode === "choice" || intent.cardMode === "single") s.cardMode = intent.cardMode;
     s.teams.A = { name: intent.teamA || "左脑", score: 0 };
     s.teams.B = { name: intent.teamB || "右脑", score: 1 };
@@ -213,6 +220,7 @@
   }
 
   function doNewGame(s) {
+    s.rulesOpen = false;
     s.teams.A = { name: s.teams.A.name, score: 0 };
     s.teams.B = { name: s.teams.B.name, score: 1 };
     if (s.first === "B") {
@@ -326,6 +334,9 @@
   function applyIntent(s, intent) {
     if (!intent || typeof intent.type !== "string") return s;
     switch (intent.type) {
+      case "setRulesOpen":
+        if (typeof intent.value === "boolean") s.rulesOpen = intent.value;
+        break;
       case "setup":
         doSetup(s, intent);
         break;
@@ -353,7 +364,9 @@
         if (s.phase === "psychic") startTimer(s, "dial", intent.timerSeconds, 60);
         break;
       case "setDial":
-        if (s.phase === "dial") s.dial = clampDial(intent.value);
+        if (s.phase === "dial" && Number.isFinite(Number(intent.value))) {
+          s.dial = clampDial(intent.value);
+        }
         break;
       case "lock":
         if (s.phase === "dial") {
@@ -491,6 +504,9 @@
     cardSides: cardSides,
     shuffle: shuffle,
     clampDial: clampDial,
+    toSignedPercent: toSignedPercent,
+    fromSignedPercent: fromSignedPercent,
+    formatPercent: formatPercent,
     other: other
   };
 

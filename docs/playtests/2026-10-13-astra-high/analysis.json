@@ -1,0 +1,979 @@
+{
+  "generatedAt": "2026-10-13T04:31:43.043Z",
+  "complete": true,
+  "replayedRounds": 34,
+  "observed": {
+    "matches": [
+      {
+        "game": 1,
+        "first": "A",
+        "winner": "B",
+        "score": {
+          "A": 8,
+          "B": 11
+        },
+        "overtimeTurns": 0,
+        "winningOvertimePoints": null,
+        "turns": 6,
+        "turnsA": 3,
+        "turnsB": 3,
+        "n": 6,
+        "meanError": 8.9,
+        "medianError": 9.3,
+        "meanPoints": 2.667,
+        "zeroRate": 0,
+        "perfectRate": 0.167,
+        "defensePointsPerTurn": 0.333
+      },
+      {
+        "game": 2,
+        "first": "B",
+        "winner": "A",
+        "score": {
+          "A": 12,
+          "B": 7
+        },
+        "overtimeTurns": 0,
+        "winningOvertimePoints": null,
+        "turns": 6,
+        "turnsA": 3,
+        "turnsB": 3,
+        "n": 6,
+        "meanError": 14.967,
+        "medianError": 10,
+        "meanPoints": 2.333,
+        "zeroRate": 0.167,
+        "perfectRate": 0.167,
+        "defensePointsPerTurn": 0.667
+      },
+      {
+        "game": 3,
+        "first": "A",
+        "winner": "B",
+        "score": {
+          "A": 10,
+          "B": 10
+        },
+        "overtimeTurns": 4,
+        "winningOvertimePoints": {
+          "A": 1,
+          "B": 4
+        },
+        "turns": 11,
+        "turnsA": 6,
+        "turnsB": 5,
+        "n": 11,
+        "meanError": 13.782,
+        "medianError": 8.2,
+        "meanPoints": 2,
+        "zeroRate": 0.273,
+        "perfectRate": 0,
+        "defensePointsPerTurn": 0.727
+      },
+      {
+        "game": 4,
+        "first": "B",
+        "winner": "B",
+        "score": {
+          "A": 5,
+          "B": 10
+        },
+        "overtimeTurns": 0,
+        "winningOvertimePoints": null,
+        "turns": 6,
+        "turnsA": 3,
+        "turnsB": 3,
+        "n": 6,
+        "meanError": 13.933,
+        "medianError": 15.6,
+        "meanPoints": 1.833,
+        "zeroRate": 0.5,
+        "perfectRate": 0.333,
+        "defensePointsPerTurn": 0.5
+      },
+      {
+        "game": 5,
+        "first": "A",
+        "winner": "A",
+        "score": {
+          "A": 11,
+          "B": 8
+        },
+        "overtimeTurns": 0,
+        "winningOvertimePoints": null,
+        "turns": 5,
+        "turnsA": 3,
+        "turnsB": 2,
+        "n": 5,
+        "meanError": 4.04,
+        "medianError": 3.2,
+        "meanPoints": 3.6,
+        "zeroRate": 0,
+        "perfectRate": 0.6,
+        "defensePointsPerTurn": 0
+      }
+    ],
+    "overall": {
+      "n": 34,
+      "meanError": 11.724,
+      "medianError": 8.2,
+      "meanPoints": 2.382,
+      "zeroRate": 0.206,
+      "perfectRate": 0.206,
+      "defensePointsPerTurn": 0.5
+    },
+    "teams": {
+      "A": {
+        "n": 18,
+        "meanError": 12.433,
+        "medianError": 10.5,
+        "meanPoints": 2.222,
+        "zeroRate": 0.222,
+        "perfectRate": 0.167,
+        "defensePointsPerTurn": 0.5
+      },
+      "B": {
+        "n": 16,
+        "meanError": 10.925,
+        "medianError": 5.4,
+        "meanPoints": 2.563,
+        "zeroRate": 0.188,
+        "perfectRate": 0.25,
+        "defensePointsPerTurn": 0.5
+      }
+    },
+    "psychics": {
+      "A1": {
+        "n": 9,
+        "meanError": 13.133,
+        "medianError": 13,
+        "meanPoints": 2.111,
+        "zeroRate": 0.111,
+        "perfectRate": 0,
+        "defensePointsPerTurn": 0.556
+      },
+      "A2": {
+        "n": 9,
+        "meanError": 11.733,
+        "medianError": 6,
+        "meanPoints": 2.333,
+        "zeroRate": 0.333,
+        "perfectRate": 0.333,
+        "defensePointsPerTurn": 0.444
+      },
+      "B1": {
+        "n": 8,
+        "meanError": 12.075,
+        "medianError": 8.7,
+        "meanPoints": 2,
+        "zeroRate": 0.25,
+        "perfectRate": 0,
+        "defensePointsPerTurn": 0.75
+      },
+      "B2": {
+        "n": 8,
+        "meanError": 9.775,
+        "medianError": 2.6,
+        "meanPoints": 3.125,
+        "zeroRate": 0.125,
+        "perfectRate": 0.5,
+        "defensePointsPerTurn": 0.25
+      }
+    },
+    "half": {
+      "games1and2": {
+        "n": 12,
+        "meanError": 11.933,
+        "medianError": 10,
+        "meanPoints": 2.5,
+        "zeroRate": 0.083,
+        "perfectRate": 0.167,
+        "defensePointsPerTurn": 0.5
+      },
+      "games4and5": {
+        "n": 11,
+        "meanError": 9.436,
+        "medianError": 5.6,
+        "meanPoints": 2.636,
+        "zeroRate": 0.273,
+        "perfectRate": 0.455,
+        "defensePointsPerTurn": 0.273
+      }
+    },
+    "targetRegions": {
+      "center": {
+        "n": 5,
+        "meanError": 12.04,
+        "medianError": 9,
+        "meanPoints": 2.2,
+        "zeroRate": 0.2,
+        "perfectRate": 0,
+        "defensePointsPerTurn": 0.8
+      },
+      "middle": {
+        "n": 14,
+        "meanError": 17.971,
+        "medianError": 15.2,
+        "meanPoints": 1.571,
+        "zeroRate": 0.429,
+        "perfectRate": 0.071,
+        "defensePointsPerTurn": 0.571
+      },
+      "ends": {
+        "n": 15,
+        "meanError": 5.787,
+        "medianError": 4.8,
+        "meanPoints": 3.2,
+        "zeroRate": 0,
+        "perfectRate": 0.4,
+        "defensePointsPerTurn": 0.333
+      }
+    },
+    "catchups": 0,
+    "overtimeTurns": 4,
+    "opinionDisagreements": 5,
+    "nearMisses": [
+      {
+        "game": 3,
+        "round": 3,
+        "error": 23.8,
+        "clue": "风见幽香"
+      },
+      {
+        "game": 4,
+        "round": 2,
+        "error": 24.8,
+        "clue": "魂魄妖梦"
+      },
+      {
+        "game": 4,
+        "round": 3,
+        "error": 24,
+        "clue": "十六夜咲夜"
+      },
+      {
+        "game": 4,
+        "round": 4,
+        "error": 22.2,
+        "clue": "东风谷早苗"
+      }
+    ],
+    "feedback": [
+      {
+        "game": 1,
+        "players": {
+          "A2": {
+            "fun": 4,
+            "fairness": 4,
+            "pace": 4,
+            "agency": 4,
+            "frustrations": [
+              "七彩芙兰朵露传达了接近端点，94对98.8仍差一点才能拿4分。",
+              "冷静咲夜我猜87，目标73；角色特征共识较强，强度尺度仍有14点分歧。"
+            ],
+            "learned": "A1对魔理沙学业和咲夜冷静程度都比我的第一直觉更向中间，后续类似人格与能力题需适度收缩；标志物题可以大胆靠近端点。",
+            "proposal": "揭晓时把目标、拨杆与各得分带同时展示，便于玩家直观建立强度尺度。"
+          },
+          "A1": {
+            "fun": 4,
+            "fairness": 4,
+            "pace": 4,
+            "agency": 4,
+            "frustrations": [
+              "第5轮咲夜冷静的目标73被理解为87，角色方向一致但程度分歧损失分数。",
+              "第3轮七彩芙兰朵露猜94，距目标98.8仅4.8仍错过4分窄带。"
+            ],
+            "learned": "A2对明显特质倾向给更极端的位置：魔理沙学习与咲夜冷静均比我的预期远离中点约14；后续选线索会据此校准。猜端点鲜明的角色时更敢靠近边界。",
+            "proposal": "揭晓后保留题面、角色、目标和拨杆的紧凑历史，方便双方自然校准尺度。"
+          },
+          "B1": {
+            "fun": 4,
+            "fairness": 4,
+            "pace": 5,
+            "agency": 4,
+            "frustrations": [
+              "若鹭姬的草根网络设定能传达方向，但96.6被猜到82，端点强度仍难达成默契。",
+              "七彩芙兰朵露98.8与拨杆94仅差4.8却错过4分，端点精度对输赢影响明显。"
+            ],
+            "learned": "我与B2对中等程度语义较一致：咲夜身高误差5.2，魔理沙贫穷误差1.4；对极端目标应优先用最显著的端点形象，并在猜题时考虑端点偏重先验。防守不能机械把极端拨杆向中心修正。",
+            "proposal": "揭晓时并列显示目标、拨杆、得分色带及短历史，帮助玩家自然校准语义强度。"
+          },
+          "B2": {
+            "fun": 4,
+            "fairness": 4,
+            "pace": 5,
+            "agency": 4,
+            "frustrations": [
+              "若鹭姬的草根线索我停在82，目标96.6；明确端点意象仍容易因保守留余地失分。",
+              "芙兰朵露七彩翼的防守也因向中间收缩误判。"
+            ],
+            "learned": "与B1对魔理沙财富中段的理解吻合；对缺乏明显反面特征的典型端点角色，应更愿意贴近端点，而咲夜冷静等仍保留层次。",
+            "proposal": "揭晓时展示双方估计及短理由，让跨轮校准更直观。"
+          }
+        }
+      },
+      {
+        "game": 2,
+        "players": {
+          "B1": {
+            "fun": 4,
+            "fairness": 4,
+            "pace": 5,
+            "agency": 4,
+            "frustrations": [
+              "爱丽丝七彩目标31.8，我因七色人偶使称号猜85，语义维度分叉导致整轮零分。",
+              "琪露诺误差3.4，距4分仅0.2，同时对方拿1分，临界差异对比分影响很大。"
+            ],
+            "learned": "B2在颜色题更按外观配色而非称号取值，未来须同时评估视觉和设定，不用单一称号覆盖其余信息。中段角色需预留更宽的不确定性；防守灵梦与慧音的方向判断有效。",
+            "proposal": "题面可补一个简短范围说明，例如颜色轴明确以外观配色为主，减少同一词被当作称号或视觉印象的分歧。"
+          },
+          "B2": {
+            "fun": 4,
+            "fairness": 4,
+            "pace": 5,
+            "agency": 4,
+            "frustrations": [
+              "我用爱丽丝的服饰表达中等多彩，却忽略七色人偶使称号，伙伴猜85而目标31.8，出现本局最大语义分歧。",
+              "琪露诺拨94与目标90.6只差3.4，刚错过4分，同时让对手得分，边界体感很尖锐。"
+            ],
+            "learned": "角色称号和强梗应优先于一般外观；出题先排除会把人引向另一位置的显著联想。中间型普通少女线索应更贴近中心。",
+            "proposal": "揭晓界面明确呈现距下一档得分还差多少及对手得分原因，帮助理解临界结果。"
+          },
+          "A2": {
+            "fun": 4,
+            "fairness": 4,
+            "pace": 5,
+            "agency": 4,
+            "frustrations": [
+              "爱丽丝的七色称号让我估93，实际目标31.8，称号和服装两个自然解释产生很大偏差。",
+              "慧音资历我猜-45而目标-33，再次把人格身份特征推得略远，刚好掉出3分区。"
+            ],
+            "learned": "日常身份明确的端点角色容易建立共识，辉夜悠闲端取得4分；中段题需继续收缩强度，并警惕称号、外观和剧情给出不同答案。",
+            "proposal": "为大/小、资历等多义题面增加简短的维度说明，减少猜测作者究竟采用哪种解释。"
+          },
+          "A1": {
+            "fun": 4,
+            "fairness": 4,
+            "pace": 5,
+            "agency": 4,
+            "frustrations": [
+              "老资历的慧音目标-33、拨杆-45，仍有约12点的程度分歧。",
+              "爱丽丝在黑白至七彩轴触发七色称号联想，但目标实际31.8，说明外观与称号两种依据会严重错位。"
+            ],
+            "learned": "明确极端特质时更接近端点，辉夜猜-92命中-93.2得4分；继续校准A2对我所选角色特征强度的较极端解读，出线索避免同时具有相反尺度的称号与外观。",
+            "proposal": "为容易产生多种依据的题目提供简短维度说明，例如黑白至七彩明确主要看外观还是允许称号。"
+          }
+        }
+      },
+      {
+        "game": 3,
+        "players": {
+          "B2": {
+            "fun": 5,
+            "fairness": 4,
+            "pace": 4,
+            "agency": 4,
+            "frustrations": [
+              "蕾米莉亚体型我估80而目标53.2，语义方向一致仍因程度差距失分。",
+              "加时主记分板固定10比10，若不另看加时得分，不易立即理解是否胜出。"
+            ],
+            "learned": "B1对幼女体型的尺度比我温和；兽人混合特征判断则相近。端点要看题目上是否存在更强的字面角色，不宜机械推到极端。",
+            "proposal": "加时阶段持续突出显示本组双方加时得分及各自是否已行动。"
+          },
+          "A1": {
+            "fun": 4,
+            "fairness": 4,
+            "pace": 3,
+            "agency": 4,
+            "frustrations": [
+              "幽香西洋目标-20.2猜-44，早苗外向目标-31.8猜-66：方向理解一致仍因程度超过20而零分。",
+              "10比10后连续两组加时共4轮，主比分一直不变，前期局面信息未直接突出加时小分时较难判断剩余目标。"
+            ],
+            "learned": "我与A2都容易将角色的一项鲜明特征读得比出题目标更极端，不能用统一线性偏移解释；猜非端点角色应更多考虑中度表达。妖梦胆小62对56较稳，早苗外向需要比直觉明显收敛。",
+            "proposal": "加时期间始终突出当前加时小分、双方是否已行动及本轮获胜条件，主比分10比10退为次要信息。"
+          },
+          "A2": {
+            "fun": 4,
+            "fairness": 4,
+            "pace": 3,
+            "agency": 4,
+            "frustrations": [
+              "幽香西洋程度我意图轻偏，队友猜到-44；早苗外向程度我意图-31.8，队友猜-66，两次中段线索丢分。",
+              "加时连续四轮主比分始终10比10，行动接口没展示加时累计分，不易直观看出本轮拿几分能赢。"
+            ],
+            "learned": "队友会把鲜明外观或社交特征读得较强，中段出题应选真正两面混合的角色；猜题也不能机械向中间收缩，幽幽子的日常悠闲应优先于沉重背景。",
+            "proposal": "加时行动界面持续显示双方本组加时积分和已行动次数，明确当前胜负条件。"
+          },
+          "B1": {
+            "fun": 5,
+            "fairness": 4,
+            "pace": 4,
+            "agency": 4,
+            "frustrations": [
+              "蕾米莉亚大小目标53.2被猜80，再次暴露体型尺度不一致。",
+              "加时第一组紫苑得3分、幽幽子得2分，但对方防守得1分令总分追平，主比分固定10比10时若未显示加时分会难理解为何继续。"
+            ],
+            "learned": "B2对幼小体型比我更极端，但八云蓝兽性与阿求人文等鲜明特征对齐较好。灵梦的中性人格线索也稳定，后续优先选可从明显设定或职业推断的题面。防守需留意出题人用次强角色表达中度偏向，例如早苗外向实际仅-31.8。",
+            "proposal": "加时始终单独展示双方本组主动得分、防守得分及是否已行动，清楚说明继续加时的原因。"
+          }
+        }
+      },
+      {
+        "game": 4,
+        "players": {
+          "B1": {
+            "fun": 4,
+            "fairness": 4,
+            "pace": 5,
+            "agency": 4,
+            "frustrations": [
+              "咲夜资历目标-2却猜22，成熟经验和人类年龄两种依据没能平衡，零分。",
+              "夯与拉完了、常见与罕见的评判维度不够明确，依赖临场解释。"
+            ],
+            "learned": "魔理沙活泼与紫苑贫穷均误差1.8拿4分，鲜明自然特征的定位越来越可靠；中点仍最难表达，不能把我认为的两侧因素抵消默认成队友也会如此。最后防守我判断错误，团队合议却判对，体现独立估计的价值。",
+            "proposal": "为抽象题面增加可选的一句话释义，尤其明确常见的观察范围与资历是年龄还是经验。"
+          },
+          "B2": {
+            "fun": 4,
+            "fairness": 4,
+            "pace": 5,
+            "agency": 4,
+            "frustrations": [
+              "咲夜老资历题我按寿命侧重猜22，伙伴目标-2；身份熟练程度与年龄仍会把同一角色拉向不同位置。",
+              "夯与拉完了需要先猜题目评价口径，角色线索难同时说明是在说实力还是喜爱程度。"
+            ],
+            "learned": "魔理沙活泼侧与紫苑贫穷端点均取得精确命中，显著单一特征的线索更稳定；综合资历题须平衡职业熟练程度与年龄。",
+            "proposal": "为资历、常见等多口径题面增加可选简短维度提示。"
+          },
+          "A1": {
+            "fun": 3,
+            "fairness": 4,
+            "pace": 4,
+            "agency": 3,
+            "frustrations": [
+              "夯至拉完了与左右同时出现，两个候选维度都缺少稳定依据，只能选择相对可解释的一张。",
+              "早苗常见度目标-69.2而我猜-47，反省上局过度极端后收敛过头，三轮连续零分使追分困难。"
+            ],
+            "learned": "跨题不能给同一搭档统一加减幅度：早苗外向的目标较温和，但常见度确实很高。应按具体轴校准；爱丽丝健康接近中间的线索取得3分，是有效的中间表达。",
+            "proposal": "提供可选的清晰题库模式，将左右、夯拉等缺少解释的梗题单独归入进阶题库。"
+          },
+          "A2": {
+            "fun": 3,
+            "fairness": 4,
+            "pace": 4,
+            "agency": 3,
+            "frustrations": [
+              "常见程度的早苗我认为明显常见，队友猜-47而目标-69.2，差22.2整轮无分。",
+              "夯/拉完了缺少评价维度，我按综合认可度猜妖梦-52，实际只-27.2。",
+              "爱丽丝病弱程度已猜轻偏18，仍高于目标9；中间区域的细微区别很难用单个角色传递。"
+            ],
+            "learned": "具体身份和典型状态优先于全方面综合印象；没有明确病弱设定的角色应更靠中心。既有经验不支持统一缩放所有题，需按维度分别校准。",
+            "proposal": "对夯/拉完了等总评价梗增加题面说明，明确比较的是实力、人气还是个人喜欢程度。"
+          }
+        }
+      },
+      {
+        "game": 5,
+        "players": {
+          "B2": {
+            "fun": 4,
+            "fairness": 3,
+            "pace": 5,
+            "agency": 4,
+            "frustrations": [
+              "本局五轮即结束，A有三次主动行动而B只有两次；后手起始1分未必能抵消少一次出题机会。",
+              "映姬线索方向明确但我保守留端点余地，-92与-97.6差5.6，只得3分。"
+            ],
+            "learned": "红美铃身高线索与B1精确吻合；强烈单一语义以及已揭晓的自然尺度能稳定合作，但极端角色仍存在几分的不可消除误差。",
+            "proposal": "试验达到胜分后补齐双方本组常规行动，再比较比分，单独明确追赶行动如何计入。",
+            "overall": {
+              "strategyChange": "从按一般角色印象判断，转为优先检查称号与强梗、区分复合属性、用已揭晓语义校准伙伴尺度；爱丽丝七色称号的失误促使我避免主观弱联想，之后魔理沙活泼与美铃身高均精确命中。",
+              "preferredRegularRounds": 10,
+              "preferredBandWidth": 40,
+              "fairnessChange": "优先试验成对结算胜负，减少到达10分时常规出题次数不等的影响；保留双方相同防守合议机制。",
+              "tradeoff": "当前大多数局在5至6轮结束，尚无证据支持修改10轮上限。色带40保留精确命中奖励与猜测张力；若测试44可减轻3.4刚出4分区的挫败，但可能降低区分度并加速结束。成对结算最多增加一个常规行动并可能延长加时；这些是五局代理体验推测，需更多对局验证。"
+            }
+          },
+          "B1": {
+            "fun": 4,
+            "fairness": 3,
+            "pace": 5,
+            "agency": 4,
+            "frustrations": [
+              "本局A行动3次、B仅2次便结束，刚用美铃误差1.2拿4分后，没有再出题机会。",
+              "映姬威严目标-97.6猜-92，语义完全一致仍只得3分；咲夜人气误差恰好3.2则得4分，窄边界很关键。"
+            ],
+            "learned": "参照此前咲夜身高，再判断美铃更高，成功将误差控制到1.2；基于自然语义的跨局校准有效。端点人物仍难区分90与98，不能把鲜明特征等同于精确位置。",
+            "proposal": "达到10分后让双方完成同等常规行动次数再判胜负，并明确区分追赶奖励行动。",
+            "overall": {
+              "strategyChange": "从凭单个称号或刻板印象定位，转为优先选择明确职业、物种、体型和生活状态，比较已揭晓的相邻角色；避开多义题面，认识到中点的两侧因素抵消未必被队友共享。防守使用独立语义估计，减少无依据的固定向中间修正。",
+              "preferredRegularRounds": 8,
+              "preferredBandWidth": 48,
+              "fairnessChange": "优先试验成对结束常规行动，达到胜分后给另一队补齐同等常规行动机会；显示独立加时记分，并为多义词提供简短范围说明。",
+              "tradeoff": "8轮上限可保留每队4次常规行动的紧凑结构；色带48仅建议作为较宽容模式试验，能缓和3.4和24附近误差的断崖，但也会增加4分及追赶频率、削弱精确度差异。只有五局代理体验，无法断言优于当前40，应与原配置对照验证。"
+            }
+          },
+          "A1": {
+            "fun": 5,
+            "fairness": 4,
+            "pace": 4,
+            "agency": 4,
+            "frustrations": [
+              "本局5轮即结束，B队只有两次主动行动，虽然A队命中更好，比赛仍略短。",
+              "两次防守都在极端附近略向内估计，但映姬目标实际更靠端点，不能把向中间猜当作通用策略。"
+            ],
+            "learned": "永琳聪明与咲夜人气这类明确维度可以大胆靠近极端；神子复活设定成功表达中间偏活着并得3分，说明中段也能靠清楚的双重属性传达。",
+            "proposal": "先测试每两队各完成一次行动后再检查胜负，让结束时主动行动次数相同。",
+            "overall": {
+              "strategyChange": "从按直觉角色强度给位置，到利用公开历史校准；中途尝试普遍向中点收敛，却在早苗常见度题收敛过头，最终更重视具体题轴。出题优先自然语义明确且能覆盖中段的题，端点用标志性角色，中段用真实双重属性，避免称号与外观冲突。",
+              "preferredRegularRounds": 8,
+              "preferredBandWidth": 48,
+              "fairnessChange": "建议以双方各一次为结算单位检查10分，先后手继续轮换；在采用完整轮对后重新实测后手初始1分是否仍必要。当前五局不足以证明哪队或哪种先后手系统性占优。",
+              "tradeoff": "8轮是节奏偏好而非统计最优：当前多数局因10分提前结束，改单独轮数上限影响很小。基准宽48若同比例扩大，可让方向正确但误差22至24的表达获得少量分，减轻连续零分；代价是降低精度奖励差异、加快结束并可能增加追赶行动。建议先作为可选宽容模式对照测试，保留40的标准模式。"
+            }
+          },
+          "A2": {
+            "fun": 5,
+            "fairness": 4,
+            "pace": 5,
+            "agency": 4,
+            "frustrations": [
+              "本局两次防守把明显端点角色稍向中间估计，实际目标更靠极端，说明统一收缩不能替代逐题判断。",
+              "五轮就结束，单局内并非每位玩家都有同样次数的出题机会；跨局轮换有所缓解。"
+            ],
+            "learned": "永琳聪明和咲夜人气的主要特征足够清楚，分别命中4分；神子复活的双面状态也能传递中段位置。应按具体维度选择共同熟悉的核心特征，而非把所有角色强度统一修正。",
+            "proposal": "先试验基准色带宽度48，观察能否减少方向正确但差22至24点整轮无分的挫折，同时保留4分的精确奖励。",
+            "overall": {
+              "strategyChange": "起初依据角色综合印象直接定强度，随后尝试向中间收缩；多轮发现不同题的误差方向不同，最终改为优先主特征、按维度利用已揭晓参照，并避开依赖小众梗或多重解释的选题。",
+              "preferredRegularRounds": 8,
+              "preferredBandWidth": 48,
+              "fairnessChange": "建议试验固定8个常规行动后比较比分，让四位玩家各有两次出题；若保留10分终止，至少完成双方同等行动次数再结算。现有后手1分和跨局轮换可缓解差异，但五局不足以证明整体先后手优势。",
+              "tradeoff": "固定8轮增加单局参与机会与比较公平性，但会延长已拉开差距的比赛；色带48更宽容细微尺度偏差，也会降低精确猜测的区分度。建议把两项变化分开测试；这些是代理主观偏好，不代表真人结论。"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "rescoredWidths": [
+    {
+      "width": 40,
+      "meanPoints": 2.382,
+      "zeroRate": 0.206,
+      "perfectRate": 0.206
+    },
+    {
+      "width": 44,
+      "meanPoints": 2.5,
+      "zeroRate": 0.206,
+      "perfectRate": 0.265
+    },
+    {
+      "width": 48,
+      "meanPoints": 2.735,
+      "zeroRate": 0.118,
+      "perfectRate": 0.265
+    },
+    {
+      "width": 50,
+      "meanPoints": 2.824,
+      "zeroRate": 0.088,
+      "perfectRate": 0.265
+    },
+    {
+      "width": 55,
+      "meanPoints": 2.912,
+      "zeroRate": 0.059,
+      "perfectRate": 0.265
+    },
+    {
+      "width": 60,
+      "meanPoints": 2.941,
+      "zeroRate": 0.059,
+      "perfectRate": 0.294
+    }
+  ],
+  "simulationAssumptions": "Empirical joint resampling of observed target/dial/defense triples; identical skill distribution for both teams, no learning or score-state adaptation, no target-distribution difference by turn; simulated trials are not independent real players or new played games. Alternate widths preserve observed actions. Paired policies use 0:0, no catchup, complete both turns before checking victory; bounded overtime permits a draw after one extra pair.",
+  "simulations": [
+    {
+      "name": "现行10分/10轮",
+      "target": 10,
+      "cap": 10,
+      "width": 40,
+      "paired": false,
+      "trials": 50000,
+      "meanTurns": 5.904,
+      "p90Turns": 8,
+      "maxObservedTurns": 17,
+      "firstWinRate": 0.519,
+      "firstWinAmongDecided": 0.519,
+      "drawRate": 0,
+      "overtimeRate": 0.03,
+      "capRate": 0.006,
+      "unequalTurnsRate": 0.564,
+      "incompleteRoleCycleRate": 0
+    },
+    {
+      "name": "仅降至8分",
+      "target": 8,
+      "cap": 10,
+      "width": 40,
+      "paired": false,
+      "trials": 50000,
+      "meanTurns": 4.599,
+      "p90Turns": 6,
+      "maxObservedTurns": 16,
+      "firstWinRate": 0.471,
+      "firstWinAmongDecided": 0.471,
+      "drawRate": 0,
+      "overtimeRate": 0.034,
+      "capRate": 0,
+      "unequalTurnsRate": 0.429,
+      "incompleteRoleCycleRate": 0.123
+    },
+    {
+      "name": "仅加宽至50",
+      "target": 10,
+      "cap": 10,
+      "width": 50,
+      "paired": false,
+      "trials": 50000,
+      "meanTurns": 5.402,
+      "p90Turns": 7,
+      "maxObservedTurns": 16,
+      "firstWinRate": 0.576,
+      "firstWinAmongDecided": 0.576,
+      "drawRate": 0,
+      "overtimeRate": 0.035,
+      "capRate": 0,
+      "unequalTurnsRate": 0.628,
+      "incompleteRoleCycleRate": 0
+    },
+    {
+      "name": "对称6轮/8分/原宽",
+      "target": 8,
+      "cap": 6,
+      "minTurns": 4,
+      "width": 40,
+      "paired": true,
+      "boundedOvertime": true,
+      "trials": 50000,
+      "meanTurns": 5.32,
+      "p90Turns": 6,
+      "maxObservedTurns": 8,
+      "firstWinRate": 0.49,
+      "firstWinAmongDecided": 0.498,
+      "drawRate": 0.016,
+      "overtimeRate": 0.081,
+      "capRate": 0.579,
+      "unequalTurnsRate": 0,
+      "incompleteRoleCycleRate": 0
+    },
+    {
+      "name": "对称6轮/8分/宽50",
+      "target": 8,
+      "cap": 6,
+      "minTurns": 4,
+      "width": 50,
+      "paired": true,
+      "boundedOvertime": true,
+      "trials": 50000,
+      "meanTurns": 5.01,
+      "p90Turns": 6,
+      "maxObservedTurns": 8,
+      "firstWinRate": 0.49,
+      "firstWinAmongDecided": 0.5,
+      "drawRate": 0.019,
+      "overtimeRate": 0.088,
+      "capRate": 0.417,
+      "unequalTurnsRate": 0,
+      "incompleteRoleCycleRate": 0
+    },
+    {
+      "name": "对称6轮/6分/宽50",
+      "target": 6,
+      "cap": 6,
+      "minTurns": 4,
+      "width": 50,
+      "paired": true,
+      "boundedOvertime": true,
+      "trials": 50000,
+      "meanTurns": 4.356,
+      "p90Turns": 6,
+      "maxObservedTurns": 8,
+      "firstWinRate": 0.485,
+      "firstWinAmongDecided": 0.501,
+      "drawRate": 0.031,
+      "overtimeRate": 0.14,
+      "capRate": 0.038,
+      "unequalTurnsRate": 0,
+      "incompleteRoleCycleRate": 0
+    },
+    {
+      "name": "固定6轮/宽50",
+      "target": 0,
+      "cap": 6,
+      "width": 50,
+      "paired": true,
+      "boundedOvertime": true,
+      "trials": 50000,
+      "meanTurns": 6.232,
+      "p90Turns": 8,
+      "maxObservedTurns": 8,
+      "firstWinRate": 0.487,
+      "firstWinAmongDecided": 0.5,
+      "drawRate": 0.026,
+      "overtimeRate": 0.116,
+      "capRate": 1,
+      "unequalTurnsRate": 0,
+      "incompleteRoleCycleRate": 0
+    },
+    {
+      "name": "固定8轮/宽50",
+      "target": 0,
+      "cap": 8,
+      "width": 50,
+      "paired": true,
+      "boundedOvertime": true,
+      "trials": 50000,
+      "meanTurns": 8.202,
+      "p90Turns": 10,
+      "maxObservedTurns": 10,
+      "firstWinRate": 0.488,
+      "firstWinAmongDecided": 0.499,
+      "drawRate": 0.022,
+      "overtimeRate": 0.101,
+      "capRate": 1,
+      "unequalTurnsRate": 0,
+      "incompleteRoleCycleRate": 0
+    },
+    {
+      "name": "固定4轮/宽50",
+      "target": 0,
+      "cap": 4,
+      "width": 50,
+      "paired": true,
+      "boundedOvertime": true,
+      "trials": 50000,
+      "meanTurns": 4.293,
+      "p90Turns": 6,
+      "maxObservedTurns": 6,
+      "firstWinRate": 0.484,
+      "firstWinAmongDecided": 0.501,
+      "drawRate": 0.033,
+      "overtimeRate": 0.147,
+      "capRate": 1,
+      "unequalTurnsRate": 0,
+      "incompleteRoleCycleRate": 0
+    },
+    {
+      "name": "对称6轮/6分/宽48",
+      "target": 6,
+      "cap": 6,
+      "minTurns": 4,
+      "width": 48,
+      "paired": true,
+      "boundedOvertime": true,
+      "trials": 50000,
+      "meanTurns": 4.365,
+      "p90Turns": 6,
+      "maxObservedTurns": 8,
+      "firstWinRate": 0.487,
+      "firstWinAmongDecided": 0.5,
+      "drawRate": 0.027,
+      "overtimeRate": 0.127,
+      "capRate": 0.055,
+      "unequalTurnsRate": 0,
+      "incompleteRoleCycleRate": 0
+    },
+    {
+      "name": "对称6轮/8分/宽48",
+      "target": 8,
+      "cap": 6,
+      "minTurns": 4,
+      "width": 48,
+      "paired": true,
+      "boundedOvertime": true,
+      "trials": 50000,
+      "meanTurns": 5.056,
+      "p90Turns": 6,
+      "maxObservedTurns": 8,
+      "firstWinRate": 0.49,
+      "firstWinAmongDecided": 0.499,
+      "drawRate": 0.017,
+      "overtimeRate": 0.082,
+      "capRate": 0.446,
+      "unequalTurnsRate": 0,
+      "incompleteRoleCycleRate": 0
+    },
+    {
+      "name": "对称8轮/8分/宽48",
+      "target": 8,
+      "cap": 8,
+      "minTurns": 4,
+      "width": 48,
+      "paired": true,
+      "boundedOvertime": true,
+      "trials": 50000,
+      "meanTurns": 5.082,
+      "p90Turns": 6,
+      "maxObservedTurns": 10,
+      "firstWinRate": 0.491,
+      "firstWinAmongDecided": 0.499,
+      "drawRate": 0.016,
+      "overtimeRate": 0.079,
+      "capRate": 0.015,
+      "unequalTurnsRate": 0,
+      "incompleteRoleCycleRate": 0
+    },
+    {
+      "name": "固定8轮/宽48",
+      "target": 0,
+      "cap": 8,
+      "width": 48,
+      "paired": true,
+      "boundedOvertime": true,
+      "trials": 50000,
+      "meanTurns": 8.189,
+      "p90Turns": 8,
+      "maxObservedTurns": 10,
+      "firstWinRate": 0.485,
+      "firstWinAmongDecided": 0.495,
+      "drawRate": 0.02,
+      "overtimeRate": 0.095,
+      "capRate": 1,
+      "unequalTurnsRate": 0,
+      "incompleteRoleCycleRate": 0
+    }
+  ],
+  "sensitivity": [
+    {
+      "sourceTeam": "A",
+      "n": 18,
+      "policies": [
+        {
+          "name": "现行10分/10轮",
+          "target": 10,
+          "cap": 10,
+          "width": 40,
+          "paired": false,
+          "trials": 20000,
+          "meanTurns": 6.191,
+          "p90Turns": 8,
+          "maxObservedTurns": 18,
+          "firstWinRate": 0.5,
+          "firstWinAmongDecided": 0.5,
+          "drawRate": 0,
+          "overtimeRate": 0.029,
+          "capRate": 0.01,
+          "unequalTurnsRate": 0.534,
+          "incompleteRoleCycleRate": 0
+        },
+        {
+          "name": "对称6轮/6分/宽48",
+          "target": 6,
+          "cap": 6,
+          "minTurns": 4,
+          "width": 48,
+          "paired": true,
+          "boundedOvertime": true,
+          "trials": 20000,
+          "meanTurns": 4.363,
+          "p90Turns": 6,
+          "maxObservedTurns": 8,
+          "firstWinRate": 0.483,
+          "firstWinAmongDecided": 0.498,
+          "drawRate": 0.03,
+          "overtimeRate": 0.133,
+          "capRate": 0.048,
+          "unequalTurnsRate": 0,
+          "incompleteRoleCycleRate": 0
+        },
+        {
+          "name": "对称6轮/8分/宽48",
+          "target": 8,
+          "cap": 6,
+          "minTurns": 4,
+          "width": 48,
+          "paired": true,
+          "boundedOvertime": true,
+          "trials": 20000,
+          "meanTurns": 5.254,
+          "p90Turns": 6,
+          "maxObservedTurns": 8,
+          "firstWinRate": 0.491,
+          "firstWinAmongDecided": 0.501,
+          "drawRate": 0.02,
+          "overtimeRate": 0.089,
+          "capRate": 0.537,
+          "unequalTurnsRate": 0,
+          "incompleteRoleCycleRate": 0
+        }
+      ]
+    },
+    {
+      "sourceTeam": "B",
+      "n": 16,
+      "policies": [
+        {
+          "name": "现行10分/10轮",
+          "target": 10,
+          "cap": 10,
+          "width": 40,
+          "paired": false,
+          "trials": 20000,
+          "meanTurns": 5.635,
+          "p90Turns": 7,
+          "maxObservedTurns": 18,
+          "firstWinRate": 0.536,
+          "firstWinAmongDecided": 0.536,
+          "drawRate": 0,
+          "overtimeRate": 0.035,
+          "capRate": 0.003,
+          "unequalTurnsRate": 0.597,
+          "incompleteRoleCycleRate": 0
+        },
+        {
+          "name": "对称6轮/6分/宽48",
+          "target": 6,
+          "cap": 6,
+          "minTurns": 4,
+          "width": 48,
+          "paired": true,
+          "boundedOvertime": true,
+          "trials": 20000,
+          "meanTurns": 4.372,
+          "p90Turns": 6,
+          "maxObservedTurns": 8,
+          "firstWinRate": 0.481,
+          "firstWinAmongDecided": 0.496,
+          "drawRate": 0.03,
+          "overtimeRate": 0.125,
+          "capRate": 0.061,
+          "unequalTurnsRate": 0,
+          "incompleteRoleCycleRate": 0
+        },
+        {
+          "name": "对称6轮/8分/宽48",
+          "target": 8,
+          "cap": 6,
+          "minTurns": 4,
+          "width": 48,
+          "paired": true,
+          "boundedOvertime": true,
+          "trials": 20000,
+          "meanTurns": 4.879,
+          "p90Turns": 6,
+          "maxObservedTurns": 8,
+          "firstWinRate": 0.487,
+          "firstWinAmongDecided": 0.498,
+          "drawRate": 0.022,
+          "overtimeRate": 0.089,
+          "capRate": 0.35,
+          "unequalTurnsRate": 0,
+          "incompleteRoleCycleRate": 0
+        }
+      ]
+    }
+  ]
+}
