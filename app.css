@@ -292,6 +292,8 @@
   .team .tname { font-size: 15px; font-weight: 700; }
   .team .tname small { color: var(--dim); font-weight: 400; margin-left: 6px; }
   .team .tscore { font-size: 42px; font-weight: 800; line-height: 1.1; }
+  .overtime-score { margin-top: 8px; font-family: var(--sans); font-size: 14px; color: var(--dim); }
+  .overtime-score.hidden { display: none; }
   .team.a .tscore { color: var(--cA); } .team.b .tscore { color: var(--cB); }
   .score-track { display: flex; justify-content: center; gap: 4px; margin-top: 4px; }
   .score-track i {
@@ -520,6 +522,8 @@
   }
   .modal h2 { margin-bottom: 8px; font-size: 32px; font-weight: 400; }
   .modal p { color: var(--dim); font-size: 14px; margin-bottom: 18px; line-height: 1.6; }
+  .modal .rule-summary { margin: 8px 0 0; font-size: 13px; }
+  .field input:disabled { opacity: .65; cursor: not-allowed; }
   .modal .btn-block { width: 100%; margin-bottom: 10px; }
   .field { margin-bottom: 14px; text-align: left; }
   .field label { display: block; font-size: 13px; color: var(--dim); margin-bottom: 5px; }
@@ -1312,6 +1316,11 @@
     body.monitor-mode .team.perfect-hit::before { animation: perfect-border 1.8s ease-in-out 2; }
     body.monitor-mode .active-turn, body.monitor-mode .auto-scroll-note,
     body.monitor-mode .screen .screen-txt { display: none; }
+    body.monitor-mode .overtime-score {
+      position: absolute; bottom: calc(12 * var(--display-unit));
+      left: calc(48 * var(--display-unit)); right: calc(48 * var(--display-unit)); z-index: 1;
+      margin: 0; font-size: calc(32 * var(--display-unit)); line-height: 1;
+    }
     body.monitor-mode .side .con { font-size: calc(100 * var(--display-unit)); line-height: 1.1; }
     body.monitor-mode .card-choice .con { font-size: calc(72 * var(--display-unit)); }
     body.monitor-mode .card-choice .side-tag { font-size: calc(24 * var(--display-unit)); margin-bottom: 0; }

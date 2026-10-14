@@ -43,6 +43,7 @@
       <div class="tscore" id="scoreA">0</div>
       <span class="team-gain" id="gainA" aria-live="polite"></span>
       <div class="score-track" id="trackA"></div>
+      <div class="overtime-score hidden" id="overtimeA" aria-live="polite"></div>
     </div>
     <div class="vs" aria-label="对阵">对</div>
     <div class="team b">
@@ -51,6 +52,7 @@
       <div class="tscore" id="scoreB">1</div>
       <span class="team-gain" id="gainB" aria-live="polite"></span>
       <div class="score-track" id="trackB"></div>
+      <div class="overtime-score hidden" id="overtimeB" aria-live="polite"></div>
     </div>
     <div class="active-turn" id="turn-indicator"></div>
   </section>
@@ -106,9 +108,9 @@
       <li>本队讨论后把金色拨杆拖到猜测位置并锁定。</li>
       <li>对方猜：目标的中心楔形在拨杆左边还是右边。</li>
       <li>揭示：本队拨杆落在目标色带内得 2/3/4 分；对方猜对左右得 1 分（本队 4 分时对方不得分）。</li>
-      <li>追赶规则：本队拿 4 分且仍然落后，立刻再行动一轮。</li>
-      <li>获胜：先达到设定分，或第 10 局结束时分数较高者获胜；届时平分则进入加时赛。</li>
-      <li>平分加时赛：两队各出一次题，比较该回合各自得分（含左右猜测的 1 分），谁高谁赢；仍平则重复，直到分出胜负。加时回合不计入主记分板。</li>
+      <li id="rule-turns">原版：先手 0 分，后手 1 分。本队拿 4 分且仍然落后，立刻再行动一轮。</li>
+      <li id="rule-ending">获胜：先达到设定分，或第 10 轮结束时分数较高者获胜；届时平分则进入加时赛。</li>
+      <li id="rule-overtime">平分加时赛：两队各出一次题，比较加时得分（含左右猜测的 1 分），谁高谁赢；仍平则重复，直到分出胜负。加时分不计入主记分板。</li>
       <li>出题禁忌：禁用卡片上的词/同义词、数字、复合线索、自造事物。</li>
     </ul>
   </details>
@@ -144,16 +146,24 @@
     <div class="modal-kicker" aria-hidden="true">幻想指南 · 聚会游戏</div>
     <h2 id="setup-title">Wavelength</h2>
     <div class="ornament-rule" aria-hidden="true"></div>
-    <p>两队轮流派出一位「Psychic」出题，本队猜目标位置，对方猜左右。先拿 10 分或 10 局后领先者获胜。</p>
+    <p>两队轮流派出一位「Psychic」出题，本队猜目标位置，对方猜左右。一队完成一次出题与结算算一轮。</p>
     <div class="field-row">
       <div class="field">
-        <label>左队名称（先手 0 分）</label>
+        <label for="input-nameA">左队名称</label>
         <input id="input-nameA" value="左脑" maxlength="8">
       </div>
       <div class="field">
-        <label>右队名称（后手 1 分）</label>
+        <label for="input-nameB">右队名称</label>
         <input id="input-nameB" value="右脑" maxlength="8">
       </div>
+    </div>
+    <div class="field">
+      <label for="opt-rule-set">规则版本</label>
+      <select id="opt-rule-set" aria-describedby="rule-summary">
+        <option value="original" selected>原版</option>
+        <option value="balanced">平衡快局</option>
+      </select>
+      <p class="rule-summary" id="rule-summary"></p>
     </div>
     <div class="field">
       <label>先手队伍</label>
@@ -164,7 +174,7 @@
       </select>
     </div>
     <div class="field">
-      <label for="opt-card-mode">游戏模式</label>
+      <label for="opt-card-mode">出题方式</label>
       <select id="opt-card-mode">
         <option value="choice" selected>二选一：每轮抽两题，选一题（默认）</option>
         <option value="single">经典单题：每轮抽一题</option>
@@ -223,7 +233,7 @@
           <label class="check-row"><input type="checkbox" id="opt-ordered"> 按顺序展示（不洗牌，抽完循环）</label>
         </div>
         <div class="field">
-          <label>获胜分数（0 = 不设分数门槛，仍最多 10 局）</label>
+          <label for="opt-winscore" id="winscore-label">获胜分数（0 = 不设分数门槛，仍最多 10 轮）</label>
           <input type="number" id="opt-winscore" min="0" max="999" value="10">
         </div>
         <div class="field">
@@ -232,8 +242,8 @@
         </div>
       </div>
       <div class="field">
-        <label>目标分布（固定公平模式）</label>
-        <div class="setting-note">第 1 局适中 · 第 2 局明显 · 第 3 局及以后推荐</div>
+        <label>目标分布</label>
+        <div class="setting-note" id="distribution-note">第 1 轮适中 · 第 2 轮明显 · 第 3 轮及以后推荐</div>
       </div>
     </details>
     <button class="btn primary" id="btn-start" style="width:100%">开始游戏</button>

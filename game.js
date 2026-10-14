@@ -57,6 +57,29 @@
   var BAND_WIDTH = 40;
   var WIN_SCORE = 10;
   var MAX_ROUNDS = 10;
+  var RULE_SETS = {
+    original: { label: "原版", winScore: 10, bandWidth: 40, maxRounds: 10, minRounds: 1,
+      secondBonus: 1, catchup: true, pairedEnd: false, tiedOvertimeDraw: false },
+    balanced: { label: "平衡快局", winScore: 8, bandWidth: 48, maxRounds: 6, minRounds: 4,
+      secondBonus: 0, catchup: false, pairedEnd: true, tiedOvertimeDraw: true }
+  };
+  function rulesFor(s) {
+    return s && s.ruleSet === "balanced" ? RULE_SETS.balanced : RULE_SETS.original;
+  }
+
+  function resetStartingScores(s) {
+    s.teams.A.score = s.first === "B" ? rulesFor(s).secondBonus : 0;
+    s.teams.B.score = s.first === "B" ? 0 : rulesFor(s).secondBonus;
+  }
+
+  function selectRuleSet(s, value) {
+    if (value !== "original" && value !== "balanced") return;
+    if (s.ruleSet !== value) {
+      s.ruleSet = value;
+      s.winScore = rulesFor(s).winScore;
+      s.bandWidth = rulesFor(s).bandWidth;
+    }
+  }
   var DIST_PRESETS = {
     uniform: { M: 1, E: 1, V: 1, U: 0.16, label: "均匀" },
     mild: { M: 0.9, E: 1.2, V: 0.65, U: 0.16, label: "适中" },
@@ -104,7 +127,8 @@
     }
   }
 
-  function targetDistForRound(round) {
+  function targetDistForRound(round, ruleSet) {
+    if (ruleSet === "balanced") return DIST_DEFAULT;
     if (round === 1) return "mild";
     if (round === 2) return "strong";
     return DIST_DEFAULT;
@@ -112,7 +136,7 @@
 
   function newTarget(s) {
     var bw = s && s.bandWidth > 0 ? s.bandWidth : BAND_WIDTH;
-    var dist = s && s.round > 0 ? targetDistForRound(s.round) : (s && s.dist ? s.dist : DIST_DEFAULT);
+    var dist = s && s.round > 0 ? targetDistForRound(s.round, s.ruleSet) : (s && s.dist ? s.dist : DIST_DEFAULT);
     var u = sampleTargetX(dist);
     var c = Math.round(500 + 1000 * u);
     c = Math.max(0, Math.min(1000, c));
@@ -138,6 +162,7 @@
     return {
       phase: "setup",
       rulesOpen: false,
+      ruleSet: "original",
       active: "A",
       first: "A",
       teams: { A: { name: "左脑", score: 0 }, B: { name: "右脑", score: 1 } },
@@ -197,14 +222,16 @@
 
   function doSetup(s, intent) {
     s.rulesOpen = false;
+    selectRuleSet(s, intent.ruleSet);
+    if (s.ruleSet === "balanced") {
+      s.winScore = rulesFor(s).winScore;
+      s.bandWidth = rulesFor(s).bandWidth;
+    }
     if (intent.cardMode === "choice" || intent.cardMode === "single") s.cardMode = intent.cardMode;
     s.teams.A = { name: intent.teamA || "左脑", score: 0 };
-    s.teams.B = { name: intent.teamB || "右脑", score: 1 };
-    if (intent.first === "B") {
-      s.teams.A.score = 1;
-      s.teams.B.score = 0;
-    }
+    s.teams.B = { name: intent.teamB || "右脑", score: 0 };
     s.first = intent.first === "B" ? "B" : "A";
+    resetStartingScores(s);
     s.active = s.first;
     s.round = 0;
     s.sudden = false;
@@ -221,12 +248,7 @@
 
   function doNewGame(s) {
     s.rulesOpen = false;
-    s.teams.A = { name: s.teams.A.name, score: 0 };
-    s.teams.B = { name: s.teams.B.name, score: 1 };
-    if (s.first === "B") {
-      s.teams.A.score = 1;
-      s.teams.B.score = 0;
-    }
+    resetStartingScores(s);
     s.round = 0;
     s.sudden = false;
     s.sdPts = { A: 0, B: 0 };
@@ -245,6 +267,7 @@
   }
 
   function doReveal(s) {
+    var rules = rulesFor(s);
     var t = s.teams[s.active], o = s.teams[other(s.active)];
     var d = s.dial, c = s.target.center;
     var diff = Math.abs(d - c);
@@ -277,6 +300,11 @@
       s.sdTurns[s.active] = true;
       if (s.sdTurns.A && s.sdTurns.B) {
         if (s.sdPts.A === s.sdPts.B) {
+          if (rules.tiedOvertimeDraw) {
+            s.result = { winner: null, sudden: true, draw: true };
+            s.phase = "over";
+            return;
+          }
           s.sdPts.A = 0;
           s.sdPts.B = 0;
           s.sdTurns.A = false;
@@ -293,13 +321,14 @@
 
     t.score += pts;
     o.score += oppPts;
-    s.catchup = (pts === 4 && t.score < o.score);
+    s.catchup = rules.catchup && pts === 4 && t.score < o.score;
 
     var limit = s.winScore > 0 ? s.winScore : Infinity;
     var aWon = s.teams.A.score >= limit;
     var bWon = s.teams.B.score >= limit;
-    var maxRoundsReached = s.round >= MAX_ROUNDS;
-    if (aWon || bWon || maxRoundsReached) {
+    var maxRoundsReached = s.round >= rules.maxRounds;
+    var canFinish = s.round >= rules.minRounds && (!rules.pairedEnd || s.round % 2 === 0);
+    if (canFinish && (aWon || bWon || maxRoundsReached)) {
       if (s.teams.A.score === s.teams.B.score) {
         s.sudden = true;
         s.sdPts.A = 0;
@@ -387,7 +416,7 @@
         break;
       case "nextRound":
         if (s.phase === "revealed") {
-          if (!s.catchup) s.active = other(s.active);
+          if (!rulesFor(s).catchup || !s.catchup) s.active = other(s.active);
           startRound(s);
         }
         break;
@@ -413,15 +442,23 @@
           s.cardMode = intent.value;
         }
         break;
+      case "setRuleSet":
+        if (s.phase === "setup") {
+          selectRuleSet(s, intent.value);
+          resetStartingScores(s);
+        }
+        break;
       case "setOrdered":
         s.ordered = !!intent.value;
         break;
       case "setWinScore":
+        if (s.ruleSet === "balanced") break;
         var ws = Math.floor(Number(intent.value));
         if (isNaN(ws) || ws < 0) ws = 0;
         s.winScore = ws;
         break;
       case "setBandWidth":
+        if (s.ruleSet === "balanced") break;
         var bw = Math.floor(Number(intent.value));
         if (isNaN(bw) || bw < 2) bw = BAND_WIDTH;
         s.bandWidth = bw;
@@ -490,6 +527,8 @@
     BAND_WIDTH: BAND_WIDTH,
     WIN_SCORE: WIN_SCORE,
     MAX_ROUNDS: MAX_ROUNDS,
+    RULE_SETS: RULE_SETS,
+    rulesFor: rulesFor,
     DECK_NAME_DEFAULT: DECK_NAME_DEFAULT,
     DIST_PRESETS: DIST_PRESETS,
     DIST_DEFAULT: DIST_DEFAULT,

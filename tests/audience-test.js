@@ -118,6 +118,8 @@ assert.notEqual(records[1].roundId, records[0].roundId);
 
 intent("newGame");
 intent("setup", { cardMode: "single" });
+// Force a decisive hit; random 2-point hits can tie the opponent's 1+1 points.
+state.target.center = state.dial;
 intent("donePsychic");
 assert.equal(submit("9", "g-100%"), true);
 intent("setWinScore", { value: 1 });

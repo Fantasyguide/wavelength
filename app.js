@@ -436,6 +436,7 @@
     renderTrack("trackA", A.score, "a");
     renderTrack("trackB", B.score, "b");
     renderTeamFeedback();
+    renderRuleSet();
     renderDeckInfo();
     renderTurn();
     renderCard();
@@ -450,8 +451,39 @@
   }
 
   function monitorPhase() {
+    if (G.phase === "over" && G.result && G.result.draw) return "和局复盘";
     return { setup: "待开局", chooseCard: "选题", psychic: "出题", dial: "讨论", guess: "猜左右",
       reveal: "揭晓", revealed: "结算", over: "复盘" }[G.phase] || "";
+  }
+
+  function renderRuleSet() {
+    var balanced = G.ruleSet === "balanced";
+    $("opt-rule-set").value = balanced ? "balanced" : "original";
+    $("opt-rule-set").disabled = G.phase !== "setup";
+    $("rule-summary").textContent = balanced
+      ? "双方 0 分起步，严格轮流。至少 4 轮，双方行动后有人达到 8 分则结算；常规最多 6 轮。平分时各加赛一轮，仍平则和局。"
+      : "先手 0 分，后手补 1 分。先到设定分即结算，常规最多 10 轮；4 分且仍落后可再行动，平分加时直到分出胜负。";
+    $("select-first").querySelector('[value="A"]').textContent = balanced ? "左队先手（双方 0 分）" : "左队先手（左 0 分 / 右 1 分）";
+    $("select-first").querySelector('[value="B"]').textContent = balanced ? "右队先手（双方 0 分）" : "右队先手（右 0 分 / 左 1 分）";
+    $("opt-winscore").disabled = balanced;
+    $("opt-bandwidth").disabled = balanced;
+    $("winscore-label").textContent = balanced ? "结算门槛（平衡快局固定 8 分）" : "获胜分数（0 = 不设分数门槛，仍最多 10 轮）";
+    $("distribution-note").textContent = balanced
+      ? "所有轮次使用推荐分布；色带基准宽度固定 48。"
+      : "第 1 轮适中 · 第 2 轮明显 · 第 3 轮及以后推荐";
+    $("rule-turns").textContent = balanced
+      ? "平衡快局：双方 0 分起步，严格轮流，无追赶连动。色带宽 48，所有轮次使用推荐分布。"
+      : "原版：先手 0 分，后手 1 分。本队拿 4 分且仍然落后，立刻再行动一轮。";
+    $("rule-ending").textContent = balanced
+      ? "获胜：第 4 轮结束后，有队达到 8 分则比较总分；否则第 6 轮结算。领先者胜，平分加时。双方行动次数相等。"
+      : "获胜：" + (G.winScore > 0 ? "先达到 " + G.winScore + " 分，或" : "") + "第 10 轮结束时分数较高者获胜；届时平分则进入加时赛。";
+    $("rule-overtime").textContent = "平分加时赛：两队各出一次题，比较加时得分（含左右猜测的 1 分），谁高谁赢；" +
+      (balanced ? "仍平则和局，整局最多 8 轮。" : "仍平则重复，直到分出胜负。") + "加时分不计入主记分板。";
+    ["A", "B"].forEach(function (letter) {
+      var el = $("overtime" + letter);
+      el.classList.toggle("hidden", !G.sudden);
+      el.textContent = G.sudden ? "加时 " + G.sdPts[letter] + " 分 · " + (G.sdTurns[letter] ? "已出题" : "待出题") : "";
+    });
   }
 
   function renderTeamFeedback() {
@@ -642,7 +674,7 @@
     var t = G.teams[G.active];
     var who = "<b class='" + (G.active === "A" ? "a" : "b") + "'>" + t.name + "</b>";
     if (G.phase === "over") {
-      $("turn-indicator").textContent = "对局结束 · 自动复盘";
+      $("turn-indicator").textContent = G.result && G.result.draw ? "双方和局 · 自动复盘" : "对局结束 · 自动复盘";
       $("banner").classList.add("hidden");
     } else if (G.catchup) {
       $("turn-indicator").innerHTML = ROLE === "monitor"
@@ -664,6 +696,7 @@
     $("card-frame").classList.toggle("choosing", G.phase === "chooseCard");
     var label = "第 " + G.round + " " + T("roundUnit") + " · " + G.teams[G.active].name + " 的 " + T("psychic");
     if (wideMonitor()) label = "第 " + G.round + " " + T("roundUnit") + " · " + (G.sudden ? "加时 · " : "") + monitorPhase();
+    if (G.ruleSet === "balanced") label += " · 平衡快局";
     if (G.phase === "chooseCard") {
       $("card-label").textContent = label + (wideMonitor() ? "" : " 选题");
       G.cardChoices.forEach(function (card, index) {
@@ -874,7 +907,7 @@
       }));
     } else if (G.phase === "revealed") {
       hint.innerHTML = G.sudden
-        ? "<b>" + T("suddenDeath") + "！</b>平分后继续，直到分出胜负。下一轮由 " + (G.catchup ? teamName(G.active, t.name) : teamName(WL.other(G.active), G.teams[WL.other(G.active)].name)) + " 行动（换一位新 " + T("psychic") + "）。"
+        ? "<b>" + T("suddenDeath") + "！</b>" + (G.ruleSet === "balanced" ? "双方各加赛一轮，仍平则和局。" : "平分后继续，直到分出胜负。") + "下一轮由 " + (G.catchup ? teamName(G.active, t.name) : teamName(WL.other(G.active), G.teams[WL.other(G.active)].name)) + " 行动（换一位新 " + T("psychic") + "）。"
         : "下一轮由 " + (G.catchup ? teamName(G.active, t.name) : teamName(WL.other(G.active), o.name)) + " 行动，别忘了换一位新 " + T("psychic") + " 出题。";
       if (control) box.appendChild(mk("开始下一轮", "primary", function () {
         dispatch({ type: "nextRound" });
@@ -898,8 +931,8 @@
           (G.catchup ? teamName(G.active, t.name) : teamName(WL.other(G.active), o.name)) +
           " 行动，请换一位新 " + T("psychic") + " 出题。";
       } else if (G.phase === "over" && G.result) {
-        hint.innerHTML = teamName(G.result.winner, G.teams[G.result.winner].name) + " 获胜！ · 对局复盘" +
-          (G.result.sudden ? "（加时赛决出）" : "");
+        hint.innerHTML = G.result.draw ? "双方和局 · 加时仍平，精彩同频！" :
+          teamName(G.result.winner, G.teams[G.result.winner].name) + " 获胜！ · 对局复盘" + (G.result.sudden ? "（加时赛决出）" : "");
       }
     }
 
@@ -1011,9 +1044,11 @@
     $("over-modal").classList.toggle("hidden", !showOver);
     if (showOver) {
       var w = G.teams[G.result.winner];
-      $("winner-text").textContent = "🏆 " + w.name + " 获胜！";
-      $("winner-text").className = "winner " + (G.result.winner === "A" ? "a" : "b");
-      $("final-score").textContent = G.teams.A.name + " " + G.teams.A.score + " 分　VS　" + G.teams.B.name + " " + G.teams.B.score + " 分" + (G.result.sudden ? "（加时赛决出）" : G.result.maxRounds ? "（10 局结算）" : "");
+      $("winner-text").textContent = G.result.draw ? "双方和局 · 精彩同频！" : "🏆 " + w.name + " 获胜！";
+      $("winner-text").className = "winner" + (G.result.draw ? "" : G.result.winner === "A" ? " a" : " b");
+      $("final-score").textContent = G.teams.A.name + " " + G.teams.A.score + " 分　VS　" + G.teams.B.name + " " + G.teams.B.score + " 分" +
+        (G.result.sudden ? "（加时 " + G.sdPts.A + " : " + G.sdPts.B + (G.result.draw ? "，仍平）" : "）") :
+          G.result.maxRounds ? "（" + WL.rulesFor(G).maxRounds + " 轮结算）" : "");
     }
 
     var isMonitor = ROLE === "monitor";
@@ -1048,7 +1083,7 @@
     var first = $("select-first").value;
     if (first === "R") first = Math.random() < 0.5 ? "A" : "B";
     psychicViewing = false;
-    dispatch({ type: "setup", teamA: nA, teamB: nB, first: first, cardMode: $("opt-card-mode").value });
+    dispatch({ type: "setup", teamA: nA, teamB: nB, first: first, cardMode: $("opt-card-mode").value, ruleSet: $("opt-rule-set").value });
   }
 
   function deckMsg(text, ok) {
@@ -1281,6 +1316,9 @@
   });
 
   $("btn-start").onclick = startGame;
+  $("opt-rule-set").addEventListener("change", function () {
+    dispatch({ type: "setRuleSet", value: this.value });
+  });
   $("opt-card-mode").addEventListener("change", function () {
     dispatch({ type: "setCardMode", value: this.value });
   });
