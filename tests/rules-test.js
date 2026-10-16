@@ -2,7 +2,7 @@
 
 const assert = require("node:assert/strict");
 const WL = require("../game.js");
-const experiment = require("../docs/playtests/2026-10-13-balanced-48/session.json");
+const replay = require("./fixtures/balanced-replay.json");
 const apply = (g, type, extra = {}) => WL.applyIntent(g, { type, ...extra });
 const scores = g => [g.teams.A.score, g.teams.B.score];
 
@@ -168,11 +168,11 @@ function rng(seed) {
   };
 }
 
-// Replay the actual five-game experiment against the shipping engine.
+// Keep deterministic engine coverage independent of local playtest transcripts.
 let replayed = 0;
-for (const match of experiment.matches) {
+for (const match of replay.matches) {
   const g = WL.createGame();
-  apply(g, "loadDeck", experiment.deck);
+  apply(g, "loadDeck", replay.deck);
   const random = Math.random;
   Math.random = rng(match.seed);
   try {

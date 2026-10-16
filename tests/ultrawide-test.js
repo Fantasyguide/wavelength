@@ -222,7 +222,7 @@ function postIntent(port, intent) {
   assert(layout.viewport.width === 3904 && layout.viewport.height === 672, "uses exact 3904x672 viewport");
   assert(layout.bodyClass.includes("monitor-mode"), "monitor role enables wide-screen layout");
   assert(layout.scroll.width <= 3904 && layout.scroll.height <= 672, "layout has no page overflow");
-  assert(layout.scoreboard.width >= 900 && layout.card.width >= 2000 && layout.card.width <= 2100 && layout.teamB.width >= 900,
+  assert(layout.scoreboard.width === 960 && layout.card.width === 1928 && layout.teamB.width === 960,
     "wider side panels share the space released by the narrower central game area");
   assert(layout.scoreboard.right < layout.card.left && layout.card.right < layout.teamB.left, "teams occupy opposite sides of the central game area");
   assert(layout.log.top > layout.scoreboard.bottom && layout.audience.top > layout.teamB.bottom && layout.audience.right <= 3904,

@@ -7,3 +7,7 @@ start-server.sh
 node_modules/
 /SERVICE-MEMO.local.md
 /data/
+
+# Local multi-agent playtest scripts, transcripts, and generated reports.
+# Reusable regression fixtures belong in tests/fixtures/.
+/docs/playtests/

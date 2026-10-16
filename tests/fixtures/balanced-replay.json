@@ -1,0 +1,1150 @@
+{
+  "deck": {
+    "cards": [
+      [
+        "大",
+        "小"
+      ],
+      [
+        "像男的",
+        "像女的"
+      ],
+      [
+        "老资历",
+        "小资历"
+      ],
+      [
+        "老太婆",
+        "小萝莉"
+      ],
+      [
+        "人类",
+        "妖怪"
+      ],
+      [
+        "人类友好度高",
+        "人类友好度低"
+      ],
+      [
+        "强强",
+        "弱弱"
+      ],
+      [
+        "居住点海拔高",
+        "居住点海拔低"
+      ],
+      [
+        "审美积累",
+        "审美积积"
+      ],
+      [
+        "人气排名高",
+        "人气排名低"
+      ],
+      [
+        "活泼",
+        "冷静"
+      ],
+      [
+        "聪明",
+        "笨蛋"
+      ],
+      [
+        "有文化底蕴",
+        "没有文化底蕴"
+      ],
+      [
+        "幸运",
+        "不幸"
+      ],
+      [
+        "富裕",
+        "贫穷"
+      ],
+      [
+        "开朗阳光",
+        "孤僻阴暗"
+      ],
+      [
+        "孩子气",
+        "妈妈"
+      ],
+      [
+        "维新",
+        "传统"
+      ],
+      [
+        "现充",
+        "御宅族"
+      ],
+      [
+        "精英",
+        "草根"
+      ],
+      [
+        "纯情",
+        "海王"
+      ],
+      [
+        "0",
+        "1"
+      ],
+      [
+        "s",
+        "m"
+      ],
+      [
+        "香",
+        "臭"
+      ],
+      [
+        "威严满满",
+        "抱头蹲防"
+      ],
+      [
+        "左",
+        "右"
+      ],
+      [
+        "黑白",
+        "七彩"
+      ],
+      [
+        "西洋",
+        "东洋"
+      ],
+      [
+        "外向",
+        "内向"
+      ],
+      [
+        "兽",
+        "人"
+      ],
+      [
+        "高",
+        "矮"
+      ],
+      [
+        "长发",
+        "短发"
+      ],
+      [
+        "文",
+        "理"
+      ],
+      [
+        "CP多",
+        "CP少"
+      ],
+      [
+        "活着的",
+        "死掉了"
+      ],
+      [
+        "科技",
+        "幻想"
+      ],
+      [
+        "北大",
+        "清华"
+      ],
+      [
+        "大々吉",
+        "大々凶"
+      ],
+      [
+        "清真",
+        "不清真"
+      ],
+      [
+        "（音乐）豪庭的钥匙",
+        "（音乐）南亭的钥匙"
+      ],
+      [
+        "常见",
+        "罕见"
+      ],
+      [
+        "夯",
+        "拉完了"
+      ],
+      [
+        "强健",
+        "病弱"
+      ],
+      [
+        "胆子大",
+        "胆子小"
+      ],
+      [
+        "文明",
+        "野蛮"
+      ],
+      [
+        "猫",
+        "狗"
+      ],
+      [
+        "GPA4.0",
+        "GPA1.0"
+      ],
+      [
+        "讨好型人格",
+        "反驳型人格"
+      ],
+      [
+        "波长长",
+        "波长短"
+      ],
+      [
+        "岁月静好",
+        "负重前行"
+      ],
+      [
+        "太快乐了🤗",
+        "太痛苦了😫"
+      ],
+      [
+        "叮咚鸡",
+        "大狗叫"
+      ],
+      [
+        "星宇旺盛",
+        "星宇low"
+      ],
+      [
+        "串子",
+        "纯良"
+      ]
+    ],
+    "name": "车万版"
+  },
+  "matches": [
+    {
+      "seed": 807945935,
+      "first": "B",
+      "rounds": [
+        {
+          "round": 1,
+          "team": "B",
+          "candidates": [
+            [
+              "大々吉",
+              "大々凶"
+            ],
+            [
+              "人类友好度高",
+              "人类友好度低"
+            ]
+          ],
+          "targetRaw": {
+            "center": 583,
+            "w4": 19.200000000000003,
+            "w3": 67.2,
+            "w2": 120,
+            "dist": "recommended"
+          },
+          "opponentSide": "L",
+          "pts": 0,
+          "oppPts": 1,
+          "scoreAfter": {
+            "A": 1,
+            "B": 0
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "selection": {
+            "index": 1
+          },
+          "dial": {
+            "dial": 84
+          }
+        },
+        {
+          "round": 2,
+          "team": "A",
+          "candidates": [
+            [
+              "（音乐）豪庭的钥匙",
+              "（音乐）南亭的钥匙"
+            ],
+            [
+              "纯情",
+              "海王"
+            ]
+          ],
+          "targetRaw": {
+            "center": 29,
+            "w4": 19.200000000000003,
+            "w3": 67.2,
+            "w2": 120,
+            "dist": "recommended"
+          },
+          "opponentSide": "L",
+          "pts": 3,
+          "oppPts": 1,
+          "scoreAfter": {
+            "A": 4,
+            "B": 1
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "selection": {
+            "index": 1
+          },
+          "dial": {
+            "dial": -82
+          }
+        },
+        {
+          "round": 3,
+          "team": "B",
+          "candidates": [
+            [
+              "强强",
+              "弱弱"
+            ],
+            [
+              "孩子气",
+              "妈妈"
+            ]
+          ],
+          "targetRaw": {
+            "center": 57,
+            "w4": 19.200000000000003,
+            "w3": 67.2,
+            "w2": 120,
+            "dist": "recommended"
+          },
+          "opponentSide": "R",
+          "pts": 3,
+          "oppPts": 1,
+          "scoreAfter": {
+            "A": 5,
+            "B": 4
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "selection": {
+            "index": 1
+          },
+          "dial": {
+            "dial": -95
+          }
+        },
+        {
+          "round": 4,
+          "team": "A",
+          "candidates": [
+            [
+              "北大",
+              "清华"
+            ],
+            [
+              "夯",
+              "拉完了"
+            ]
+          ],
+          "targetRaw": {
+            "center": 933,
+            "w4": 19.200000000000003,
+            "w3": 67.2,
+            "w2": 120,
+            "dist": "recommended"
+          },
+          "opponentSide": "R",
+          "pts": 3,
+          "oppPts": 0,
+          "scoreAfter": {
+            "A": 8,
+            "B": 4
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": {
+            "winner": "A",
+            "maxRounds": false
+          },
+          "selection": {
+            "index": 0
+          },
+          "dial": {
+            "dial": 94
+          }
+        }
+      ]
+    },
+    {
+      "seed": 1989365880,
+      "first": "A",
+      "rounds": [
+        {
+          "round": 1,
+          "team": "A",
+          "candidates": [
+            [
+              "黑白",
+              "七彩"
+            ],
+            [
+              "居住点海拔高",
+              "居住点海拔低"
+            ]
+          ],
+          "targetRaw": {
+            "center": 713,
+            "w4": 19.200000000000003,
+            "w3": 67.2,
+            "w2": 120,
+            "dist": "recommended"
+          },
+          "opponentSide": "R",
+          "pts": 3,
+          "oppPts": 1,
+          "scoreAfter": {
+            "A": 3,
+            "B": 1
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "selection": {
+            "index": 0
+          },
+          "dial": {
+            "dial": 32
+          }
+        },
+        {
+          "round": 2,
+          "team": "B",
+          "candidates": [
+            [
+              "纯情",
+              "海王"
+            ],
+            [
+              "岁月静好",
+              "负重前行"
+            ]
+          ],
+          "targetRaw": {
+            "center": 14,
+            "w4": 19.200000000000003,
+            "w3": 67.2,
+            "w2": 120,
+            "dist": "recommended"
+          },
+          "opponentSide": "R",
+          "pts": 3,
+          "oppPts": 0,
+          "scoreAfter": {
+            "A": 3,
+            "B": 4
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "selection": {
+            "index": 1
+          },
+          "dial": {
+            "dial": -93
+          }
+        },
+        {
+          "round": 3,
+          "team": "A",
+          "candidates": [
+            [
+              "维新",
+              "传统"
+            ],
+            [
+              "孩子气",
+              "妈妈"
+            ]
+          ],
+          "targetRaw": {
+            "center": 153,
+            "w4": 19.200000000000003,
+            "w3": 67.2,
+            "w2": 120,
+            "dist": "recommended"
+          },
+          "opponentSide": "L",
+          "pts": 3,
+          "oppPts": 1,
+          "scoreAfter": {
+            "A": 6,
+            "B": 5
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "selection": {
+            "index": 1
+          },
+          "dial": {
+            "dial": -60
+          }
+        },
+        {
+          "round": 4,
+          "team": "B",
+          "candidates": [
+            [
+              "叮咚鸡",
+              "大狗叫"
+            ],
+            [
+              "大",
+              "小"
+            ]
+          ],
+          "targetRaw": {
+            "center": 418,
+            "w4": 19.200000000000003,
+            "w3": 67.2,
+            "w2": 120,
+            "dist": "recommended"
+          },
+          "opponentSide": "R",
+          "pts": 3,
+          "oppPts": 1,
+          "scoreAfter": {
+            "A": 7,
+            "B": 8
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": {
+            "winner": "B",
+            "maxRounds": false
+          },
+          "selection": {
+            "index": 1
+          },
+          "dial": {
+            "dial": -22
+          }
+        }
+      ]
+    },
+    {
+      "seed": 3626703037,
+      "first": "B",
+      "rounds": [
+        {
+          "round": 1,
+          "team": "B",
+          "candidates": [
+            [
+              "幸运",
+              "不幸"
+            ],
+            [
+              "富裕",
+              "贫穷"
+            ]
+          ],
+          "targetRaw": {
+            "center": 178,
+            "w4": 19.200000000000003,
+            "w3": 67.2,
+            "w2": 120,
+            "dist": "recommended"
+          },
+          "opponentSide": "R",
+          "pts": 2,
+          "oppPts": 1,
+          "scoreAfter": {
+            "A": 1,
+            "B": 2
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "selection": {
+            "index": 1
+          },
+          "dial": {
+            "dial": -80
+          }
+        },
+        {
+          "round": 2,
+          "team": "A",
+          "candidates": [
+            [
+              "大",
+              "小"
+            ],
+            [
+              "北大",
+              "清华"
+            ]
+          ],
+          "targetRaw": {
+            "center": 39,
+            "w4": 19.200000000000003,
+            "w3": 67.2,
+            "w2": 120,
+            "dist": "recommended"
+          },
+          "opponentSide": "L",
+          "pts": 4,
+          "oppPts": 0,
+          "scoreAfter": {
+            "A": 5,
+            "B": 2
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "selection": {
+            "index": 0
+          },
+          "dial": {
+            "dial": -95
+          }
+        },
+        {
+          "round": 3,
+          "team": "B",
+          "candidates": [
+            [
+              "GPA4.0",
+              "GPA1.0"
+            ],
+            [
+              "人气排名高",
+              "人气排名低"
+            ]
+          ],
+          "targetRaw": {
+            "center": 116,
+            "w4": 19.200000000000003,
+            "w3": 67.2,
+            "w2": 120,
+            "dist": "recommended"
+          },
+          "opponentSide": "R",
+          "pts": 3,
+          "oppPts": 1,
+          "scoreAfter": {
+            "A": 6,
+            "B": 5
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "selection": {
+            "index": 0
+          },
+          "dial": {
+            "dial": -90
+          }
+        },
+        {
+          "round": 4,
+          "team": "A",
+          "candidates": [
+            [
+              "叮咚鸡",
+              "大狗叫"
+            ],
+            [
+              "强强",
+              "弱弱"
+            ]
+          ],
+          "targetRaw": {
+            "center": 283,
+            "w4": 19.200000000000003,
+            "w3": 67.2,
+            "w2": 120,
+            "dist": "recommended"
+          },
+          "opponentSide": "R",
+          "pts": 4,
+          "oppPts": 0,
+          "scoreAfter": {
+            "A": 10,
+            "B": 5
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": {
+            "winner": "A",
+            "maxRounds": false
+          },
+          "selection": {
+            "index": 1
+          },
+          "dial": {
+            "dial": -42
+          }
+        }
+      ]
+    },
+    {
+      "seed": 2605970957,
+      "first": "A",
+      "rounds": [
+        {
+          "round": 1,
+          "team": "A",
+          "candidates": [
+            [
+              "老太婆",
+              "小萝莉"
+            ],
+            [
+              "维新",
+              "传统"
+            ]
+          ],
+          "targetRaw": {
+            "center": 884,
+            "w4": 19.200000000000003,
+            "w3": 67.2,
+            "w2": 120,
+            "dist": "recommended"
+          },
+          "opponentSide": "L",
+          "pts": 4,
+          "oppPts": 0,
+          "scoreAfter": {
+            "A": 4,
+            "B": 0
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "selection": {
+            "index": 1
+          },
+          "dial": {
+            "dial": 78
+          }
+        },
+        {
+          "round": 2,
+          "team": "B",
+          "candidates": [
+            [
+              "聪明",
+              "笨蛋"
+            ],
+            [
+              "高",
+              "矮"
+            ]
+          ],
+          "targetRaw": {
+            "center": 889,
+            "w4": 19.200000000000003,
+            "w3": 67.2,
+            "w2": 120,
+            "dist": "recommended"
+          },
+          "opponentSide": "R",
+          "pts": 2,
+          "oppPts": 1,
+          "scoreAfter": {
+            "A": 5,
+            "B": 2
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "selection": {
+            "index": 1
+          },
+          "dial": {
+            "dial": 62
+          }
+        },
+        {
+          "round": 3,
+          "team": "A",
+          "candidates": [
+            [
+              "香",
+              "臭"
+            ],
+            [
+              "大々吉",
+              "大々凶"
+            ]
+          ],
+          "targetRaw": {
+            "center": 966,
+            "w4": 19.200000000000003,
+            "w3": 67.2,
+            "w2": 120,
+            "dist": "recommended"
+          },
+          "opponentSide": "R",
+          "pts": 4,
+          "oppPts": 0,
+          "scoreAfter": {
+            "A": 9,
+            "B": 2
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "selection": {
+            "index": 1
+          },
+          "dial": {
+            "dial": 94
+          }
+        },
+        {
+          "round": 4,
+          "team": "B",
+          "candidates": [
+            [
+              "强健",
+              "病弱"
+            ],
+            [
+              "活着的",
+              "死掉了"
+            ]
+          ],
+          "targetRaw": {
+            "center": 815,
+            "w4": 19.200000000000003,
+            "w3": 67.2,
+            "w2": 120,
+            "dist": "recommended"
+          },
+          "opponentSide": "L",
+          "pts": 0,
+          "oppPts": 1,
+          "scoreAfter": {
+            "A": 10,
+            "B": 2
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": {
+            "winner": "A",
+            "maxRounds": false
+          },
+          "selection": {
+            "index": 0
+          },
+          "dial": {
+            "dial": 90
+          }
+        }
+      ]
+    },
+    {
+      "seed": 3823669892,
+      "first": "B",
+      "rounds": [
+        {
+          "round": 1,
+          "team": "B",
+          "candidates": [
+            [
+              "审美积累",
+              "审美积积"
+            ],
+            [
+              "0",
+              "1"
+            ]
+          ],
+          "targetRaw": {
+            "center": 44,
+            "w4": 19.200000000000003,
+            "w3": 67.2,
+            "w2": 120,
+            "dist": "recommended"
+          },
+          "opponentSide": "R",
+          "pts": 3,
+          "oppPts": 0,
+          "scoreAfter": {
+            "A": 0,
+            "B": 3
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "selection": {
+            "index": 0
+          },
+          "dial": {
+            "dial": -80
+          }
+        },
+        {
+          "round": 2,
+          "team": "A",
+          "candidates": [
+            [
+              "清真",
+              "不清真"
+            ],
+            [
+              "大々吉",
+              "大々凶"
+            ]
+          ],
+          "targetRaw": {
+            "center": 702,
+            "w4": 19.200000000000003,
+            "w3": 67.2,
+            "w2": 120,
+            "dist": "recommended"
+          },
+          "opponentSide": "L",
+          "pts": 2,
+          "oppPts": 1,
+          "scoreAfter": {
+            "A": 2,
+            "B": 4
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "selection": {
+            "index": 1
+          },
+          "dial": {
+            "dial": 62
+          }
+        },
+        {
+          "round": 3,
+          "team": "B",
+          "candidates": [
+            [
+              "（音乐）豪庭的钥匙",
+              "（音乐）南亭的钥匙"
+            ],
+            [
+              "北大",
+              "清华"
+            ]
+          ],
+          "targetRaw": {
+            "center": 411,
+            "w4": 19.200000000000003,
+            "w3": 67.2,
+            "w2": 120,
+            "dist": "recommended"
+          },
+          "opponentSide": "L",
+          "pts": 0,
+          "oppPts": 1,
+          "scoreAfter": {
+            "A": 3,
+            "B": 4
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "selection": {
+            "index": 1
+          },
+          "dial": {
+            "dial": 28
+          }
+        },
+        {
+          "round": 4,
+          "team": "A",
+          "candidates": [
+            [
+              "叮咚鸡",
+              "大狗叫"
+            ],
+            [
+              "太快乐了🤗",
+              "太痛苦了😫"
+            ]
+          ],
+          "targetRaw": {
+            "center": 980,
+            "w4": 19.200000000000003,
+            "w3": 67.2,
+            "w2": 120,
+            "dist": "recommended"
+          },
+          "opponentSide": "R",
+          "pts": 4,
+          "oppPts": 0,
+          "scoreAfter": {
+            "A": 7,
+            "B": 4
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "selection": {
+            "index": 1
+          },
+          "dial": {
+            "dial": 94
+          }
+        },
+        {
+          "round": 5,
+          "team": "B",
+          "candidates": [
+            [
+              "左",
+              "右"
+            ],
+            [
+              "纯情",
+              "海王"
+            ]
+          ],
+          "targetRaw": {
+            "center": 553,
+            "w4": 19.200000000000003,
+            "w3": 67.2,
+            "w2": 120,
+            "dist": "recommended"
+          },
+          "opponentSide": "L",
+          "pts": 0,
+          "oppPts": 1,
+          "scoreAfter": {
+            "A": 8,
+            "B": 4
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": null,
+          "selection": {
+            "index": 1
+          },
+          "dial": {
+            "dial": 35
+          }
+        },
+        {
+          "round": 6,
+          "team": "A",
+          "candidates": [
+            [
+              "开朗阳光",
+              "孤僻阴暗"
+            ],
+            [
+              "富裕",
+              "贫穷"
+            ]
+          ],
+          "targetRaw": {
+            "center": 447,
+            "w4": 19.200000000000003,
+            "w3": 67.2,
+            "w2": 120,
+            "dist": "recommended"
+          },
+          "opponentSide": "L",
+          "pts": 2,
+          "oppPts": 0,
+          "scoreAfter": {
+            "A": 10,
+            "B": 4
+          },
+          "suddenPointsAfter": {
+            "A": 0,
+            "B": 0
+          },
+          "catchup": false,
+          "resultAfter": {
+            "winner": "A",
+            "maxRounds": false
+          },
+          "selection": {
+            "index": 1
+          },
+          "dial": {
+            "dial": -26
+          }
+        }
+      ]
+    }
+  ]
+}

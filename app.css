@@ -974,7 +974,8 @@
       mask: url("assets/fantasyguide/imperial_coin_pattern.svg") 0 0 / calc(320 * var(--display-unit)) auto repeat;
     }
     body.monitor-mode .wrap {
-      grid-template-columns: calc(900 * var(--display-unit)) minmax(0, 1fr) calc(900 * var(--display-unit));
+      /* Equal side panels keep both teams mirrored and leave 1928px for play at 3904px. */
+      grid-template-columns: calc(960 * var(--display-unit)) minmax(0, 1fr) calc(960 * var(--display-unit));
       /* Reserve every row throughout the round, including before a guess/result exists. */
       grid-template-rows: calc(56 * var(--display-unit)) calc(224 * var(--display-unit)) calc(96 * var(--display-unit)) minmax(0, 1fr) calc(96 * var(--display-unit));
       column-gap: calc(12 * var(--display-unit));
@@ -1013,7 +1014,7 @@
     body.monitor-mode .team .tname {
       /* Keep names on one line, reserving room for every score digit. */
       font-size: min(calc(116 * var(--display-unit)), calc((100cqw - (var(--score-digits, 1) * 140 + 12) * var(--display-unit)) / var(--name-length, 3)));
-      line-height: 1; padding-block: .5em;
+      line-height: 1; padding-block: .5em; white-space: nowrap;
     }
     body.monitor-mode .team-direction {
       /* Full-card backdrop with a thin, straight tail; stay inside the frame. */
@@ -1322,7 +1323,7 @@
       margin: 0; font-size: calc(32 * var(--display-unit)); line-height: 1;
     }
     body.monitor-mode .side .con { font-size: calc(100 * var(--display-unit)); line-height: 1.1; }
-    body.monitor-mode .card-choice .con { font-size: calc(72 * var(--display-unit)); }
+    body.monitor-mode .card-choice .con { font-size: calc(68 * var(--display-unit)); }
     body.monitor-mode .card-choice .side-tag { font-size: calc(24 * var(--display-unit)); margin-bottom: 0; }
     body.monitor-mode .card-choice .con + .con { margin-top: 0; }
     body.monitor-mode .phase-message {
