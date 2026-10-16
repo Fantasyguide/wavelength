@@ -209,7 +209,7 @@
       return r.text();
     }).then(function (t) {
       if (mergeNames(JSON.parse(t))) {
-        namesMsg("已加载服务器文案，游戏名：" + T("gameName"), true);
+        namesMsg("已加载：" + T("gameName"), true);
         applyNames();
       }
     }).catch(function () {});
@@ -468,11 +468,8 @@
     $("opt-winscore").disabled = balanced;
     $("opt-bandwidth").disabled = balanced;
     $("winscore-label").textContent = balanced ? "结算门槛（平衡快局固定 8 分）" : "获胜分数（0 = 不设分数门槛，仍最多 10 轮）";
-    $("distribution-note").textContent = balanced
-      ? "所有轮次使用推荐分布；色带基准宽度固定 48。"
-      : "第 1 轮适中 · 第 2 轮明显 · 第 3 轮及以后推荐";
     $("rule-turns").textContent = balanced
-      ? "平衡快局：双方 0 分起步，严格轮流，无追赶连动。色带宽 48，所有轮次使用推荐分布。"
+      ? "平衡快局：双方 0 分起步，两队轮流出题。"
       : "原版：先手 0 分，后手 1 分。本队拿 4 分且仍然落后，立刻再行动一轮。";
     $("rule-ending").textContent = balanced
       ? "获胜：第 4 轮结束后，有队达到 8 分则比较总分；否则第 6 轮结算。领先者胜，平分加时。双方行动次数相等。"
@@ -486,10 +483,16 @@
     });
   }
 
+  function actingTeam() {
+    // Share the handoff between the turn instruction and the highlighted team card.
+    if (G.phase === "guess") return WL.other(G.active);
+    if (G.phase === "revealed") return G.catchup ? G.active : WL.other(G.active);
+    return G.active;
+  }
+
   function renderTeamFeedback() {
     var revealed = !!G.reveal && (G.phase === "revealed" || G.phase === "over");
-    var actor = G.phase === "guess" || G.phase === "reveal" ? WL.other(G.active) : G.active;
-    if (G.phase === "revealed") actor = G.catchup ? G.active : WL.other(G.active);
+    var actor = actingTeam();
     if (G.phase === "over") actor = G.result && G.result.winner;
     var newReveal = revealed && previousDisplay && previousDisplay.role === ROLE &&
       previousDisplay.round === G.round && previousDisplay.phase !== "setup" &&
@@ -612,7 +615,7 @@
     var connected = a.connected && connState === "ok";
     var revealed = a.revealed || G.phase === "over";
     var targetPct = a.revealed ? a.targetPct : (revealed && G.target ? WL.toSignedPercent(G.target.center) : null);
-    var connectionLabel = a.demo ? "固定数据演示" : connected ? "QQ 已连接" : "QQ 未连接";
+    var connectionLabel = a.demo ? "演示模式" : connected ? "QQ 已连接" : "QQ 未连接";
     $("audience-connection").textContent = compact ? "" : connectionLabel;
     $("audience-connection").setAttribute("aria-label", connectionLabel);
     $("audience-connection").title = connectionLabel;
@@ -620,12 +623,12 @@
     $("audience-prompt").textContent = compact
       ? (revealed ? "目标 " + WL.formatPercent(targetPct) : "发送 g+50%")
       : revealed
-      ? "目标 " + WL.formatPercent(targetPct) + " · 前 " + a.topN + " 名 · 自动滚动"
+      ? "目标 " + WL.formatPercent(targetPct) + " · 前 " + a.topN + " 名"
       : "群 " + a.groupId + " · 发送 g-50% / g0% / g+50%（−100～+100%） · " +
         (a.guessPolicy === "first" ? "首次作答有效" : "揭晓前可修改，以最后一次为准");
     var status = revealed
       ? (a.count ? "本轮 " + a.count + " 人作答 · 已截止" : "本轮暂无有效作答")
-      : (a.accepting ? "正在收答 · 已有 " + a.count + " 人参与" : "等待出题人关闭目标后开始收答");
+      : (a.accepting ? "正在收答 · " + a.count + " 人参与" : "等待出题完成后收答");
     if (compact) {
       var count = document.createElement("span");
       count.className = "audience-count";
@@ -636,7 +639,7 @@
       badge.textContent = revealed ? "已截止" : a.accepting ? "收答中" : "待开始";
       $("audience-status").replaceChildren(badge, count);
     } else {
-      $("audience-status").textContent = status + (!connected && !revealed ? " · 请检查 LLBot 连接" : "");
+      $("audience-status").textContent = status + (!connected && !revealed ? " · 群连接中断，暂无法收答" : "");
     }
     $("audience-final-status").textContent = "目标 " + WL.formatPercent(a.targetPct) + " · " + status;
     var winners = a.revealed || a.demo ? a.winners : [];
@@ -671,20 +674,20 @@
   }
 
   function renderTurn() {
-    var t = G.teams[G.active];
-    var who = "<b class='" + (G.active === "A" ? "a" : "b") + "'>" + t.name + "</b>";
+    var actor = actingTeam();
+    var who = teamName(actor, G.teams[actor].name);
+    var action = { chooseCard: "选题", psychic: "出题", dial: "讨论并拨杆", guess: "猜左右", reveal: "揭示目标", revealed: "出题" }[G.phase];
+    $("banner").classList.add("hidden");
     if (G.phase === "over") {
-      $("turn-indicator").textContent = G.result && G.result.draw ? "双方和局 · 自动复盘" : "对局结束 · 自动复盘";
-      $("banner").classList.add("hidden");
-    } else if (G.catchup) {
-      $("turn-indicator").innerHTML = ROLE === "monitor"
-        ? T("catchup") + " · " + who + " 继续行动"
-        : "🔥 " + T("catchup") + "触发：" + who + " 本轮 4 分且仍落后，继续行动！";
-      $("banner").textContent = T("catchup") + "：4 分 + 落后 = " + G.teams[G.active].name + " 立刻再行动一轮（换一位新 " + T("psychic") + "）";
-      $("banner").classList.remove("hidden");
+      $("turn-indicator").textContent = G.result && G.result.draw ? "双方和局" : "对局结束";
+    } else if (G.phase === "setup") {
+      $("turn-indicator").textContent = "等待开局";
     } else {
-      $("turn-indicator").innerHTML = "轮到 " + who + " 行动";
-      $("banner").classList.add("hidden");
+      $("turn-indicator").innerHTML = (G.phase === "revealed" ? "下一轮 · " : "") + who + " · " + action;
+    }
+    if (G.catchup && G.phase === "revealed") {
+      $("banner").textContent = T("catchup") + " · " + G.teams[G.active].name + " 继续出题，请更换 " + T("psychic") + "。";
+      $("banner").classList.remove("hidden");
     }
   }
 
@@ -694,11 +697,10 @@
     box.innerHTML = "";
     box.classList.toggle("choosing", G.phase === "chooseCard");
     $("card-frame").classList.toggle("choosing", G.phase === "chooseCard");
-    var label = "第 " + G.round + " " + T("roundUnit") + " · " + G.teams[G.active].name + " 的 " + T("psychic");
-    if (wideMonitor()) label = "第 " + G.round + " " + T("roundUnit") + " · " + (G.sudden ? "加时 · " : "") + monitorPhase();
+    var label = "第 " + G.round + " " + T("roundUnit") + " · " + (G.sudden ? "加时 · " : "") + monitorPhase();
     if (G.ruleSet === "balanced") label += " · 平衡快局";
     if (G.phase === "chooseCard") {
-      $("card-label").textContent = label + (wideMonitor() ? "" : " 选题");
+      $("card-label").textContent = label;
       G.cardChoices.forEach(function (card, index) {
         var b = document.createElement("button");
         b.className = "side card-choice" + (G.cardChoices.length === 1 ? " only" : "");
@@ -729,7 +731,7 @@
       $("card-label").textContent = "等待开始游戏";
       return;
     }
-    $("card-label").textContent = label + (wideMonitor() ? "" : " 读卡");
+    $("card-label").textContent = label;
     var opts = WL.cardSides(c);
     opts.forEach(function (pair, i) {
       var b = document.createElement("button");
@@ -850,14 +852,15 @@
         : "填写队伍信息并点击「" + T("startBtn") + "」。";
       if (control) box.appendChild(mk(T("startBtn"), "primary", startGame));
     } else if (G.phase === "chooseCard") {
-      hint.innerHTML = teamName(G.active, t.name) + " 的 " + T("psychic") +
-        (G.cardChoices.length > 1 ? "：从上方两道题中选择本轮题目，选定后继续出题。" : "：题库只有一道不同的题，点击上方题目后继续出题。") +
-        (ROLE === "monitor" ? " 等待控制器选择…" : "");
+      hint.innerHTML = teamName(G.active, t.name) + " · " + T("psychic") +
+        (G.cardChoices.length > 1 ? "：选择本轮题目。" : "：确认本轮题目。");
     } else if (G.phase === "psychic") {
-      hint.innerHTML = teamName(G.active, t.name) + " 的 " + T("psychic") + " 步骤：选好卡片面 → 点击「查看" + T("target") + "」（<span class='warn'>请确保其他人没有偷看屏幕！</span>）→ 口述" + T("clue") + " → 关闭" + T("screen") + "，之后不能再说话。";
+      hint.innerHTML = teamName(G.active, t.name) + " · " + T("psychic") + "：" + (psychicViewing
+        ? "给出" + T("clue") + "后点击「出题完成」，随后保持沉默。"
+        : (WL.cardSides(G.card).length > 1 ? "选好卡片面，再查看" : "查看") + T("target") + "。<span class='warn'>其他人请勿看屏幕。</span>");
       if (control) {
         if (psychicViewing) {
-          box.appendChild(mk("我记住了，关闭" + T("screen"), "magenta", function () {
+          box.appendChild(mk("出题完成，隐藏" + T("target"), "magenta", function () {
             psychicViewing = false;
             dispatch({ type: "donePsychic" });
           }));
@@ -878,7 +881,7 @@
         }));
       }
     } else if (G.phase === "dial") {
-      hint.innerHTML = teamName(G.active, t.name) + " 全队讨论" + T("clue") + "，拖动金色" + T("dial") + "到猜测位置（<span class='warn'>" + T("psychic") + " 请保持沉默）</span>，然后锁定。";
+      hint.innerHTML = teamName(G.active, t.name) + "：讨论" + T("clue") + "，拖动金色" + T("dial") + "后锁定。<span class='warn'>" + T("psychic") + " 保持沉默。</span>";
       if (control) {
         var lock = mk("锁定" + T("dial") + "位置", "primary", function () {
           ensureAudio();
@@ -891,7 +894,7 @@
         box.appendChild(lock);
       }
     } else if (G.phase === "guess") {
-      hint.innerHTML = teamName(WL.other(G.active), o.name) + " 猜：" + T("target") + "的 <b>中心" + T("wedge") + "</b>（4 分处）在" + T("dial") + "的<b>左边</b>还是<b>右边</b>？";
+      hint.innerHTML = teamName(WL.other(G.active), o.name) + "：" + T("target") + "中心在" + T("dial") + "<b>左边</b>还是<b>右边</b>？";
       if (control) {
         box.appendChild(mk(T("target") + "在" + T("dial") + "左边 ←", "primary", function () {
           dispatch({ type: "guess", guess: "L" });
@@ -901,14 +904,14 @@
         }));
       }
     } else if (G.phase === "reveal") {
-      hint.innerHTML = teamName(G.active, t.name) + " 的 " + T("psychic") + " 揭示" + T("target") + "！";
+      hint.innerHTML = teamName(G.active, t.name) + " · " + T("psychic") + "：揭示" + T("target") + "。";
       if (control) box.appendChild(mk("揭示" + T("target") + "！", "primary", function () {
         dispatch({ type: "reveal" });
       }));
     } else if (G.phase === "revealed") {
-      hint.innerHTML = G.sudden
-        ? "<b>" + T("suddenDeath") + "！</b>" + (G.ruleSet === "balanced" ? "双方各加赛一轮，仍平则和局。" : "平分后继续，直到分出胜负。") + "下一轮由 " + (G.catchup ? teamName(G.active, t.name) : teamName(WL.other(G.active), G.teams[WL.other(G.active)].name)) + " 行动（换一位新 " + T("psychic") + "）。"
-        : "下一轮由 " + (G.catchup ? teamName(G.active, t.name) : teamName(WL.other(G.active), o.name)) + " 行动，别忘了换一位新 " + T("psychic") + " 出题。";
+      hint.innerHTML = (G.sudden ? "<b>" + T("suddenDeath") + " · </b>" : "") + "下一轮：" +
+        (G.catchup ? teamName(G.active, t.name) : teamName(WL.other(G.active), o.name)) +
+        "，请换一位 " + T("psychic") + " 出题。";
       if (control) box.appendChild(mk("开始下一轮", "primary", function () {
         dispatch({ type: "nextRound" });
       }));
@@ -1138,7 +1141,7 @@
       }).then(function (r) {
         if (!r.ok) return r.json().then(function (j) { throw new Error(j.error || "服务器错误"); });
       }).then(function () {
-        deckMsg("已发送题库到服务器，所有设备将同步更新…", true);
+        deckMsg("题库已加载", true);
       }).catch(function (e) {
         deckMsg("题库加载失败：" + e.message, false);
       });
@@ -1379,7 +1382,7 @@
     }).then(function (r) {
       if (!r.ok) return r.json().then(function (j) { throw new Error(j.error || "加载失败"); });
     }).then(function () {
-      deckMsg("已加载服务器题库，所有设备已同步", true);
+      deckMsg("题库已加载", true);
     }).catch(function (e) {
       deckMsg("题库加载失败：" + e.message, false);
     });

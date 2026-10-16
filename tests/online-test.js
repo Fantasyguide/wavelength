@@ -127,6 +127,7 @@ function click(doc, id) {
   click(cdoc, "btn-start");
 
   await waitFor(() => mdoc.querySelectorAll(".card-choice").length === 2 && cdoc.querySelectorAll(".card-choice").length === 2, "both devices receive two candidates");
+  assert(cdoc.getElementById("hint").textContent.includes("蓝队") && cdoc.getElementById("turn-indicator").textContent.includes("选题"), "controller identifies the team selecting a topic");
   assert(mdoc.getElementById("sides").textContent === cdoc.getElementById("sides").textContent.replaceAll("选择这道题 →", "等待控制器选择"), "candidate topics match across devices");
   click(mdoc, mdoc.querySelector(".card-choice"));
   assert(mdoc.querySelectorAll(".card-choice").length === 2, "monitor cannot choose a card");
@@ -142,6 +143,7 @@ function click(doc, id) {
 
   click(cdoc, cdoc.getElementById("controls").children[0]);
   assert(cdoc.getElementById("screen").className.indexOf("open") !== -1, "controller screen open for psychic");
+  assert(cdoc.getElementById("hint").textContent.includes("给出线索") && cdoc.getElementById("hint").textContent.includes("出题完成"), "viewing the target advances the instruction to giving a clue");
   await sleep(150);
   assert(mdoc.getElementById("screen").className.indexOf("open") === -1, "monitor screen stays closed (secret)");
   await waitFor(() => mdoc.getElementById("timer-display").textContent === "01:00" || mdoc.getElementById("timer-display").textContent === "00:59", "monitor receives 60-second dial timer");
@@ -161,9 +163,16 @@ function click(doc, id) {
 
   click(cdoc, "btn-lock");
   await waitFor(() => mdoc.getElementById("hint").textContent.indexOf("左边") !== -1, "monitor sees guess phase");
+  await waitFor(() => cdoc.body.dataset.phase === "guess", "controller sees guess phase");
+  assert(cdoc.getElementById("turn-indicator").textContent.includes("粉队") && !cdoc.getElementById("turn-indicator").textContent.includes("蓝队"), "turn indicator hands the action to the opposing team for left/right guessing");
+  assert(cdoc.getElementById("hint").textContent.includes("粉队"), "controller prompt agrees with the guessing team's turn indicator");
+  assert(cdoc.querySelector(".team.b").classList.contains("is-active"), "guessing team's card agrees with the action instruction");
   await waitFor(() => mdoc.getElementById("timer-display").textContent === "00:15" || mdoc.getElementById("timer-display").textContent === "00:14", "monitor receives 15-second guess timer");
   click(cdoc, cdoc.getElementById("controls").children[1]);
   await waitFor(() => mdoc.getElementById("hint").textContent.indexOf("揭示目标") !== -1, "monitor sees reveal phase");
+  await waitFor(() => cdoc.body.dataset.phase === "reveal", "controller sees reveal phase");
+  assert(cdoc.getElementById("turn-indicator").textContent.includes("蓝队"), "revealing returns the action to the clue-giving team");
+  assert(cdoc.querySelector(".team.a").classList.contains("is-active"), "revealing highlights the clue-giving team again");
   await waitFor(() => mdoc.querySelector(".guess-choice") && mdoc.querySelector(".guess-choice").textContent.indexOf("右边") !== -1, "monitor prominently shows opponent right-side choice");
   assert(mdoc.getElementById("timer-display").classList.contains("hidden"), "monitor clears timer after left/right choice");
 
@@ -171,6 +180,8 @@ function click(doc, id) {
   await waitFor(() => mdoc.getElementById("screen").className.indexOf("open") !== -1, "monitor screen open after reveal");
   assert(mdoc.querySelector(".guess-choice") && mdoc.querySelector(".guess-result").textContent.indexOf("等待揭示") === -1, "monitor keeps choice and shows its result after reveal");
   await waitFor(() => mdoc.getElementById("log").children.length === 1, "monitor log has 1 entry");
+  await waitFor(() => cdoc.body.dataset.phase === "revealed", "controller sees round result");
+  assert(cdoc.getElementById("hint").textContent.includes("下一轮") && cdoc.getElementById("hint").textContent.includes("出题"), "round result tells the next team to appoint a clue giver");
 
   click(cdoc, cdoc.getElementById("controls").children[0]);
   await waitFor(() => mdoc.getElementById("hint").textContent.indexOf("粉队") !== -1, "monitor turn switched to B");
