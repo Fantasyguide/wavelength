@@ -66,13 +66,23 @@ function latestSnapshot() {
   assert(r.status === 200 && j.ok === true && j.authRequired === false, "ping ok, no auth");
 
   r = await req("GET", base + "/");
-  assert(r.status === 200 && r.body.indexOf("WAVELENGTH") !== -1, "index.html served");
+  assert(r.status === 200 && r.body.indexOf("Returned") !== -1, "index.html served");
   r = await req("GET", base + "/game.js");
   assert(r.status === 200, "game.js served");
   r = await req("GET", base + "/app.js");
   assert(r.status === 200, "app.js served");
   r = await req("GET", base + "/app.css");
   assert(r.status === 200, "app.css served");
+  for (const asset of ["", "index.html", "lab.css", "lab.js"]) {
+    r = await req("GET", base + "/design/color-lab/" + asset);
+    assert(r.status === 200, "color lab public asset served: " + (asset || "directory"));
+  }
+  r = await req("GET", base + "/design/color-lab");
+  assert(r.status === 302, "color lab redirects to a directory URL for relative assets");
+  for (const asset of ["/design/color-lab/private.json", "/design/font-lab/lab.js", "/server.js", "/config.json"]) {
+    r = await req("GET", base + asset);
+    assert(r.status === 404, "preview allowlist keeps non-public files private: " + asset);
+  }
   r = await req("GET", base + "/nope");
   assert(r.status === 404, "missing file 404");
 

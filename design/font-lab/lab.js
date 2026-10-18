@@ -8,7 +8,7 @@
   const groups = [
     {id:'names', label:'两队队名', selectors:'.team .tname,.team-name', sizeSelectors:'.team .tname', font:'Wavelength PingXian', size:116, weight:500, line:1, stroke:.008, sample:'幻想乡 · 外来人 01', note:'默认平显雅宋，原字体为常规体，队名用 0.008em 微量描边增重。字号是上限，长队名会缩小。记录里的队名只同步字形。'},
     {id:'concepts', label:'大题目 / 概念', selectors:'.side .con', sizeSelectors:'.side .con', font:'Wavelength YaShi', size:100, weight:400, line:1.1, sample:'讨好型人格 — 反驳型人格', note:'默认雅士黑。二选一题卡按 72 / 100 的比例使用较小字号；中间横线始终居中。'},
-    {id:'headings', label:'栏目标题', selectors:'.log h3,.audience-heading h3', font:'Wavelength Song', size:40, weight:400, line:1.2, sample:'回合记录 · 群友猜波长', note:'修改左右两侧的栏目标题。'},
+    {id:'headings', label:'栏目标题', selectors:'.log h3,.audience-heading h3', font:'Wavelength Song', size:40, weight:400, line:1.2, sample:'回合记录 · 群友竞猜', note:'修改左右两侧的栏目标题。'},
     {id:'phase', label:'阶段 / 提示', selectors:'.phase-message', font:'FZYaSongS-B-GB', size:56, weight:400, line:1.1, sample:'第 3 轮 · 结算', note:'默认使用 FZCYSJW（FZYaSongS-B-GB）的原始字形。阶段文字位于长条上方。'},
     {id:'history', label:'记录正文', selectors:'.log li,.log-card b', sizeSelectors:'.log li', font:'Wavelength Source Han Serif', size:48, weight:500, line:1.25, sample:'永远的幻想乡 — 短暂的异变', note:'题目与第几轮在同一行。记录中的数字使用独立数字字体；可在预览中滚动长记录。'},
     {id:'audience', label:'群友昵称', selectors:'.audience-person strong,.audience-avatar', sizeSelectors:'.audience-person strong', font:'Wavelength WenKai', size:36, weight:700, line:1.1, synthesize:true, sample:'博丽灵梦 · 雾雨魔理沙', note:'修改群友榜昵称与头像里的文字。'},
@@ -16,7 +16,7 @@
     {id:'scores', label:'大比分', selectors:'.team .tscore', font:'Wavelength Score', size:208, weight:700, line:1, numeric:true, sample:'0 1 4 8 10 99', note:'默认思源宋体 Bold 数字，在队框内上下居中。可单独换用其他清晰数字字体。'},
     {id:'numbers', label:'其他数字', selectors:'.tick-number,.band-label,.audience-rank,.audience-person > span,.audience-error,.log-score,.team-gain', sizeSelectors:'.tick-number', font:'Wavelength Numeric', size:30, weight:700, line:1.1, numeric:true, sample:'−100%　0%　+100%　+4　１２３', note:'修改刻度、得分、榜单数值，也保护题目和名字里夹着的数字。字号以刻度为基准。'},
     {id:'timer', label:'计时器', selectors:'.timer-display', font:'Wavelength Numeric', size:64, weight:700, line:1, numeric:true, sample:'00:15　01:00', note:'倒计时位于最下方；试验台在各阶段都显示，方便选字体。'},
-    {id:'brand', label:'页首英文标题', selectors:'#title-main', font:'Wavelength Source Han Serif', size:44, weight:400, line:1, spacing:3, sample:'WAVELENGTH', note:'修改页首英文标题；中文小标题保留原作言宋。'}
+    {id:'brand', label:'页首英文标题', selectors:'#title-main', font:'Wavelength Source Han Serif', size:44, weight:400, line:1, spacing:3, sample:'Returned', note:'修改页首英文标题；中文小标题保留原作言宋。'}
   ];
   const paletteLabels = {a:'左队 / 左端',b:'右队 / 右端',ink:'正文',dim:'辅助文字',background:'背景',cursor:'拨杆',arrow:'方向箭头',band2:'2 分色带',band3:'3 分色带',band4:'4 分色带'};
   const texts = {teamA:'幻想乡',teamB:'外来人',left:'讨好型人格',right:'反驳型人格',left2:'岁月静好',right2:'负重前行',nicknames:'博丽灵梦\n雾雨魔理沙\n十六夜咲夜\n东风谷早苗\n魂魄妖梦',mixed:'第 3 轮 · 温度 100°C · １２３４ · −50%'};
@@ -325,9 +325,9 @@
   $('reset-all').onclick=()=>{settings=clone(defaults);reference=null;showingA=false;$('compare-a').disabled=true;selectGroup(selected);changed();};
   document.querySelectorAll('[data-text]').forEach(input=>input.oninput=()=>{settings.text[input.dataset.text]=input.value.slice(0,2000);changed();});
   $('normal-text').onclick=()=>{settings.text=clone(texts);controls();changed();};
-  $('long-text').onclick=()=>{settings.text={...settings.text,teamA:'超长名称幻想乡队',teamB:'超长名称外来人队',left:'无论何时都会选择留在幻想乡的妖怪',right:'认为外面的世界总有更多可能性的人类',left2:'WavelengthSuperLongCardNameWithoutSpaces',right2:'AnotherLongConceptToTestWrapping',nicknames:'一位名字特别长但仍然热爱幻想乡的群友\n博丽灵梦１２３\n雾雨魔理沙'};controls();changed();};
+  $('long-text').onclick=()=>{settings.text={...settings.text,teamA:'超长名称幻想乡队',teamB:'超长名称外来人队',left:'无论何时都会选择留在幻想乡的妖怪',right:'认为外面的世界总有更多可能性的人类',left2:'ReturnedSuperLongCardNameWithoutSpaces',right2:'AnotherLongConceptToTestWrapping',nicknames:'一位名字特别长但仍然热爱幻想乡的群友\n博丽灵梦１２３\n雾雨魔理沙'};controls();changed();};
   $('save-html').onclick=saveHtml;$('export-json').onclick=exportJSON;$('import-json').onclick=()=>$('json-file').click();$('json-file').onchange=e=>{if(e.target.files[0])importJSON(e.target.files[0]);};
-  $('export-css').onclick=()=>download('Wavelength-字体方案.css','/* 追加在 Wavelength app.css 之后。系统字体需在运行游戏的电脑上安装。 */\n'+assetCss(uploaded)+'\n'+stateCss(settings,true),'text/css;charset=utf-8');
+  $('export-css').onclick=()=>download('Wavelength-字体方案.css','/* 追加在 Returned app.css 之后。系统字体需在运行游戏的电脑上安装。 */\n'+assetCss(uploaded)+'\n'+stateCss(settings,true),'text/css;charset=utf-8');
   controls();
   if(Object.values(settings.groups).some(g=>g.font.startsWith('Lab File ')&&!uploaded.some(a=>a.family===g.font)))$('font-status').textContent='已恢复参数；上次载入的字体文件请重新选择，或打开“保存当前 HTML”得到的文件。';
 })();

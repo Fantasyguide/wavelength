@@ -2,7 +2,7 @@
   "name": "wavelength-cn",
   "version": "1.0.0",
   "private": true,
-  "description": "本地和局域网可玩的 Wavelength 心灵波长数字版",
+  "description": "本地和局域网可玩的 Returned 逆转录者数字版",
   "engines": {
     "node": ">=22.22.2"
   },

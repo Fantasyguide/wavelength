@@ -382,18 +382,24 @@ var server = http.createServer(function (req, res) {
   }
 
   // Serve only browser assets. Config, bot tokens, sessions and backend code are private.
+  if (url === "/design/color-lab") {
+    res.writeHead(302, { "Location": "/design/color-lab/" });
+    return res.end();
+  }
   var asset = url === "/" ? "index.html" : url.replace(/^\//, "");
+  if (asset === "design/color-lab/") asset += "index.html";
+  var isColorLab = ["design/color-lab/index.html", "design/color-lab/lab.css", "design/color-lab/lab.js"].includes(asset);
   var isAsset = asset.startsWith("assets/") && asset.split("/").every(function (part) {
     return part && !part.startsWith(".");
   }) && /\.(svg|png|jpe?g|webp|gif|ico|otf|ttf|woff2?)$/i.test(asset);
   if (!["index.html", "app.css", "app.js", "game.js", "cards.yaml", "cards.json", "names.json"].includes(asset) &&
-      !isAsset) {
+      !isAsset && !isColorLab) {
     return sendJson(res, 404, { ok: false, error: "not found" });
   }
   var filePath = path.resolve(ROOT, asset);
   if (!filePath.startsWith(ROOT + path.sep)) return sendJson(res, 404, { ok: false, error: "not found" });
   fs.realpath(filePath, function (err, realPath) {
-    var publicRoot = isAsset ? path.join(ROOT, "assets") : ROOT;
+    var publicRoot = isAsset ? path.join(ROOT, "assets") : isColorLab ? path.join(ROOT, "design/color-lab") : ROOT;
     if (err || !realPath.startsWith(publicRoot + path.sep) ||
         [CONFIG_PATH, AUTH_SESSIONS_PATH, QQ_RESULTS_PATH].some(function (privatePath) {
           return path.resolve(privatePath) === realPath;
@@ -428,7 +434,7 @@ function lanAddresses() {
 }
 
 server.listen(PORT, function () {
-  console.log("Wavelength 服务器已启动");
+  console.log("Returned 逆转录者 服务器已启动");
   console.log("本机访问：   http://localhost:" + PORT);
   lanAddresses().forEach(function (ip) {
     console.log("局域网访问： http://" + ip + ":" + PORT);

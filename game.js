@@ -165,7 +165,7 @@
       ruleSet: "original",
       active: "A",
       first: "A",
-      teams: { A: { name: "左脑", score: 0 }, B: { name: "右脑", score: 1 } },
+      teams: { A: { name: "射命丸文", score: 0 }, B: { name: "姬海棠果", score: 1 } },
       round: 0,
       dial: UNIT / 2,
       target: null,
@@ -228,8 +228,8 @@
       s.bandWidth = rulesFor(s).bandWidth;
     }
     if (intent.cardMode === "choice" || intent.cardMode === "single") s.cardMode = intent.cardMode;
-    s.teams.A = { name: intent.teamA || "左脑", score: 0 };
-    s.teams.B = { name: intent.teamB || "右脑", score: 0 };
+    s.teams.A = { name: intent.teamA || "射命丸文", score: 0 };
+    s.teams.B = { name: intent.teamB || "姬海棠果", score: 0 };
     s.first = intent.first === "B" ? "B" : "A";
     resetStartingScores(s);
     s.active = s.first;

@@ -48,7 +48,7 @@ async function pickFile(name, content, inputId) {
   await sleep(400);
   assert(doc.getElementById("setup-modal").className.indexOf("hidden") === -1, "setup modal shown initially");
   assert(doc.getElementById("conn-badge").textContent.indexOf("本地模式") !== -1, "local mode badge shown");
-  assert(doc.getElementById("title-main").textContent === "WAVELENGTH", "default game title");
+  assert(doc.getElementById("title-main").textContent === "Returned", "default game title");
 
   await pickFile("my.json", JSON.stringify({
     name: "测试题库",
@@ -136,6 +136,7 @@ async function pickFile(name, content, inputId) {
 
   click("btn-lock");
   assert(doc.getElementById("hint").textContent.indexOf("左边") !== -1, "guess phase");
+  assert(doc.getElementById("guess-region").hidden && doc.getElementById("direction-frame").hidden, "no direction highlight before the opponent chooses");
   assert(doc.getElementById("timer-display").textContent === "00:15", "15-second guess timer starts after locking dial");
   const expiryNow = realDateNow();
   window.Date.now = () => expiryNow + 16000;
@@ -146,12 +147,18 @@ async function pickFile(name, content, inputId) {
   assert(doc.getElementById("hint").textContent.indexOf("揭示目标") !== -1, "reveal phase");
   assert(doc.getElementById("timer-display").classList.contains("hidden"), "guess timer clears after left/right choice");
   assert(doc.querySelector(".guess-choice") && doc.querySelector(".guess-choice").textContent.indexOf("右边") !== -1, "opponent choice shown before reveal");
+  const guessRegion = doc.getElementById("guess-region");
+  const directionFrame = doc.getElementById("direction-frame");
+  assert(!guessRegion.hidden && !directionFrame.hidden && guessRegion.dataset.side === "R", "right choice shows the arrows and selected outer frame");
+  assert(guessRegion.style.left === "75%" && guessRegion.style.width === "25%", "right highlight begins at the dial, not at the middle of the bar");
+  assert(axis.style.getPropertyValue("--guess-color") === "var(--cB)" && axis.style.getPropertyValue("--guess-clip-left") === "75%" && axis.style.getPropertyValue("--guess-clip-right") === "0%", "right frame follows the choosing purple team and covers only the selected side");
 
   const a0 = parseInt(doc.getElementById("scoreA").textContent, 10);
   click(doc.getElementById("controls").children[0]);
   assert(parseInt(doc.getElementById("scoreA").textContent, 10) >= a0, "A score updated after reveal");
   assert(doc.querySelector(".guess-result") && doc.querySelector(".guess-result").textContent.indexOf("等待揭示") === -1, "opponent choice result shown after reveal");
   assert(doc.getElementById("screen").className.indexOf("open") !== -1, "screen open after reveal");
+  assert(guessRegion.hidden && !directionFrame.hidden, "reveal stops arrows and retains the selected frame");
   assert(doc.getElementById("log").children.length === 1, "round logged");
   const popA = doc.getElementById("score-pop").innerHTML;
   const logA = doc.getElementById("log").children[0].innerHTML;
@@ -168,6 +175,7 @@ async function pickFile(name, content, inputId) {
 
   click(doc.getElementById("controls").children[0]);
   assert(doc.getElementById("screen").className.indexOf("open") === -1, "screen reset for new round");
+  assert(guessRegion.hidden && directionFrame.hidden, "new round clears the previous direction highlight");
   assert(doc.getElementById("hint").textContent.indexOf("粉队") !== -1, "turn switched to B");
 
   assert(doc.querySelectorAll(".card-choice").length === 2, "next round starts with two candidates");
@@ -177,8 +185,11 @@ async function pickFile(name, content, inputId) {
   click("btn-lock");
   click(doc.getElementById("controls").children[0]);
   assert(doc.querySelector(".guess-result").textContent.indexOf("等待揭示") !== -1, "new-round guess does not reuse previous reveal result");
+  assert(!guessRegion.hidden && guessRegion.dataset.side === "L" && axis.style.getPropertyValue("--guess-color") === "var(--cA)", "left choice follows the choosing red team after the turn changes");
+  assert(guessRegion.style.left === "0%" && axis.style.getPropertyValue("--guess-clip-left") === "0%", "left highlight starts at the left endpoint");
 
   click("btn-restart");
+  assert(guessRegion.hidden && directionFrame.hidden, "restart clears direction arrows and frame");
   click("btn-reset-deck");
   assert(doc.getElementById("deck-info").textContent.indexOf("内置题库") !== -1, "reset restores builtin deck");
   assert(doc.getElementById("title-main").textContent === "GUESSY", "custom title persists after deck reset");

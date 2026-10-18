@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wavelength 心灵波长</title>
+<title>Returned · 逆转录者</title>
 <link rel="icon" href="data:,">
 <meta name="theme-color" content="#ffffff">
 <link rel="preload" href="assets/fantasyguide/FZPingXianYaSong-Regular.woff2" as="font" type="font/woff2" crossorigin>
@@ -23,13 +23,16 @@
   <header>
     <div class="brand">
       <span class="brand-seal" aria-hidden="true">☯</span>
-      <div>
-        <h1 id="title-main">WAVELENGTH</h1>
-        <div class="sub"><span id="sub-title">心灵波长</span> · <span id="deck-badge"></span> · <span id="conn-badge"><span class="dot"></span></span></div>
+      <h1 id="title-main">Returned</h1>
+    </div>
+    <div id="sub-title">逆转录者</div>
+    <div class="header-end">
+      <div class="sub"><span id="deck-badge"></span><span id="conn-badge" role="status"><span class="dot"></span></span></div>
+      <div class="header-actions">
+        <div class="timer-display hidden" id="timer-display" aria-live="polite">00:00</div>
+        <button class="btn" id="btn-restart">重新开始</button>
       </div>
     </div>
-    <div class="timer-display hidden" id="timer-display" aria-live="polite">00:00</div>
-    <button class="btn" id="btn-restart">重新开始</button>
   </header>
 
   <div class="banner hidden" id="banner"></div>
@@ -74,6 +77,8 @@
       <div class="bar"></div>
       <div class="screen" id="screen"><span class="screen-txt">目标已隐藏</span></div>
       <div class="ticks" id="ticks"></div>
+      <div class="guess-region" id="guess-region" hidden aria-hidden="true"></div>
+      <div class="direction-frame" id="direction-frame" hidden aria-hidden="true"></div>
     </div>
     <div class="interact" id="interact"></div>
     <div class="tick-label-row" id="tick-labels" aria-hidden="true"></div>
@@ -86,7 +91,7 @@
 
   <section class="audience-panel hidden" id="audience-panel" aria-labelledby="audience-title">
     <div class="audience-heading">
-      <h3 id="audience-title">群友猜波长</h3>
+      <h3 id="audience-title">群友竞猜</h3>
       <span class="audience-connection" id="audience-connection" role="img" aria-label="群互动未启用"></span>
     </div>
     <p class="audience-prompt" id="audience-prompt"></p>
@@ -102,7 +107,7 @@
   <details class="rules">
     <summary><span class="rules-summary-label">规则速查</span></summary>
     <ul>
-      <li>波长刻度：最左 −100%，中央 0%，最右 +100%。群友发送 g-50%、g0% 或 g+50% 作答，揭晓前可以修改。</li>
+      <li>位置刻度：最左 −100%，中央 0%，最右 +100%。群友发送 g-50%、g0% 或 g+50% 作答，揭晓前可以修改。</li>
       <li>二选一：出题人从两道题中选一道；经典单题：直接使用抽到的题目。</li>
       <li>Psychic（出题人）看目标位置后，给一个落在卡片两个概念之间的线索，之后不能再说话。</li>
       <li>本队讨论后把金色拨杆拖到猜测位置并锁定。</li>
@@ -119,7 +124,7 @@
 
 <div class="modal-mask hidden" id="auth-modal">
   <div class="modal">
-    <div class="modal-kicker" aria-hidden="true">幻想指南 · 心灵波长</div>
+    <div class="modal-kicker" aria-hidden="true">幻想指南 · 逆转录者</div>
     <h2>进入对局</h2>
     <p>输入密码加入<span class="warn">联网对局</span>，或在<span class="warn">本机</span>开始游戏。</p>
     <div class="field">
@@ -133,7 +138,7 @@
 
 <div class="modal-mask hidden" id="role-modal">
   <div class="modal">
-    <div class="modal-kicker" aria-hidden="true">幻想指南 · 心灵波长</div>
+    <div class="modal-kicker" aria-hidden="true">幻想指南 · 逆转录者</div>
     <h2>选择你的席位</h2>
     <p>此设备用于操作游戏，还是观看对局？</p>
     <button class="btn primary btn-block" id="btn-role-controller">🎮 控制器（操作游戏）</button>
@@ -144,17 +149,17 @@
 <div class="modal-mask" id="setup-modal">
   <div class="modal">
     <div class="modal-kicker" aria-hidden="true">幻想指南 · 聚会游戏</div>
-    <h2 id="setup-title">Wavelength</h2>
+    <h2 id="setup-title">Returned</h2>
     <div class="ornament-rule" aria-hidden="true"></div>
     <p>两队轮流派出一位「Psychic」出题，本队猜目标位置，对方猜左右。一队完成一次出题与结算算一轮。</p>
     <div class="field-row">
       <div class="field">
         <label for="input-nameA">左队名称</label>
-        <input id="input-nameA" value="左脑" maxlength="8">
+        <input id="input-nameA" value="射命丸文" maxlength="8">
       </div>
       <div class="field">
         <label for="input-nameB">右队名称</label>
-        <input id="input-nameB" value="右脑" maxlength="8">
+        <input id="input-nameB" value="姬海棠果" maxlength="8">
       </div>
     </div>
     <div class="field">
@@ -231,6 +236,7 @@
       </div>
     </details>
     <button class="btn primary" id="btn-start" style="width:100%">开始游戏</button>
+    <p style="margin:14px 0 0;text-align:center;font-size:13px"><a href="design/color-lab/index.html" target="_blank" rel="noopener" style="color:var(--dim)">得分区配色预览 ↗</a></p>
   </div>
 </div>
 

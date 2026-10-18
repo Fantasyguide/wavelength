@@ -100,7 +100,7 @@
     var el = $("timer-display");
     if (!el) return;
     var footer = $("display-footer");
-    var host = wideMonitor() ? footer : document.querySelector("header");
+    var host = wideMonitor() ? footer : document.querySelector(".header-actions");
     if (el.parentElement !== host) host.insertBefore(el, wideMonitor() ? null : $("btn-restart"));
     if (!G.timerEnd || !G.timerKind) {
       el.className = "timer-display hidden";
@@ -120,9 +120,9 @@
   }
 
   var NAMES_DEFAULT = {
-    gameName: "Wavelength",
-    gameTitle: "WAVELENGTH",
-    gameSubtitle: "心灵波长",
+    gameName: "Returned",
+    gameTitle: "Returned",
+    gameSubtitle: "逆转录者",
     psychic: "Psychic",
     clue: "线索",
     dial: "拨杆",
@@ -134,8 +134,8 @@
     catchup: "追赶规则",
     suddenDeath: "加时赛",
     perfectHit: "完美命中",
-    teamDefaultA: "左脑",
-    teamDefaultB: "右脑",
+    teamDefaultA: "射命丸文",
+    teamDefaultB: "姬海棠果",
     restartBtn: "重新开始",
     playagainBtn: "再来一局",
     startBtn: "开始游戏",
@@ -444,6 +444,7 @@
     renderTicks();
     renderControls();
     renderDial();
+    renderGuessDirection();
     renderTargetVisibility();
     renderModals();
     renderTimer();
@@ -607,7 +608,7 @@
       $("audience-connection").setAttribute("aria-label", "群互动未启用");
       $("audience-connection").title = "群互动未启用";
       $("audience-connection").classList.remove("connected");
-      $("audience-prompt").textContent = compact ? "" : "群友猜波长尚未开启";
+      $("audience-prompt").textContent = compact ? "" : "群友竞猜尚未开启";
       $("audience-status").textContent = compact ? "未启用" : "开启群互动后，作答结果将在此展示。";
       renderAudienceList("audience-winners", []);
       return;
@@ -823,6 +824,22 @@
     var lock = G.phase === "dial" && canControl();
     $("interact").classList.toggle("lock-touch", lock);
     $("interact").classList.toggle("disabled", !lock);
+  }
+
+  function renderGuessDirection() {
+    var axis = $("axis"), region = $("guess-region"), frame = $("direction-frame");
+    var selected = (G.guess === "L" || G.guess === "R") && ["reveal", "revealed", "over"].includes(G.phase);
+    frame.hidden = !selected;
+    region.hidden = !selected || G.phase !== "reveal";
+    if (!selected) return;
+    var position = Math.max(0, Math.min(100, G.dial / WL.UNIT * 100));
+    var left = G.guess === "L";
+    axis.style.setProperty("--guess-color", teamColor(WL.other(G.active)));
+    axis.style.setProperty("--guess-clip-left", (left ? 0 : position) + "%");
+    axis.style.setProperty("--guess-clip-right", (left ? 100 - position : 0) + "%");
+    region.dataset.side = G.guess;
+    region.style.left = (left ? 0 : position) + "%";
+    region.style.width = (left ? position : 100 - position) + "%";
   }
 
   function setDialFromEvent(e) {
@@ -1081,8 +1098,8 @@
   }
 
   function startGame() {
-    var nA = $("input-nameA").value.trim() || "左脑";
-    var nB = $("input-nameB").value.trim() || "右脑";
+    var nA = $("input-nameA").value.trim() || T("teamDefaultA");
+    var nB = $("input-nameB").value.trim() || T("teamDefaultB");
     var first = $("select-first").value;
     if (first === "R") first = Math.random() < 0.5 ? "A" : "B";
     psychicViewing = false;

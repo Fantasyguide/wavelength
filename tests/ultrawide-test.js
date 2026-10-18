@@ -355,9 +355,9 @@ function postIntent(port, intent) {
       const pixel = (dx, y) => Array.from(ctx.getImageData(x + dx * direction, y, 1, 1).data).slice(0, 3).join(",");
       return { border: pixel(8, 1), cursor: pixel(0, 4), band: pixel(30, Math.floor(img.height * .8)) };
     }, { png, position });
-    assert(colors.border === "34,34,34", `black frame remains above the color band and target marker at ${position / 10}%`);
+    assert(colors.border === (position === 1000 ? "100,119,138" : "143,61,126"), `selected team frame or unselected blue-gray frame stays above the score band and target marker at ${position / 10}%`);
     assert(colors.cursor === "148,101,26", `player cursor remains above the target marker at ${position / 10}%`);
-    assert(["240,211,119", "237,184,108", "231,160,187"].includes(colors.band), "foreground frame leaves the colored bands visible");
+    assert(["54,86,116", "127,157,185", "202,217,230"].includes(colors.band), "foreground frame leaves the indigo score bands visible");
   }
 
   await postIntent(port, { type: "newGame" });
