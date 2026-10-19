@@ -73,6 +73,8 @@ function bridgeSnapshot(error) {
     round_key: bridgeRound ? bridgeRound.key : null,
     status: bridgeRound ? bridgeRound.status : "idle",
     timer_blocked: timerBlocked,
+    results: bridgeRound ? bridgeRound.results || null : null,
+    results_error: bridgeRound ? bridgeRound.results_error || "" : "",
     error: error || ""
   };
 }
@@ -124,6 +126,41 @@ async function notifyBridge(action, payload) {
     error.status = 502;
     throw error;
   }
+}
+
+// Read after the settlement POST, without delaying or retrying the completed game action.
+function scheduleBridgeResults(round) {
+  var baseUrl = bridge.base_url, secret = bridge.secret;
+  setTimeout(async function () {
+    function current() {
+      return bridge.enabled && bridgeRound === round && round.status === "result" &&
+        state.round === round.payload.round_number;
+    }
+    if (!current()) return;
+    try {
+      var response = await fetch(baseUrl + "/api/v1/returned/rounds/" + encodeURIComponent(round.key) + "/results", {
+        headers: { Authorization: "Bearer " + secret }, redirect: "error", signal: AbortSignal.timeout(4000)
+      });
+      if (!response.ok) throw new Error("Result lookup failed");
+      var data = await response.json();
+      if (data.round_key !== round.key || !Array.isArray(data.top_five) || !Number.isInteger(data.target_position)) {
+        throw new Error("Invalid result response");
+      }
+      if (!current()) return;
+      round.results = {
+        round_key: data.round_key, target_position: data.target_position,
+        top_five: data.top_five.slice(0, 5).map(function (entry) {
+          return { username: String(entry.username), position: entry.position, distance: entry.distance, payout: entry.payout };
+        })
+      };
+      round.results_error = "";
+    } catch (e) {
+      if (!current()) return;
+      round.results_error = "前五名暂时未能加载，竞猜已结算，可在 THCCB 竞猜页查看。";
+    }
+    bridgeSnapshot(state.thccb.error);
+    broadcast();
+  }, 500).unref();
 }
 
 async function openBridgeRound() {
@@ -200,6 +237,7 @@ async function applyOnlineIntent(req, intent, receivedAt) {
       if (bridgeRound.status !== "closed") throw new Error("请先锁定并封盘，再揭晓结果");
       await notifyBridge("result", { target_position: state.target.center });
       bridgeRound.status = "result";
+      scheduleBridgeResults(bridgeRound);
     } else if (type === "newGame" && activeBridgeRound()) {
       await notifyBridge("cancel");
       bridgeRound.status = "cancelled";
@@ -342,7 +380,13 @@ function publicState(controller) {
   var snapshot = Object.assign({}, state, {
     target: ["revealed", "over"].includes(state.phase) ? state.target : null
   });
-  delete snapshot.thccb;
+  // Monitors receive only the revealed audience result, never controller diagnostics.
+  if (bridge.enabled && ["revealed", "over"].includes(state.phase) && bridgeRound &&
+      bridgeRound.status === "result" && state.round === bridgeRound.payload.round_number) {
+    snapshot.thccb = { enabled: true, results: state.thccb.results, results_error: state.thccb.results_error };
+  } else {
+    delete snapshot.thccb;
+  }
   return snapshot;
 }
 

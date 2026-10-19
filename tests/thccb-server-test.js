@@ -24,12 +24,12 @@ async function waitFor(predicate, message) {
 const source = http.createServer(async (req, res) => {
   let text = '';
   for await (const chunk of req) text += chunk;
-  calls.push({ url: req.url, auth: req.headers.authorization, body: text ? JSON.parse(text) : null });
+  calls.push({ method: req.method, url: req.url, auth: req.headers.authorization, body: text ? JSON.parse(text) : null });
   const rejected = req.url.endsWith('/' + rejectAction);
   // A brief response delay allows concurrent controller intents to overlap.
   await new Promise(resolve => setTimeout(resolve, responseDelay));
   res.writeHead(rejected ? 503 : 200);
-  res.end(JSON.stringify({ ok: !rejected }));
+  res.end(JSON.stringify(req.url.endsWith('/results') ? { round_key: decodeURIComponent(req.url.split('/').at(-2)), target_position: 500, top_five: [{ username: '<winner>', position: 510, distance: 10, payout: '300' }] } : { ok: !rejected }));
 });
 let base, cookie = '';
 async function request(url, body, useAuth = true) {
@@ -40,6 +40,15 @@ async function request(url, body, useAuth = true) {
   });
   const text = await response.text();
   return { status: response.status, text, json: (() => { try { return JSON.parse(text); } catch { return null; } })(), response };
+}
+async function monitorSnapshot() {
+  const response = await fetch(base + '/api/stream', { signal: AbortSignal.timeout(3000) });
+  const reader = response.body.getReader();
+  let text = '';
+  try {
+    while (!text.includes('data: ')) text += new TextDecoder().decode((await reader.read()).value);
+    return JSON.parse(text.split('data: ')[1].split('\n')[0]);
+  } finally { await reader.cancel(); }
 }
 async function intent(type, extra = {}) { return request('/api/intent', { type, ...extra }); }
 (async () => {
@@ -118,9 +127,18 @@ async function intent(type, extra = {}) { return request('/api/intent', { type, 
   assert.equal(state.phase, 'revealed');
   assert.deepEqual(calls.at(-1).body, { target_position: target });
   assert.ok(decodeURIComponent(calls.at(-1).url).includes(firstKey));
+  await waitFor(() => state.thccb.results, 'result POST triggers a delayed leaderboard GET');
+  assert.equal(calls.at(-1).method, 'GET');
+  assert.equal(calls.at(-1).url, '/api/v1/returned/rounds/' + encodeURIComponent(firstKey) + '/results');
+  assert.equal(calls.at(-1).auth, 'Bearer ' + secret);
+  assert.equal(state.thccb.results.top_five[0].username, '<winner>');
+  const monitorResult = await monitorSnapshot();
+  assert.deepEqual(monitorResult.thccb.results, state.thccb.results);
+  assert.equal(monitorResult.thccb.error, undefined, 'monitor does not receive controller diagnostics');
   assert.ok(!JSON.stringify(state).includes(secret));
 
   await intent('nextRound');
+  assert.equal((await monitorSnapshot()).thccb, undefined, 'new round hides previous audience results');
   await intent('donePsychic');
   const secondKey = calls.at(-1).body.round_key;
   assert.notEqual(firstKey, secondKey);
@@ -208,6 +226,36 @@ async function intent(type, extra = {}) { return request('/api/intent', { type, 
   assert.equal(state.thccb.status, 'closed');
   responseDelay = 15;
   await intent('newGame');
+
+  // Result lookup failure must not undo a successful reveal or repeat settlement.
+  await intent('setup', { cardMode: 'single' });
+  await intent('donePsychic');
+  await intent('lock');
+  await intent('guess', { guess: 'L' });
+  rejectAction = 'results';
+  assert.equal((await intent('reveal')).status, 200);
+  await waitFor(() => state.thccb.results_error, 'lookup failure is shown separately from settlement');
+  assert.equal(state.phase, 'revealed');
+  assert.equal(state.thccb.results, null);
+  const failedResultKey = state.thccb.round_key;
+  assert.equal(calls.filter(c => c.url.endsWith(encodeURIComponent(failedResultKey) + '/result')).length, 1);
+  assert.match((await monitorSnapshot()).thccb.results_error, /竞猜已结算/);
+  await intent('newGame');
+  rejectAction = '';
+
+  // A late GET response belongs only to its original round.
+  await intent('setup', { cardMode: 'single' });
+  await intent('donePsychic');
+  await intent('lock');
+  await intent('guess', { guess: 'L' });
+  assert.equal((await intent('reveal')).status, 200);
+  responseDelay = 800;
+  await waitFor(() => calls.at(-1).method === 'GET', 'delayed results request starts');
+  await intent('newGame');
+  await sleep(850);
+  assert.equal(state.thccb.results, null, 'late results do not reappear after a restart');
+  assert.equal((await monitorSnapshot()).thccb, undefined);
+  responseDelay = 15;
 
   fs.unlinkSync(process.env.WL_CONFIG);
   fs.mkdirSync(process.env.WL_CONFIG);
