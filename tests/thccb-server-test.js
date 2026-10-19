@@ -174,7 +174,7 @@ async function intent(type, extra = {}) { return request('/api/intent', { type, 
   const timeoutStart = calls.length;
   state.timerEnd = Date.now() - 1501;
   await waitFor(() => state.phase === 'guess', 'psychic timeout advances only after the bridge confirms');
-  assert.equal(calls[timeoutStart].url, '/api/v1/wavelength/rounds/start');
+  assert.equal(calls[timeoutStart].url, '/api/v1/returned/rounds/start');
   assert(calls[timeoutStart + 1].url.endsWith('/close'));
   assert.equal(calls.length, timeoutStart + 2);
   assert.equal((await intent('newGame')).status, 200);
