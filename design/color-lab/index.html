@@ -148,7 +148,7 @@
     <link rel="stylesheet" href="../../app.css"><style>
       :root{--cA:#b52c3a;--cB:#8f3d7e;--cyan:var(--cA);--magenta:var(--cB)}
       *{animation:none;transition:none}body{overflow:hidden}
-      .side{pointer-events:none}body.monitor-mode .log ul,body.monitor-mode .audience-winners{overflow:hidden}
+      .side{pointer-events:none}body.monitor-mode .log ul{overflow:hidden}
       body.monitor-mode .display-footer{font-size:calc(40 * var(--display-unit));gap:calc(16 * var(--display-unit))}
     </style><div class="wrap">
       <header><div class="brand"><span class="brand-seal" aria-hidden="true">☯</span><h1>Returned</h1></div><div id="sub-title">逆转录者</div><div class="header-end"><div class="sub"><span id="deck-badge">车万版</span><span id="conn-badge">配色预览</span></div></div></header>
@@ -166,11 +166,6 @@
       </section>
       <section class="controls"></section><div class="score-pop"></div><div class="display-footer"><span style="color:var(--cA)">射命丸文 +3</span><span> · </span><span style="color:var(--cB)">姬海棠果 +1</span></div>
       <section class="log"><h3>回合记录</h3><ul><li><span class="log-title"><span class="log-round">第 3 轮</span><span class="log-card"><b>捕风捉影 — 实事求是</b></span></span><span class="log-score"><b class="team-name" style="color:var(--cA)">射命丸文</b> · <span style="color:var(--cA)">+24%</span> / +30% · <span style="color:var(--cA)">+3</span> / <span style="color:var(--cB)">+1</span></span></li><li><span class="log-title"><span class="log-round">第 2 轮</span><span class="log-card"><b>岁月静好 — 负重前行</b></span></span><span class="log-score"><b class="team-name" style="color:var(--cB)">姬海棠果</b> · <span style="color:var(--cB)">−50%</span> / −50% · <span style="color:var(--cA)">+0</span> / <span style="color:var(--cB)">+4</span></span></li></ul></section>
-      <section class="audience-panel"><div class="audience-heading"><h3>群友竞猜</h3><span class="audience-connection connected"></span></div><p class="audience-prompt">目标 +30%</p><p class="audience-status"><span class="audience-state" data-state="closed">已截止</span><span>3 人</span></p><ol class="audience-winners">
-        <li><span class="audience-rank">1</span><span class="audience-avatar"><img src="../../assets/demo/reimu.svg" alt=""></span><span class="audience-person"><strong>博丽灵梦</strong><span>+30%</span></span><span class="audience-error exact">✓</span></li>
-        <li><span class="audience-rank">2</span><span class="audience-avatar"><img src="../../assets/demo/marisa.svg" alt=""></span><span class="audience-person"><strong>雾雨魔理沙</strong><span>+25%</span></span><span class="audience-error">差 5</span></li>
-        <li><span class="audience-rank">3</span><span class="audience-avatar"><img src="../../assets/demo/sakuya.svg" alt=""></span><span class="audience-person"><strong>十六夜咲夜</strong><span>+40%</span></span><span class="audience-error">差 10</span></li>
-      </ol></section>
     </div>
   </template>
   <script src="lab.js"></script>

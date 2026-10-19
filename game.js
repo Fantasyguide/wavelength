@@ -528,10 +528,11 @@
     return changed;
   }
 
-  function applyIntent(s, intent) {
+  function applyIntent(s, intent, options) {
     if (!intent || typeof intent.type !== "string") return s;
     // Late input cannot override an automatic action or act on its new phase.
-    if (advanceTimers(s) && ["selectCard", "selectSide", "donePsychic", "startDialTimer",
+    // The online server coordinates timers with asynchronous THCCB confirmations.
+    if (!(options && options.deferTimers) && advanceTimers(s) && ["selectCard", "selectSide", "donePsychic", "startDialTimer",
       "setDial", "lock", "guess", "reveal", "skipCard", "redrawCards"].indexOf(intent.type) !== -1) return s;
     switch (intent.type) {
       case "setRulesOpen":

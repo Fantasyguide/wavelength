@@ -57,6 +57,47 @@
   var warnedTimerEnd = null;
   var expiredTimerEnd = null;
   var audioContext = null;
+  var thccbLoaded = false;
+  var intentError = "";
+
+  function thccbRequest(options) {
+    return fetch("/api/thccb", options).then(function (r) {
+      return r.json().then(function (j) {
+        if (!r.ok) throw new Error(j.error || "读取联动配置失败");
+        return j.config;
+      });
+    });
+  }
+
+  function showThccbConfig(c) {
+    $("thccb-enabled").checked = c.enabled;
+    $("thccb-url").value = c.base_url;
+    $("thccb-secret").value = "";
+    $("thccb-secret-state").textContent = c.secret_configured ? "已配置密钥；保存时留空即可保留。" : "尚未配置密钥。";
+  }
+
+  function loadThccbConfig() {
+    if (thccbLoaded) return;
+    thccbLoaded = true;
+    thccbRequest().then(showThccbConfig).catch(function (e) {
+      $("thccb-config-message").textContent = e.message;
+    });
+  }
+
+  function renderThccb() {
+    var controller = ONLINE && ROLE === "controller";
+    $("thccb-settings").hidden = !controller;
+    if (controller && connState === "ok") loadThccbConfig();
+    var info = G.thccb;
+    var status = $("thccb-status");
+    var show = controller && (intentError || (info && (info.enabled || info.error)));
+    status.classList.toggle("hidden", !show);
+    if (!show) return;
+    var labels = { idle: "等待开盘", starting: "开盘待确认", open: "竞猜已开盘", closed: "已封盘", result: "结果已送达", cancelled: "竞猜已取消" };
+    $("thccb-status-message").textContent = intentError || (info.error || "THCCB：" + (labels[info.status] || info.status) + (info.round_key ? "，轮号 " + info.round_key : ""));
+    $("btn-thccb-retry").classList.toggle("hidden", !(info && info.timer_blocked));
+    status.classList.toggle("err", !!intentError || !!(info && info.error));
+  }
 
   var $ = function (id) { return document.getElementById(id); };
 
@@ -415,7 +456,11 @@
       body: JSON.stringify(intent)
     }).then(function (r) {
       if (!r.ok) return r.json().then(function (j) { throw new Error(j.error || "http " + r.status); });
-    }).catch(function () {
+      intentError = "";
+      renderThccb();
+    }).catch(function (e) {
+      intentError = e.message || "操作发送失败，请重试";
+      renderThccb();
       if (connState !== "ok") {
         queueIntent(intent);
         scheduleFlush();
@@ -462,7 +507,7 @@
     renderTargetVisibility();
     renderModals();
     renderTimer();
-    renderAudience();
+    renderThccb();
   }
 
   function monitorPhase() {
@@ -564,101 +609,6 @@
       animation.frame = requestAnimationFrame(step);
     });
     previousDisplay = { role: ROLE, round: G.round, phase: G.phase, scores: { A: G.teams.A.score, B: G.teams.B.score } };
-  }
-
-  function renderAudienceList(id, winners) {
-    var list = $(id);
-    var compact = wideMonitor() && id === "audience-winners";
-    var signature = JSON.stringify([winners, compact]);
-    if (list.dataset.entries === signature) return;
-    list.dataset.entries = signature;
-    list.textContent = "";
-    winners.forEach(function (winner) {
-      var row = document.createElement("li");
-      var rank = document.createElement("span");
-      rank.className = "audience-rank";
-      rank.textContent = winner.rank;
-      var avatar = document.createElement("span");
-      avatar.className = "audience-avatar";
-      avatar.textContent = Array.from(winner.nickname)[0] || "友";
-      var img = document.createElement("img");
-      img.alt = "";
-      img.referrerPolicy = "no-referrer";
-      img.src = winner.avatarUrl;
-      img.addEventListener("error", function () { img.remove(); });
-      avatar.appendChild(img);
-      var info = document.createElement("span");
-      info.className = "audience-person";
-      var name = document.createElement("strong");
-      name.textContent = winner.nickname;
-      name.title = winner.nickname;
-      var guess = document.createElement("span");
-      guess.textContent = (compact ? "" : "猜 ") + WL.formatPercent(winner.guessPct);
-      info.appendChild(name);
-      info.appendChild(guess);
-      var error = document.createElement("span");
-      error.className = "audience-error";
-      error.textContent = winner.errorPct == null ? "" : winner.errorPct === 0 ? (compact ? "✓" : "精准命中") : "差 " + winner.errorPct + (compact ? "" : " 点");
-      error.setAttribute("aria-label", winner.errorPct == null ? "等待揭晓" : winner.errorPct === 0 ? "精准命中" : "相差 " + winner.errorPct + " 个百分点");
-      error.classList.toggle("exact", winner.errorPct === 0);
-      row.appendChild(rank);
-      row.appendChild(avatar);
-      row.appendChild(info);
-      row.appendChild(error);
-      list.appendChild(row);
-    });
-  }
-
-  function renderAudience() {
-    var a = G.audience;
-    var compact = wideMonitor();
-    var enabled = ONLINE && ROLE !== "local" && a && a.enabled;
-    $("audience-panel").classList.toggle("hidden", !enabled && !wideMonitor());
-    document.body.classList.toggle("audience-mode", !!enabled);
-    $("audience-final").classList.toggle("hidden", !enabled || !a.revealed);
-    if (!enabled) {
-      $("audience-connection").textContent = compact ? "" : "未启用";
-      $("audience-connection").setAttribute("aria-label", "群互动未启用");
-      $("audience-connection").title = "群互动未启用";
-      $("audience-connection").classList.remove("connected");
-      $("audience-prompt").textContent = compact ? "" : "群友竞猜尚未开启";
-      $("audience-status").textContent = compact ? "未启用" : "开启群互动后，作答结果将在此展示。";
-      renderAudienceList("audience-winners", []);
-      return;
-    }
-    var connected = a.connected && connState === "ok";
-    var revealed = a.revealed || G.phase === "over";
-    var targetPct = a.revealed ? a.targetPct : (revealed && G.target ? WL.toSignedPercent(G.target.center) : null);
-    var connectionLabel = a.demo ? "演示模式" : connected ? "QQ 已连接" : "QQ 未连接";
-    $("audience-connection").textContent = compact ? "" : connectionLabel;
-    $("audience-connection").setAttribute("aria-label", connectionLabel);
-    $("audience-connection").title = connectionLabel;
-    $("audience-connection").classList.toggle("connected", connected);
-    $("audience-prompt").textContent = compact
-      ? (revealed ? "目标 " + WL.formatPercent(targetPct) : "发送 g+50%")
-      : revealed
-      ? "目标 " + WL.formatPercent(targetPct) + " · 前 " + a.topN + " 名"
-      : "群 " + a.groupId + " · 发送 g-50% / g0% / g+50%（−100～+100%） · " +
-        (a.guessPolicy === "first" ? "首次作答有效" : "揭晓前可修改，以最后一次为准");
-    var status = revealed
-      ? (a.count ? "本轮 " + a.count + " 人作答 · 已截止" : "本轮暂无有效作答")
-      : (a.accepting ? "正在收答 · " + a.count + " 人参与" : "等待出题完成后收答");
-    if (compact) {
-      var count = document.createElement("span");
-      count.className = "audience-count";
-      count.textContent = a.count + " 人";
-      var badge = document.createElement("span");
-      badge.className = "audience-state";
-      badge.dataset.state = revealed ? "closed" : a.accepting ? "accepting" : "waiting";
-      badge.textContent = revealed ? "已截止" : a.accepting ? "收答中" : "待开始";
-      $("audience-status").replaceChildren(badge, count);
-    } else {
-      $("audience-status").textContent = status + (!connected && !revealed ? " · 群连接中断，暂无法收答" : "");
-    }
-    $("audience-final-status").textContent = "目标 " + WL.formatPercent(a.targetPct) + " · " + status;
-    var winners = a.revealed || a.demo ? a.winners : [];
-    renderAudienceList("audience-winners", winners);
-    renderAudienceList("audience-final-winners", winners);
   }
 
   function scoreTrackCount(score) {
@@ -1410,7 +1360,11 @@
     overDismissed = true;
     render();
   };
-  $("btn-restart").onclick = function () { dispatch({ type: "newGame" }); };
+  $("btn-restart").onclick = function () {
+    if (ONLINE && G.thccb && ["starting", "open", "closed"].indexOf(G.thccb.status) !== -1 &&
+        !window.confirm("重新开局会取消当前 THCCB 竞猜并退还下注，确认终止这一局？")) return;
+    dispatch({ type: "newGame" });
+  };
   $("btn-load-deck").onclick = function () { $("file-deck").click(); };
   $("btn-reset-deck").onclick = resetDeck;
   $("btn-builtin-deck").onclick = function () {
@@ -1450,6 +1404,7 @@
   $("btn-role-controller").onclick = function () {
     ensureAudio();
     ROLE = "controller";
+    thccbLoaded = false;
     $("role-modal").classList.add("hidden");
     render();
   };
@@ -1459,6 +1414,18 @@
     $("role-modal").classList.add("hidden");
     render();
   };
+  $("thccb-save").onclick = function () {
+    var button = this;
+    button.disabled = true;
+    $("thccb-config-message").textContent = "正在保存…";
+    var body = { enabled: $("thccb-enabled").checked, base_url: $("thccb-url").value, secret: $("thccb-secret").value };
+    $("thccb-secret").value = "";
+    thccbRequest({ method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+      .then(function (c) { showThccbConfig(c); $("thccb-config-message").textContent = "联动配置已保存并生效。"; })
+      .catch(function (e) { $("thccb-config-message").textContent = e.message; })
+      .finally(function () { button.disabled = false; });
+  };
+  $("btn-thccb-retry").onclick = function () { dispatch({ type: "retryThccb" }); };
   $("btn-auth").onclick = submitAuth;
   $("btn-guest").onclick = enterGuest;
   $("auth-password").addEventListener("keydown", function (e) {

@@ -207,7 +207,6 @@ function postIntent(port, intent) {
       scroll: { width: document.documentElement.scrollWidth, height: document.documentElement.scrollHeight },
       scoreboard: rect(".team.a"),
       teamB: rect(".team.b"),
-      audience: rect(".audience-panel"),
       card: rect(".card-area"),
       axis: rect(".axis"),
       log: rect(".log"),
@@ -223,8 +222,8 @@ function postIntent(port, intent) {
   assert(layout.scoreboard.width === 960 && layout.card.width === 1928 && layout.teamB.width === 960,
     "wider side panels share the space released by the narrower central game area");
   assert(layout.scoreboard.right < layout.card.left && layout.card.right < layout.teamB.left, "teams occupy opposite sides of the central game area");
-  assert(layout.log.top > layout.scoreboard.bottom && layout.audience.top > layout.teamB.bottom && layout.audience.right <= 3904,
-    "history and audience have separate spaces beneath their respective teams");
+  assert(layout.log.top > layout.scoreboard.bottom && layout.log.right <= layout.card.left,
+    "history remains beneath the left team");
   assert(layout.axis.width >= 1800 && layout.axis.height >= 72, "spectrum is wide and readable");
   assert(await page.$$(".team-direction").then(els => els.length === 0), "team cards have no gray direction arrows");
   assert(await page.$eval(".team.b", team => team.getAttribute("aria-label").includes("选择右边")),

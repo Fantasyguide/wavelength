@@ -37,6 +37,10 @@
 
   <div class="banner hidden" id="banner"></div>
   <div class="banner err hidden" id="conn-warn"></div>
+  <div class="banner hidden" id="thccb-status" role="status" aria-live="polite">
+    <span id="thccb-status-message"></span>
+    <button type="button" class="btn hidden" id="btn-thccb-retry">重试联动</button>
+  </div>
 
   <section class="scoreboard" aria-label="两队比分">
     <div class="scoreboard-caption" aria-hidden="true">两队对局 <span>TEAM SCORE</span></div>
@@ -87,15 +91,6 @@
   <div class="score-pop" id="score-pop"></div>
   <div class="display-footer" id="display-footer"></div>
 
-  <section class="audience-panel hidden" id="audience-panel" aria-labelledby="audience-title">
-    <div class="audience-heading">
-      <h3 id="audience-title">群友竞猜</h3>
-      <span class="audience-connection" id="audience-connection" role="img" aria-label="群互动未启用"></span>
-    </div>
-    <p class="audience-prompt" id="audience-prompt"></p>
-    <p class="audience-status" id="audience-status" aria-live="polite"></p>
-    <ol class="audience-winners" id="audience-winners" data-auto-scroll></ol>
-  </section>
 
   <section class="log">
     <h3>回合记录 <span class="section-subtitle" aria-hidden="true">ROUND CHRONICLE</span></h3>
@@ -105,7 +100,7 @@
   <details class="rules">
     <summary><span class="rules-summary-label">规则速查</span></summary>
     <ul>
-      <li>位置刻度：最左 −100%，中央 0%，最右 +100%。群友发送 g-50%、g0% 或 g+50% 作答，揭晓前可以修改。</li>
+      <li>位置刻度：最左 −100%，中央 0%，最右 +100%。</li>
       <li>二选一：10 秒内选题；超时按标签 1 / 2 各 70% / 30% 代选，同标签各 50%。选定前可重新抽选，双方每局各一次，重新计时。经典单题：直接使用抽到的题目。</li>
       <li>Psychic（出题人）看目标位置后，给一个落在卡片两个概念之间的线索，之后不能再说话。</li>
       <li>本队讨论后把金色拨杆拖到猜测位置并锁定。查看目标后倒计时 60 秒，宽限结束时，拨杆不在 0% 就锁定当前位置，仍在 0% 才均匀随机选择。</li>
@@ -190,6 +185,17 @@
     </div>
     <details class="advanced">
       <summary>⚙ 高级选项</summary>
+      <div id="thccb-settings" class="field" hidden>
+        <label class="check-row"><input type="checkbox" id="thccb-enabled"> 开启 THCCB 资金联动</label>
+        <div class="setting-note">需要服务器共享密码和已登录设备。请在开局前配置；未结束的竞猜须先揭晓或取消。</div>
+        <label for="thccb-url">THCCB 站点地址</label>
+        <input id="thccb-url" type="url" placeholder="https://thccb.example.com" autocomplete="off">
+        <label for="thccb-secret">联动密钥</label>
+        <input id="thccb-secret" type="password" autocomplete="new-password" placeholder="至少 32 字符；留空保留原密钥">
+        <div class="setting-note" id="thccb-secret-state"></div>
+        <button type="button" class="btn" id="thccb-save">保存联动配置</button>
+        <div class="setting-note" id="thccb-config-message" role="status" aria-live="polite"></div>
+      </div>
       <div class="field" id="deck-server" style="display:none">
         <label>可用题库</label>
         <div class="deck-row">
@@ -247,11 +253,6 @@
     <div class="modal-kicker" aria-hidden="true">终局 · 此刻同频</div>
     <div class="winner" id="winner-text"></div>
     <div class="final-score" id="final-score"></div>
-    <div class="audience-final hidden" id="audience-final">
-      <h3>本轮群友榜</h3>
-      <p class="audience-status" id="audience-final-status"></p>
-      <ol class="audience-winners" id="audience-final-winners"></ol>
-    </div>
     <button class="btn primary" id="btn-playagain" style="width:100%">再来一局</button>
     <button class="btn" id="btn-over-close" style="width:100%;margin-top:10px">返回复盘</button>
   </div>

@@ -14,7 +14,7 @@ const puppeteer = require("puppeteer-core");
     process.env.PORT = "0";
     process.env.WL_CONFIG = path.join(tmp, "config.json");
     process.env.WL_AUTH_SESSIONS = path.join(tmp, "auth.json");
-    fs.writeFileSync(process.env.WL_CONFIG, JSON.stringify({ password: "", qq: { enabled: false } }));
+    fs.writeFileSync(process.env.WL_CONFIG, JSON.stringify({ password: "" }));
     const backend = require("../server.js");
     server = backend.server;
     await new Promise(resolve => server.once("listening", resolve));

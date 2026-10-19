@@ -39,7 +39,7 @@
   let motion = motions.find(item => '#direction-' + item.id === location.hash) || motions[3];
   const direction = { side: 'R', team: 'b', position: 24, revealed: false, paused: false };
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  let frameBaseHTML = '', frameAudienceHTML = '', frameLogHTML = '', framePreviousLogHTML = '', frameStudy = '';
+  let frameBaseHTML = '', frameLogHTML = '', framePreviousLogHTML = '', frameStudy = '';
 
   function paintPalette(element, palette) {
     palette.colors.forEach((color, index) => {
@@ -309,7 +309,6 @@
       gameDocument.querySelector('.center-mark').classList.toggle('shown', revealed);
       // Neither state preview shows current-round results before the reveal.
       gameDocument.querySelector('.log ul').innerHTML = revealed ? frameLogHTML : framePreviousLogHTML;
-      gameDocument.querySelector('.audience-panel').innerHTML = revealed ? frameAudienceHTML : '<div class="audience-heading"><h3>群友竞猜</h3></div><p class="audience-status">作答已截止 · 等待揭晓</p>';
     }
     if (study === 'direction') {
       $('current-name').textContent = motion.name + ' / ' + selected.name;
@@ -368,7 +367,6 @@
       ticks.append(tick);
     }
     frameBaseHTML = gameDocument.body.innerHTML;
-    frameAudienceHTML = gameDocument.querySelector('.audience-panel').innerHTML;
     const previousLog = gameDocument.querySelector('.log ul').cloneNode(true);
     frameLogHTML = previousLog.innerHTML;
     previousLog.firstElementChild?.remove();
@@ -378,7 +376,7 @@
     fitPreview();
   });
   preview.srcdoc = '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"></head>' +
-    '<body class="monitor-mode audience-mode" data-phase="revealed">' +
+    '<body class="monitor-mode" data-phase="revealed">' +
     $('game-template').innerHTML + '</body></html>';
 
   for (const team of ['a', 'b']) {

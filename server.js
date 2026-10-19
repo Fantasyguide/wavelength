@@ -4,15 +4,11 @@ var path = require("path");
 var os = require("os");
 var crypto = require("crypto");
 var WL = require("./game.js");
-var QQ = require("./satori.js");
-var createAudience = require("./audience.js").createAudience;
-var createArchive = require("./audience-archive.js");
 
 var PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3100;
 var ROOT = __dirname;
 var CONFIG_PATH = process.env.WL_CONFIG || path.join(ROOT, "config.json");
 var AUTH_SESSIONS_PATH = process.env.WL_AUTH_SESSIONS || path.join(ROOT, "auth-sessions.json");
-var QQ_RESULTS_PATH = process.env.WL_QQ_RESULTS || path.join(ROOT, "data", "qq-rounds.jsonl");
 var AUTH_COOKIE = "wl_auth";
 var AUTH_MAX_AGE_SECONDS = 180 * 24 * 60 * 60;
 var MAX_BODY_BYTES = 256 * 1024;
@@ -43,7 +39,8 @@ var DECKS_DIR = path.join(ROOT, "decks");
 function loadConfig() {
   try {
     var c = JSON.parse(fs.readFileSync(CONFIG_PATH, "utf8"));
-    return { password: typeof c.password === "string" ? c.password : "", qq: c.qq };
+    c.password = typeof c.password === "string" ? c.password : "";
+    return c;
   } catch (e) {
     if (e.code !== "ENOENT") throw new Error("无法读取服务器配置：" + e.message);
     return { password: "" };
@@ -51,11 +48,176 @@ function loadConfig() {
 }
 
 var config = loadConfig();
-var audienceDemo = process.env.WL_AUDIENCE_DEMO === "1" ? require("./audience-demo.js") : null;
-var qqConfig = QQ.normalizeConfig(audienceDemo ? { enabled: false } : config.qq);
-var archive = qqConfig.enabled ? createArchive(QQ_RESULTS_PATH) : null;
-var audience = createAudience(qqConfig, Date.now, function (record) { if (archive) archive.enqueue(record); });
-var satori;
+var bridge = Object.assign({ enabled: false, base_url: "", secret: "" }, config.thccb);
+var bridgeRound = null;
+var gameKey = crypto.randomUUID();
+var intentSerial = Promise.resolve();
+var timerBlocked = false;
+var timerPending = false;
+
+// Intent and configuration writes share this serial section, including external confirmation.
+function serial(res, action) {
+  intentSerial = intentSerial.then(action).catch(function (e) {
+    if (res) sendJson(res, e.status || 400, { ok: false, error: String(e.message || e) });
+  });
+  return intentSerial;
+}
+
+function activeBridgeRound() {
+  return bridgeRound && !["result", "cancelled"].includes(bridgeRound.status);
+}
+
+function bridgeSnapshot(error) {
+  state.thccb = {
+    enabled: !!bridge.enabled,
+    round_key: bridgeRound ? bridgeRound.key : null,
+    status: bridgeRound ? bridgeRound.status : "idle",
+    timer_blocked: timerBlocked,
+    error: error || ""
+  };
+}
+bridgeSnapshot();
+
+function requireBridgeAuth(req, res, cb) {
+  if (!config.password) return sendJson(res, 403, { ok: false, error: "请先在服务器 config.json 设置共享密码并重启，再登录配置资金联动" });
+  return requireAuth(req, res, cb);
+}
+
+function publicBridge() {
+  return { enabled: !!bridge.enabled, base_url: bridge.base_url, secret_configured: !!bridge.secret };
+}
+
+function checkedBridge(body) {
+  if (!body || typeof body.enabled !== "boolean" || typeof body.base_url !== "string" ||
+      (body.secret !== undefined && typeof body.secret !== "string")) throw new Error("联动配置格式错误");
+  var candidate = { enabled: body.enabled, base_url: body.base_url.trim(), secret: body.secret || bridge.secret };
+  if (candidate.base_url) {
+    var parsed;
+    try { parsed = new URL(candidate.base_url); } catch (e) { throw new Error("THCCB 地址必须是合法的 http(s) 地址"); }
+    if (!["http:", "https:"].includes(parsed.protocol) || parsed.username || parsed.password ||
+        parsed.search || parsed.hash || /[?#]/.test(candidate.base_url) || /^https?:\/\/[^/]*@/i.test(candidate.base_url)) throw new Error("THCCB 地址不能包含用户信息、查询参数或片段");
+    candidate.base_url = parsed.href.replace(/\/$/, "");
+  }
+  if (candidate.secret && candidate.secret.length < 32) throw new Error("联动密钥至少需要 32 个字符");
+  if (candidate.enabled && (!candidate.base_url || !candidate.secret)) throw new Error("开启联动前请填写地址和密钥");
+  return candidate;
+}
+
+async function notifyBridge(action, payload) {
+  var suffix = action === "start" ? "/rounds/start" : "/rounds/" + encodeURIComponent(bridgeRound.key) + "/" + action;
+  try {
+    var response = await fetch(bridge.base_url + "/api/v1/wavelength" + suffix, {
+      method: "POST", redirect: "error",
+      headers: { Authorization: "Bearer " + bridge.secret, "Content-Type": "application/json" },
+      body: payload === undefined ? undefined : JSON.stringify(payload),
+      signal: AbortSignal.timeout(4000)
+    });
+    if (!response.ok) throw new Error("THCCB 返回 HTTP " + response.status);
+    state.thccb.error = "";
+  } catch (e) {
+    // Do not include URLs, response bodies, or fetch internals that might contain credentials.
+    if (timerDue(Date.now())) timerBlocked = true;
+    var message = "THCCB 通知失败（" + action + "）：" + (e.message.startsWith("THCCB 返回") ? e.message : "连接失败或超时") + "。本次操作未推进，请重试；轮号 " + bridgeRound.key;
+    bridgeSnapshot(message);
+    broadcast();
+    var error = new Error(message);
+    error.status = 502;
+    throw error;
+  }
+}
+
+async function openBridgeRound() {
+  if (!config.password) throw new Error("资金联动需要配置共享密码");
+  if (!activeBridgeRound()) {
+    var pair = WL.cardSides(state.card)[state.side];
+    bridgeRound = {
+      key: gameKey + ":" + state.round + ":" + crypto.randomUUID(), status: "starting",
+      payload: { game_key: gameKey, round_number: state.round, left_label: pair[0], right_label: pair[1], team_name: state.teams[state.active].name }
+    };
+    bridgeRound.payload.round_key = bridgeRound.key;
+  }
+  if (bridgeRound.status === "starting") {
+    await notifyBridge("start", bridgeRound.payload);
+    bridgeRound.status = "open";
+  }
+}
+
+async function closeBridgeRound() {
+  await openBridgeRound();
+  if (bridgeRound.status === "open") {
+    await notifyBridge("close");
+    bridgeRound.status = "closed";
+  }
+}
+
+function timerDue(now) {
+  return state.timerEnd !== null && state.timerEnd + WL.TIMER_GRACE_MS <= now;
+}
+
+async function advanceOnlineTimers(now) {
+  if (!timerDue(now)) return false;
+  try {
+    if (bridge.enabled && state.timerKind === "dial" && ["psychic", "dial"].includes(state.phase)) {
+      await closeBridgeRound();
+      // Give the other team its full guessing time after confirmation or a retry.
+      now = Date.now();
+      state.timerEnd = now - WL.TIMER_GRACE_MS;
+    }
+    var changed = WL.advanceTimers(state, now);
+    timerBlocked = false;
+    bridgeSnapshot(state.thccb.error);
+    if (changed) broadcast();
+    return changed;
+  } catch (e) {
+    timerBlocked = true;
+    bridgeSnapshot(e.message);
+    broadcast();
+    throw e;
+  }
+}
+
+async function applyOnlineIntent(req, intent, receivedAt) {
+  var type = intent && intent.type;
+  if (bridge.enabled && (!config.password || !isAuthed(req))) throw new Error("资金联动需要共享密码及已登录的设备会话");
+  if (activeBridgeRound() && ["setup", "skipCard", "redrawCards", "loadDeck", "resetDeck", "selectSide", "selectCard"].includes(type)) {
+    throw new Error("当前联动竞猜尚未结束，请先揭晓或通过重新开局取消，再更换题目");
+  }
+  // Cancellation must remain possible even when an overdue bridge notification fails.
+  if (type !== "newGame") {
+    if (timerBlocked && !["retryThccb", "donePsychic", "lock"].includes(type)) {
+      throw new Error("计时已结束，THCCB 通知待重试；请重试联动或重新开局取消竞猜");
+    }
+    var advanced = await advanceOnlineTimers(receivedAt === undefined ? Date.now() : receivedAt);
+    if (type === "retryThccb" || (advanced && ["selectCard", "selectSide", "donePsychic", "startDialTimer",
+      "setDial", "lock", "guess", "reveal", "skipCard", "redrawCards"].includes(type))) return;
+  }
+  if (bridge.enabled) {
+    if (type === "donePsychic" && state.phase === "psychic") {
+      await openBridgeRound();
+    } else if (type === "lock" && state.phase === "dial") {
+      await closeBridgeRound();
+    } else if (type === "reveal" && state.phase === "reveal" && activeBridgeRound()) {
+      if (bridgeRound.status !== "closed") throw new Error("请先锁定并封盘，再揭晓结果");
+      await notifyBridge("result", { target_position: state.target.center });
+      bridgeRound.status = "result";
+    } else if (type === "newGame" && activeBridgeRound()) {
+      await notifyBridge("cancel");
+      bridgeRound.status = "cancelled";
+    }
+  }
+  WL.applyIntent(state, type === "resetDeck" ? {
+    type: "loadDeck", name: defaultDeck.name,
+    cards: JSON.parse(JSON.stringify(defaultDeck.cards))
+  } : intent, { deferTimers: true });
+  if (type === "newGame" || type === "setup") {
+    gameKey = crypto.randomUUID();
+    timerBlocked = false;
+    bridgeRound = null;
+    state.thccb.error = "";
+  }
+  bridgeSnapshot(state.thccb.error);
+}
+
 var passwordHash = crypto.createHash("sha256").update(config.password).digest("hex");
 var authStore = { version: 1, passwordHash: passwordHash, sessions: [] };
 
@@ -174,10 +336,7 @@ var defaultDeck = {
   cards: JSON.parse(JSON.stringify(state.cards))
 };
 
-function publicState() {
-  audience.sync(state);
-  return Object.assign({}, state, { audience: audienceDemo ? audienceDemo(state) : audience.snapshot(!!satori && satori.connected()) });
-}
+function publicState() { return state; }
 
 function broadcast() {
   var payload = "data: " + JSON.stringify(publicState()) + "\n\n";
@@ -203,7 +362,12 @@ keepalive.unref();
 
 // The server owns online deadlines, even when every controller disconnects.
 var gameTimer = setInterval(function () {
-  if (WL.advanceTimers(state)) broadcast();
+  if (timerPending || timerBlocked || !timerDue(Date.now())) return;
+  timerPending = true;
+  serial(null, async function () {
+    try { await advanceOnlineTimers(Date.now()); }
+    finally { timerPending = false; }
+  });
 }, 100);
 gameTimer.unref();
 
@@ -264,6 +428,27 @@ var server = http.createServer(function (req, res) {
   catch (e) { return sendJson(res, 400, { ok: false, error: "无效路径" }); }
   if (url.includes("\0") || url.includes("\\")) return sendJson(res, 400, { ok: false, error: "无效路径" });
 
+  if (url === "/api/thccb" && ["GET", "POST"].includes(req.method)) {
+    return requireBridgeAuth(req, res, function () {
+      if (req.method === "GET") return sendJson(res, 200, { ok: true, config: publicBridge() });
+      readJsonBody(req, res, function (body) {
+        serial(res, function () {
+          var candidate = checkedBridge(body);
+          if (activeBridgeRound() && JSON.stringify(candidate) !== JSON.stringify(bridge)) throw new Error("当前联动竞猜尚未结束，请先完成或取消后再修改配置");
+          if (state.phase !== "setup" && JSON.stringify(candidate) !== JSON.stringify(bridge)) throw new Error("请在开局前修改联动配置");
+          var next = Object.assign({}, config, { thccb: candidate });
+          try { fs.writeFileSync(CONFIG_PATH, JSON.stringify(next, null, 2)); }
+          catch (e) { throw new Error("配置写入失败，请检查服务器文件权限后重试"); }
+          config = next;
+          bridge = candidate;
+          bridgeSnapshot();
+          broadcast();
+          sendJson(res, 200, { ok: true, config: publicBridge() });
+        });
+      });
+    });
+  }
+
   if (req.method === "GET" && url === "/api/ping") {
     return sendJson(res, 200, {
       ok: true,
@@ -318,19 +503,19 @@ var server = http.createServer(function (req, res) {
   if (req.method === "POST" && url === "/api/deck/load") {
     return requireAuth(req, res, function () {
       readJsonBody(req, res, function (d) {
-        try {
+        var receivedAt = Date.now();
+        serial(res, async function () {
+          if (activeBridgeRound()) throw new Error("请先完成或取消当前联动竞猜，再修改题库");
           var found = null;
           listDecks().forEach(function (x) {
             if (x.file === d.file && !x.error) found = x;
           });
           if (!found) throw new Error("未找到题库文件：" + (d.file || ""));
           var parsed = WL.parseDeck(fs.readFileSync(path.join(DECKS_DIR, found.file), "utf8"));
-          WL.applyIntent(state, { type: "loadDeck", name: parsed.name || found.name, cards: parsed.cards });
+          await applyOnlineIntent(req, { type: "loadDeck", name: parsed.name || found.name, cards: parsed.cards }, receivedAt);
           broadcast();
           sendJson(res, 200, { ok: true, name: state.deckName, cards: state.cards.length });
-        } catch (e) {
-          sendJson(res, 400, { ok: false, error: String(e.message || e) });
-        }
+        });
       });
     });
   }
@@ -352,18 +537,12 @@ var server = http.createServer(function (req, res) {
   if (req.method === "POST" && url === "/api/intent") {
     return requireAuth(req, res, function () {
       readJsonBody(req, res, function (intent) {
-        try {
-          WL.applyIntent(state, intent && intent.type === "resetDeck" ? {
-            type: "loadDeck",
-            name: defaultDeck.name,
-            cards: JSON.parse(JSON.stringify(defaultDeck.cards))
-          } : intent);
-          if (intent && (intent.type === "setup" || intent.type === "newGame")) audience.newGame();
+        var receivedAt = Date.now();
+        serial(res, async function () {
+          await applyOnlineIntent(req, intent, receivedAt);
           broadcast();
           sendJson(res, 200, { ok: true, phase: state.phase });
-        } catch (e) {
-          sendJson(res, 400, { ok: false, error: String(e.message || e) });
-        }
+        });
       });
     });
   }
@@ -371,23 +550,23 @@ var server = http.createServer(function (req, res) {
   if (req.method === "POST" && url === "/api/deck") {
     return requireAuth(req, res, function () {
       readJsonBody(req, res, function (d) {
-        try {
+        var receivedAt = Date.now();
+        serial(res, async function () {
+          if (activeBridgeRound()) throw new Error("请先完成或取消当前联动竞猜，再修改题库");
           var parsed = WL.parseDeck(d.text);
-          WL.applyIntent(state, {
+          await applyOnlineIntent(req, {
             type: "loadDeck",
             name: parsed.name || d.name || WL.DECK_NAME_DEFAULT,
             cards: parsed.cards
-          });
+          }, receivedAt);
           broadcast();
           sendJson(res, 200, { ok: true, name: state.deckName, cards: state.cards.length });
-        } catch (e) {
-          sendJson(res, 400, { ok: false, error: String(e.message || e) });
-        }
+        });
       });
     });
   }
 
-  // Serve only browser assets. Config, bot tokens, sessions and backend code are private.
+  // Serve only browser assets. Configuration, sessions and backend code are private.
   if (url === "/design/color-lab") {
     res.writeHead(302, { "Location": "/design/color-lab/" });
     return res.end();
@@ -407,7 +586,7 @@ var server = http.createServer(function (req, res) {
   fs.realpath(filePath, function (err, realPath) {
     var publicRoot = isAsset ? path.join(ROOT, "assets") : isColorLab ? path.join(ROOT, "design/color-lab") : ROOT;
     if (err || !realPath.startsWith(publicRoot + path.sep) ||
-        [CONFIG_PATH, AUTH_SESSIONS_PATH, QQ_RESULTS_PATH].some(function (privatePath) {
+        [CONFIG_PATH, AUTH_SESSIONS_PATH].some(function (privatePath) {
           return path.resolve(privatePath) === realPath;
         })) return sendJson(res, 404, { ok: false, error: "not found" });
     fs.readFile(realPath, function (readError, data) {
@@ -418,15 +597,9 @@ var server = http.createServer(function (req, res) {
   });
 });
 
-satori = QQ.connectSatori(qqConfig, function (event) {
-  audience.sync(state);
-  if (audience.receive(event)) broadcast();
-}, broadcast);
 server.on("close", function () {
   clearInterval(keepalive);
   clearInterval(gameTimer);
-  satori.stop();
-  if (archive) void archive.close();
 });
 
 function lanAddresses() {
@@ -447,8 +620,6 @@ server.listen(PORT, function () {
     console.log("局域网访问： http://" + ip + ":" + PORT);
   });
   console.log("iPad 选「控制器」，电脑开监视器，即可开始游戏");
-  if (qqConfig.enabled) console.log("QQ 群竞猜已启用，正在连接 LLBot Satori 服务");
-  if (audienceDemo) console.log("群互动使用固定演示数据（不连接 QQ）");
 });
 
 module.exports = { server: server, state: state, MAX_BODY_BYTES: MAX_BODY_BYTES };

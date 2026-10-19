@@ -5,20 +5,15 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const puppeteer = require("puppeteer-core");
-const { mockSatori, message, waitFor } = require("./qq-test-helpers.js");
 
 (async () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "wl-monitor-"));
-  const mock = await mockSatori();
   let server, browser;
   try {
     process.env.PORT = "0";
     process.env.WL_CONFIG = path.join(tmp, "config.json");
     process.env.WL_AUTH_SESSIONS = path.join(tmp, "auth.json");
-    process.env.WL_QQ_RESULTS = path.join(tmp, "rounds.jsonl");
-    fs.writeFileSync(process.env.WL_CONFIG, JSON.stringify({ password: "", qq: {
-      enabled: true, groupId: "123456789", url: mock.url, token: mock.token
-    } }));
+    fs.writeFileSync(process.env.WL_CONFIG, JSON.stringify({ password: "" }));
     const backend = require("../server.js");
     server = backend.server;
     await new Promise(resolve => server.once("listening", resolve));
@@ -84,19 +79,12 @@ const { mockSatori, message, waitFor } = require("./qq-test-helpers.js");
     await monitor.bringToFront();
     await monitor.waitForFunction(() => !document.querySelector("details.rules").open);
     await monitor.bringToFront();
-    await shot("ultrawide-audience-open");
-    await waitFor(() => mock.connections.length > 0, "mock QQ connected");
-    for (const [i, answer] of ["g-50%", "g0%", "g+100%", "g-100%", "g-49.9%", "g+25%"].entries()) {
-      mock.send({ op: 0, body: message(String(101 + i), answer, { member: { nick: ["博丽灵梦", "雾雨魔理沙", "十六夜咲夜", "魂魄妖梦", "东风谷早苗", "铃仙"][i] } }) });
-    }
-    await monitor.waitForFunction(() => document.getElementById("audience-status").textContent.includes("6 人"));
-    assert(await monitor.$eval(".audience-state", el => el.dataset.state === "accepting"), "accepting status has a distinct colored state beside the count");
-    assert.equal(await monitor.$$eval("#audience-winners li", els => els.length), 0, "answers remain hidden before reveal");
+    await shot("ultrawide-dial");
     await intent("setDial", { value: 250 });
     await intent("lock");
     await intent("guess", { guess: "R" });
     await intent("reveal");
-    await monitor.waitForFunction(() => document.body.dataset.phase === "over" && document.querySelectorAll("#audience-winners li").length === 5);
+    await monitor.waitForFunction(() => document.body.dataset.phase === "over");
     assert.deepEqual(await monitor.$$eval(".band-label", els => els.map(el => el.textContent)), ["2", "3", "4", "3", "2"], "score bands display digits only");
     assert(await monitor.$eval("#over-modal", el => el.classList.contains("hidden")), "monitor enters recap directly");
     assert(await monitor.$eval("#hint", el => el.textContent === "第 1 轮 · 复盘"));
@@ -105,11 +93,9 @@ const { mockSatori, message, waitFor } = require("./qq-test-helpers.js");
     await controller.waitForSelector("#over-modal:not(.hidden)");
     assert(await controller.$eval("#over-modal", el => !el.classList.contains("hidden")), "controller retains end-game actions");
     await monitor.bringToFront();
-    assert(await monitor.$eval("#audience-prompt", el => el.textContent.includes("-50%")));
-    assert(await monitor.$eval("#audience-winners li", el => el.textContent.includes("-50%") && el.querySelector(".audience-error").getAttribute("aria-label") === "精准命中"));
     assert(await monitor.$eval("#log", el => el.textContent.includes("-50% / -50%")));
-    await shot("ultrawide-audience-recap");
-    // More records than can fit: exercise simultaneous history and ranking rotation.
+    await shot("ultrawide-recap");
+    // More records than can fit: exercise passive history rotation.
     state.log = Array.from({ length: 5 }, (_, i) => ({ ...state.log[0], round: 5 - i }));
     await intent("noop");
     await monitor.waitForFunction(() => document.querySelectorAll("#log li").length === 5);
@@ -118,28 +104,21 @@ const { mockSatori, message, waitFor } = require("./qq-test-helpers.js");
       const layout = await monitor.evaluate(() => {
         const rect = selector => document.querySelector(selector).getBoundingClientRect();
         const a = rect(".team.a"), b = rect(".team.b"), card = rect(".card-area");
-        const history = rect(".log"), audience = rect("#audience-panel");
+        const history = rect(".log");
         const pair = rect(".side.selected .con"), dash = rect(".side.selected .con i");
         return {
           sides: a.right < card.left && card.right < b.left,
-          panels: history.top > a.bottom && audience.top > b.bottom && history.height > 0 && audience.height > 0 && history.bottom <= innerHeight && audience.bottom <= innerHeight,
+          panels: history.top > a.bottom && history.height > 0 && history.bottom <= innerHeight,
           centered: Math.abs(pair.left + pair.right - dash.left - dash.right) < 1,
-          audienceCompact: Math.abs(rect("#audience-title").top - rect("#audience-prompt").top) < 16 * innerWidth / 3904 &&
-            rect(".audience-count").left > rect(".audience-state").right &&
-            Math.abs(rect(".audience-state").top - rect(".audience-count").top) < 1 &&
-            Math.abs(rect("#audience-status").top - rect("#audience-prompt").top) < 3 * innerWidth / 3904 &&
-            rect("#audience-connection").right < rect("#audience-title").left &&
-            document.querySelector(".audience-state").dataset.state === "closed" &&
-            getComputedStyle(document.querySelector(".audience-state")).color === getComputedStyle(document.getElementById("nameB")).color,
           noOverflow: document.documentElement.scrollWidth <= innerWidth && document.documentElement.scrollHeight <= innerHeight
         };
       });
-      assert.deepEqual(layout, { sides: true, panels: true, centered: true, audienceCompact: true, noOverflow: true });
+      assert.deepEqual(layout, { sides: true, panels: true, centered: true, noOverflow: true });
       const visible = await monitor.evaluate(() => {
         const originalNow = Date.now;
         let now = originalNow();
         Date.now = () => now;
-        const seen = { log: new Set(), "audience-winners": new Set() };
+        const seen = { log: new Set() };
         try {
           for (let tick = 0; tick < 2500; tick++) {
             now += 250;
@@ -155,7 +134,7 @@ const { mockSatori, message, waitFor } = require("./qq-test-helpers.js");
         } finally { Date.now = originalNow; }
         return Object.fromEntries(Object.entries(seen).map(([id, indices]) => [id, indices.size]));
       });
-      assert.deepEqual(visible, { log: 5, "audience-winners": 5 }, "every record and winner becomes fully visible without monitor input");
+      assert.deepEqual(visible, { log: 5 }, "every record becomes fully visible without monitor input");
     }
     await intent("newGame");
     await monitor.waitForFunction(() => document.body.dataset.phase === "setup");
@@ -164,10 +143,6 @@ const { mockSatori, message, waitFor } = require("./qq-test-helpers.js");
     // A reveal animates once, while repeated SSE snapshots and a reconnect do not.
     await monitor.setViewport({ width: 3904, height: 672, deviceScaleFactor: 1 });
     await monitor.emulateMediaFeatures([{ name: "prefers-reduced-motion", value: "no-preference" }]);
-    assert(await monitor.$eval("#audience-connection", el => {
-      const style = getComputedStyle(el);
-      return style.animationName === "connection-breathe" && style.backgroundColor === getComputedStyle(document.getElementById("nameA")).color;
-    }), "connected QQ indicator breathes in green");
     await intent("setWinScore", { value: 10 });
     await intent("setup", { teamA: "幻想乡", teamB: "外来人", first: "A", cardMode: "single" });
     await intent("donePsychic");
@@ -207,17 +182,8 @@ const { mockSatori, message, waitFor } = require("./qq-test-helpers.js");
     await monitor.waitForFunction(() => document.getElementById("guess-region").dataset.side === "L");
     assert(await monitor.$eval(".team.a", el => el.getAttribute("aria-label").includes("选择左边")), "A's direction is accessible when B takes the dial");
     assert.equal(await monitor.$$(".team-direction").then(els => els.length), 0, "guessing never adds a gray team-card arrow");
-    mock.rejectAuth = true;
-    mock.connections.at(-1).terminate();
-    await monitor.waitForFunction(() => !document.getElementById("audience-connection").classList.contains("connected"));
-    const disconnectedStyle = await monitor.$eval("#audience-connection", el => {
-      const style = getComputedStyle(el);
-      return { animation: style.animationName, background: style.backgroundColor, expected: getComputedStyle(document.getElementById("nameB")).color, className: el.className };
-    });
-    assert(disconnectedStyle.animation === "none" && disconnectedStyle.background === disconnectedStyle.expected,
-      "disconnected QQ indicator is solid red: " + JSON.stringify(disconnectedStyle));
     assert.deepEqual(errors, []);
-    console.log("PASSIVE MONITOR TEST PASSED: signed QQ answers, shared rules, opposite teams, simultaneous auto-scrolling, automatic recap, centered separator");
+    console.log("PASSIVE MONITOR TEST PASSED: shared rules, opposite teams, history auto-scrolling, automatic recap, centered separator");
   } catch (error) {
     console.error(error);
     throw error;
@@ -227,7 +193,6 @@ const { mockSatori, message, waitFor } = require("./qq-test-helpers.js");
       server.closeAllConnections();
       await new Promise(resolve => server.close(resolve));
     }
-    await mock.close();
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 })().catch(error => { console.error(error); process.exit(1); });
