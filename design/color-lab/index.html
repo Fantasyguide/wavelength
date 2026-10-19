@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Returned · 配色与方向动效提案</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="lab.css">
+  <style id="direction-styles">
+    .direction-host { --guess-color: #8f3d7e; --motion-step: 36px; }
+    .direction-effect { position: absolute; top: 0; bottom: 0; z-index: 5; overflow: hidden; pointer-events: none; color: var(--guess-color); isolation: isolate; }
+    .direction-effect[hidden] { display: none; }
+    .direction-effect[data-side="L"] { transform: scaleX(-1); }
+    .direction-effect > i { display: block; position: absolute; inset: 0; pointer-events: none; }
+    .direction-wash { background: color-mix(in srgb, var(--guess-color) var(--choice-wash-weight), white); opacity: .5; }
+    .direction-outline { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--guess-color) var(--choice-stroke-weight), white); opacity: .8; }
+    .direction-flow, .direction-chevron { visibility: hidden; }
+    [data-effect="pulse"] .direction-wash { animation: direction-pulse 1.8s ease-in-out infinite; }
+    [data-effect="flow"] .direction-wash { opacity: .15; }
+    [data-effect="flow"] .direction-flow { visibility: visible; }
+    .direction-flow::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--guess-color) var(--choice-accent-weight), white) 70%, transparent); opacity: var(--choice-flow-opacity); }
+    [data-effect="flow"] .direction-flow::after { animation: direction-flow 2.2s linear infinite; }
+    [data-effect="outline"] .direction-wash { opacity: .06; }
+    [data-effect="outline"] .direction-outline { box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--guess-color) var(--choice-stroke-weight), white); animation: direction-outline 1.8s ease-in-out infinite; }
+    [data-effect="arrows"] .direction-wash { opacity: .12; }
+    [data-effect="arrows"] .direction-chevron { visibility: visible; background: color-mix(in srgb, var(--guess-color) var(--choice-accent-weight), white); opacity: var(--choice-arrow-opacity); mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 24'%3E%3Cpath d='m13 5 7 7-7 7' fill='none' stroke='black' stroke-width='2.5'/%3E%3C/svg%3E") 0 50% / var(--motion-step) 60% repeat-x; animation: direction-arrows 1.4s linear infinite; }
+    [data-revealed="true"] .direction-effect :is(.direction-wash, .direction-flow, .direction-chevron) { display: none; }
+    [data-revealed="true"] .direction-effect .direction-outline { animation: none; opacity: .9; box-shadow: inset 0 0 0 2px var(--guess-color); }
+    .direction-frame { position: absolute; inset: 0; z-index: 7; border-radius: inherit; pointer-events: none; box-shadow: inset 0 0 0 var(--direction-frame-width, 4px) var(--guess-color); clip-path: inset(0 var(--guess-clip-right, 0%) 0 var(--guess-clip-left, 0%)); }
+    .direction-frame[hidden], [data-effect]:not([data-effect="arrows"]) .direction-frame { display: none; }
+    [data-effect="arrows"] .direction-outline { display: none; }
+    .native-direction { --direction-frame-width: 6px; }
+    .motion-mini { --direction-frame-width: 3px; }
+    .motion-mini[data-effect="arrows"] { border: 0; box-shadow: inset 0 0 0 1px var(--spectrum-outline); }
+    [data-paused="true"] .direction-effect *, [data-paused="true"] .direction-effect *::after { animation-play-state: paused !important; }
+    [data-motion-still="true"] .direction-effect *, [data-motion-still="true"] .direction-effect *::after { animation: none !important; }
+    [data-motion-still="true"] .direction-flow::after { transform: none; }
+    .direction-host.native-direction { --motion-step: 72px; }
+    @keyframes direction-pulse { 0%, 100% { opacity: var(--choice-pulse-low); } 50% { opacity: var(--choice-pulse-high); } }
+    @keyframes direction-outline { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+    @keyframes direction-flow { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+    @keyframes direction-arrows { from { mask-position: 0 50%; } to { mask-position: var(--motion-step) 50%; } }
+    @media (prefers-reduced-motion: reduce) {
+      .direction-effect *, .direction-effect *::after { animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="workbench">
+    <header class="page-header">
+      <a class="wordmark" href="../../index.html">Returned<span>逆转录者</span></a>
+      <span class="edition"><i></i> 整体配色 / 04</span>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <div><p class="eyebrow">RETURNED / HIDE & REVEAL</p><h1 id="page-title">遮住与揭开，都成一套<span>。</span></h1><p class="description">红紫队色保留。遮挡条、空白底轨、得分色带与方向提示，一起重新配色。</p></div>
+        <div class="palette-mark" aria-hidden="true"><i></i><i></i></div>
+      </section>
+
+      <nav class="study-nav" aria-label="预览内容"><button type="button" data-view="colors" aria-pressed="true">01 遮挡与得分配色</button><button type="button" data-view="direction" aria-pressed="false">02 搭配方向动效</button></nav>
+
+      <section class="proposals" data-lab="colors" aria-labelledby="proposals-title">
+        <div class="section-heading"><div><span class="section-number">01 /</span><h2 id="proposals-title">四套完整搭配</h2></div><span class="section-aside">遮挡 → 揭晓 · 同一套色彩</span></div>
+        <div class="palette-grid" id="palettes" role="group" aria-label="遮挡条与得分区整体配色方案"></div>
+      </section>
+
+      <section class="direction-study" data-lab="direction" hidden aria-labelledby="motion-title">
+        <div class="section-heading"><div><span class="section-number">01 /</span><h2 id="motion-title">让选择，沿着横条表达</h2></div><span class="section-aside">从游标出发 · 跟随选择队色</span></div>
+        <div class="palette-grid motion-grid" id="motions" role="group" aria-label="方向动效方案"></div>
+        <div class="motion-workbench">
+          <div class="motion-toolbar"><div><span class="motion-kicker">交互演示</span><h2 id="motion-name">半区呼吸</h2></div><div class="motion-actions"><button type="button" id="motion-pause" aria-pressed="false">暂停动画</button><button type="button" id="motion-reveal">揭晓目标</button></div></div>
+          <p id="motion-description"></p>
+          <div class="motion-controls">
+            <div class="motion-field"><span id="direction-label">队伍的选择</span><div class="segmented" role="group" aria-labelledby="direction-label"><button type="button" data-direction="L" aria-pressed="false">← 偏左</button><button type="button" data-direction="R" aria-pressed="true">偏右 →</button><button type="button" data-direction="none" aria-pressed="false">未选择</button></div></div>
+            <label class="motion-field">作出选择的队伍<select id="motion-team"><option value="b">姬海棠果 · 紫队</option><option value="a">射命丸文 · 红队</option></select></label>
+            <label class="motion-field">整体配色（遮挡＋得分）<select id="motion-palette"></select></label>
+          </div>
+          <div class="motion-stage" id="motion-stage">
+            <div class="motion-stage-caption"><span id="motion-choice">姬海棠果选择偏右 →</span><span id="motion-phase">等待揭晓 · 目标隐藏</span></div>
+            <div class="motion-spectrum direction-host" id="motion-spectrum" data-effect="arrows" data-revealed="false" role="img" aria-label="姬海棠果选择游标右侧，目标尚未揭晓">
+              <div class="motion-axis"><div class="motion-target-bands"><span class="motion-band zone-2" style="left:55%;width:4.4%">2</span><span class="motion-band zone-3" style="left:59.4%;width:4%">3</span><span class="motion-band zone-4" style="left:63.4%;width:3.2%">4</span><span class="motion-band zone-3" style="left:66.6%;width:4%">3</span><span class="motion-band zone-2" style="left:70.6%;width:4.4%">2</span></div><div class="motion-ticks" aria-hidden="true"></div><i class="motion-target" aria-hidden="true"></i></div>
+              <i class="motion-dial" aria-hidden="true"></i>
+            </div>
+            <div class="motion-scale" aria-hidden="true"><span>−100%</span><span>−50%</span><span>0%</span><span>+50%</span><span>+100%</span></div>
+            <div class="motion-slider"><label for="motion-position">游标位置 <output id="motion-position-value" for="motion-position">+24%</output></label><input type="range" id="motion-position" min="-100" max="100" value="24" step="1"><button type="button" id="motion-reset-position">回到示例</button></div>
+            <p class="motion-result" id="motion-result" role="status"></p>
+          </div>
+          <div class="motion-notes"><span id="motion-verdict"></span><span id="motion-accessibility">揭晓后停止循环，留下方向轮廓。</span></div>
+        </div>
+      </section>
+
+      <section class="preview-panel" aria-labelledby="preview-title">
+        <div class="preview-toolbar">
+          <div class="preview-heading"><span class="live-dot"></span><h2 id="preview-title">整屏效果</h2><span class="sample-label" id="current-name">01 纸白青玉</span></div>
+          <div class="preview-actions"><div class="phase-switch" id="color-phase" role="group" aria-label="整屏预览状态"><button type="button" data-color-phase="covered" aria-pressed="true">遮挡时</button><button type="button" data-color-phase="revealed" aria-pressed="false">揭晓后</button></div><button id="compare" type="button" aria-pressed="false">对照现有配色</button><label class="zoom-control">画布 <select id="zoom"><option value="fit">适应窗口</option><option value="1">100% 原尺寸</option></select></label></div>
+        </div>
+        <div id="viewport"><div id="canvas-holder"><iframe id="preview" title="得分区配色的游戏活动屏预览，静态示例"></iframe></div></div>
+        <div class="preview-caption"><span><i class="legend-a"></i>左队 · 射命丸文 <span class="caption-divider">/</span> <i class="legend-b"></i>右队 · 姬海棠果</span><span>3904 × 672 <span class="caption-divider">·</span> <span id="scale-label">自动缩放</span></span></div>
+      </section>
+
+      <section class="detail-panel" data-lab="colors" aria-labelledby="detail-title">
+        <div class="detail-heading"><div><p class="eyebrow">HIDE & REVEAL / 同时对照</p><h2 id="detail-title">纸白青玉</h2><p id="palette-note"></p></div><label class="grayscale-control"><input type="checkbox" id="grayscale"> 灰度检查</label></div>
+        <div class="detail-body">
+          <div class="closeup">
+            <div class="closeup-heading"><span>01 遮挡时</span><span>不透明遮挡 · 金色游标保留</span></div>
+            <div class="cover-spectrum" id="cover-spectrum" role="img" aria-label="遮挡条配色，目标隐藏"><div class="cover-surface"><span>目标隐藏</span></div><i class="detail-dial" aria-hidden="true"></i></div>
+            <div class="closeup-heading reveal-heading"><span>02 揭晓后 · 得分区放大</span><span>2 → 3 → 4 分逐级加深</span></div>
+            <div class="detail-spectrum" id="detail-spectrum" role="img" aria-label="得分区由左到右为 2、3、4、3、2 分">
+              <div class="detail-bands"><span class="zone zone-2">2</span><span class="zone zone-3">3</span><span class="zone zone-4">4</span><span class="zone zone-3">3</span><span class="zone zone-2">2</span></div><i class="detail-target" aria-hidden="true"></i><i class="detail-dial" aria-hidden="true"></i>
+            </div>
+            <div class="closeup-caption"><span>外围 · 2 分</span><span>中心 · 4 分</span><span>外围 · 2 分</span></div>
+          </div>
+          <div class="palette-values" id="palette-values" aria-label="当前方案色值"></div>
+        </div>
+        <div class="detail-footer"><span id="palette-verdict"></span><button type="button" data-view="direction" aria-label="在方向动效页试用当前整体配色">用这套配色试动效 →</button></div>
+      </section>
+
+      <section class="editor" data-lab="colors" aria-labelledby="editor-title">
+        <div class="section-heading"><div><span class="section-number">02 /</span><h2 id="editor-title">队色微调</h2></div><button id="reset" type="button">↺ 恢复红紫队色</button></div>
+        <div class="color-grid">
+          <article class="color-card" data-team="a">
+            <div class="color-strip" aria-hidden="true"><span>AYA</span><span>红</span></div>
+            <div class="card-content">
+              <div class="card-heading"><div><p class="eyebrow">LEFT / 左队</p><h3>射命丸文</h3></div><span class="reference-note">绯想天 · 帽子红</span></div>
+              <div class="color-fields"><label class="picker-wrap"><input id="color-a" type="color" value="#b52c3a" aria-label="选择左队红色"><span>选取颜色</span></label><label class="hex-wrap" for="hex-a"><span>HEX</span><input id="hex-a" type="text" value="#B52C3A" spellcheck="false" autocomplete="off" maxlength="7" aria-describedby="error-a"></label></div>
+              <p id="error-a" class="field-error" aria-live="polite"></p>
+              <div class="swatch-row"><span>试试相近颜色</span><div class="swatches"><button type="button" data-color="#B52C3A" style="--swatch:#B52C3A" aria-label="左队深红 #B52C3A" title="#B52C3A"></button><button type="button" data-color="#D83140" style="--swatch:#D83140" aria-label="左队绯红 #D83140" title="#D83140"></button><button type="button" data-color="#E93643" style="--swatch:#E93643" aria-label="左队帽子红 #E93643" title="#E93643"></button><button type="button" data-color="#F15B62" style="--swatch:#F15B62" aria-label="左队浅红 #F15B62" title="#F15B62"></button></div></div>
+            </div>
+          </article>
+          <article class="color-card" data-team="b">
+            <div class="color-strip" aria-hidden="true"><span>HATATE</span><span>紫</span></div>
+            <div class="card-content">
+              <div class="card-heading"><div><p class="eyebrow">RIGHT / 右队</p><h3>姬海棠果</h3></div><span class="reference-note">文花帖 DS · 帽子紫</span></div>
+              <div class="color-fields"><label class="picker-wrap"><input id="color-b" type="color" value="#8f3d7e" aria-label="选择右队紫色"><span>选取颜色</span></label><label class="hex-wrap" for="hex-b"><span>HEX</span><input id="hex-b" type="text" value="#8F3D7E" spellcheck="false" autocomplete="off" maxlength="7" aria-describedby="error-b"></label></div>
+              <p id="error-b" class="field-error" aria-live="polite"></p>
+              <div class="swatch-row"><span>试试相近颜色</span><div class="swatches"><button type="button" data-color="#6F295F" style="--swatch:#6F295F" aria-label="右队深紫 #6F295F" title="#6F295F"></button><button type="button" data-color="#8F3D7E" style="--swatch:#8F3D7E" aria-label="右队帽子紫 #8F3D7E" title="#8F3D7E"></button><button type="button" data-color="#A44790" style="--swatch:#A44790" aria-label="右队玫紫 #A44790" title="#A44790"></button><button type="button" data-color="#B768A5" style="--swatch:#B768A5" aria-label="右队浅紫 #B768A5" title="#B768A5"></button></div></div>
+            </div>
+          </article>
+        </div>
+        <p class="editor-note"><span>↗</span> 四套方案共用同一组红紫队色，方便公平比较。也可以点选相近颜色，微调明度与饱和度。</p>
+      </section>
+    </main>
+    <footer class="page-footer"><span>Returned <span class="footer-divider">/</span> 配色与方向动效提案</span><span id="status" role="status">当前方案：纸白青玉。</span></footer>
+  </div>
+
+  <template id="game-template">
+    <link rel="stylesheet" href="../../app.css"><style>
+      :root{--cA:#b52c3a;--cB:#8f3d7e;--cyan:var(--cA);--magenta:var(--cB)}
+      *{animation:none;transition:none}body{overflow:hidden}
+      .side{pointer-events:none}body.monitor-mode .log ul,body.monitor-mode .audience-winners{overflow:hidden}
+      body.monitor-mode .display-footer{font-size:calc(40 * var(--display-unit));gap:calc(16 * var(--display-unit))}
+    </style><div class="wrap">
+      <header><div class="brand"><span class="brand-seal" aria-hidden="true">☯</span><h1>Returned</h1></div><div id="sub-title">逆转录者</div><div class="header-end"><div class="sub"><span id="deck-badge">车万版</span><span id="conn-badge">配色预览</span></div></div></header>
+      <section class="scoreboard" aria-label="两队比分">
+        <div class="team a is-active" style="--name-length:4;--score-digits:1"><span class="team-direction"></span><div class="team-heading"><div class="tname" id="nameA">射命丸文</div></div><div class="tscore" id="scoreA">4</div><div class="score-track" aria-label="左队 4 分"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+        <div class="team b" style="--name-length:4;--score-digits:1"><span class="team-direction" data-direction="R" aria-label="向右">→</span><div class="team-heading"><div class="tname" id="nameB">姬海棠果</div></div><div class="tscore" id="scoreB">5</div><div class="score-track" aria-label="右队 5 分"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div></div>
+      </section>
+      <section class="card-area"><div class="card-frame"><div class="sides"><div class="side selected only"><span class="con"><span class="l">捕风捉影</span><i>—</i><span class="r">实事求是</span></span></div></div></div></section>
+      <section class="phase-hint" id="hint"><span class="phase-message">第 3 轮 · 揭晓结算</span></section>
+      <section class="spectrum-wrap">
+        <div class="dial" style="left:62%"><div class="arrow"></div><div class="needle"></div></div>
+        <div class="axis"><div class="bands"><div class="band b2" style="left:55%;width:4.4%"><span class="band-label">2</span></div><div class="band b3" style="left:59.4%;width:4%"><span class="band-label">3</span></div><div class="band b4" style="left:63.4%;width:3.2%"><span class="band-label">4</span></div><div class="band b3" style="left:66.6%;width:4%"><span class="band-label">3</span></div><div class="band b2" style="left:70.6%;width:4.4%"><span class="band-label">2</span></div></div><div class="center-mark shown" style="left:65%"></div><div class="bar"></div><div class="screen open"></div><div class="ticks" id="ticks"></div></div>
+        <div class="tick-label-row"><span class="tick-number edge-left" style="left:0%">−100%</span><span class="tick-number" style="left:25%">−50%</span><span class="tick-number" style="left:50%">0%</span><span class="tick-number" style="left:75%">+50%</span><span class="tick-number edge-right" style="left:100%">+100%</span></div>
+        <div class="spectrum-labels"><span></span><span></span></div>
+      </section>
+      <section class="controls"></section><div class="score-pop"></div><div class="display-footer"><span style="color:var(--cA)">射命丸文 +3</span><span> · </span><span style="color:var(--cB)">姬海棠果 +1</span></div>
+      <section class="log"><h3>回合记录</h3><ul><li><span class="log-title"><span class="log-round">第 3 轮</span><span class="log-card"><b>捕风捉影 — 实事求是</b></span></span><span class="log-score"><b class="team-name" style="color:var(--cA)">射命丸文</b> · <span style="color:var(--cA)">+24%</span> / +30% · <span style="color:var(--cA)">+3</span> / <span style="color:var(--cB)">+1</span></span></li><li><span class="log-title"><span class="log-round">第 2 轮</span><span class="log-card"><b>岁月静好 — 负重前行</b></span></span><span class="log-score"><b class="team-name" style="color:var(--cB)">姬海棠果</b> · <span style="color:var(--cB)">−50%</span> / −50% · <span style="color:var(--cA)">+0</span> / <span style="color:var(--cB)">+4</span></span></li></ul></section>
+      <section class="audience-panel"><div class="audience-heading"><h3>群友竞猜</h3><span class="audience-connection connected"></span></div><p class="audience-prompt">目标 +30%</p><p class="audience-status"><span class="audience-state" data-state="closed">已截止</span><span>3 人</span></p><ol class="audience-winners">
+        <li><span class="audience-rank">1</span><span class="audience-avatar"><img src="../../assets/demo/reimu.svg" alt=""></span><span class="audience-person"><strong>博丽灵梦</strong><span>+30%</span></span><span class="audience-error exact">✓</span></li>
+        <li><span class="audience-rank">2</span><span class="audience-avatar"><img src="../../assets/demo/marisa.svg" alt=""></span><span class="audience-person"><strong>雾雨魔理沙</strong><span>+25%</span></span><span class="audience-error">差 5</span></li>
+        <li><span class="audience-rank">3</span><span class="audience-avatar"><img src="../../assets/demo/sakuya.svg" alt=""></span><span class="audience-person"><strong>十六夜咲夜</strong><span>+40%</span></span><span class="audience-error">差 10</span></li>
+      </ol></section>
+    </div>
+  </template>
+  <script src="lab.js"></script>
+</body>
+</html>

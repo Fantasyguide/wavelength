@@ -66,13 +66,23 @@ function latestSnapshot() {
   assert(r.status === 200 && j.ok === true && j.authRequired === false, "ping ok, no auth");
 
   r = await req("GET", base + "/");
-  assert(r.status === 200 && r.body.indexOf("WAVELENGTH") !== -1, "index.html served");
+  assert(r.status === 200 && r.body.indexOf("Returned") !== -1, "index.html served");
   r = await req("GET", base + "/game.js");
   assert(r.status === 200, "game.js served");
   r = await req("GET", base + "/app.js");
   assert(r.status === 200, "app.js served");
   r = await req("GET", base + "/app.css");
   assert(r.status === 200, "app.css served");
+  for (const asset of ["", "index.html", "lab.css", "lab.js"]) {
+    r = await req("GET", base + "/design/color-lab/" + asset);
+    assert(r.status === 200, "color lab public asset served: " + (asset || "directory"));
+  }
+  r = await req("GET", base + "/design/color-lab");
+  assert(r.status === 302, "color lab redirects to a directory URL for relative assets");
+  for (const asset of ["/design/color-lab/private.json", "/design/font-lab/lab.js", "/server.js", "/config.json"]) {
+    r = await req("GET", base + asset);
+    assert(r.status === 404, "preview allowlist keeps non-public files private: " + asset);
+  }
   r = await req("GET", base + "/nope");
   assert(r.status === 404, "missing file 404");
 
@@ -81,6 +91,8 @@ function latestSnapshot() {
   });
   await sleep(150);
   assert(latestSnapshot().phase === "setup", "initial SSE snapshot phase setup");
+  strictAssert.deepEqual([state.ruleSet, state.winScore, state.bandWidth, state.teams.A.score, state.teams.B.score],
+    ["balanced", 8, 48, 0, 0], "server starts with balanced defaults");
   strictAssert.deepEqual(state.cards, defaultDeck.cards, "startup loads the original default cards");
   assert(state.deckName === defaultDeck.name, "startup loads the original default deck name");
 
@@ -101,11 +113,13 @@ function latestSnapshot() {
     strictAssert.deepEqual(snapshot.deck, [], label + ": reset broadcasts the cleared draw pile");
   }
 
-  r = await req("POST", base + "/api/intent", { type: "setup", teamA: "蓝", teamB: "粉", first: "A" });
+  r = await req("POST", base + "/api/intent", { type: "setup", teamA: "蓝", teamB: "粉", first: "A", ruleSet: "original" });
   assert(r.status === 200, "setup intent accepted");
   await sleep(100);
   let s = latestSnapshot();
   assert(s.phase === "chooseCard" && s.cardChoices.length === 2 && s.target === null, "setup broadcasts two candidates without a target");
+  assert(s.timerKind === "chooseCard" && s.timerEnd > Date.now() + 9500 && s.timerEnd <= Date.now() + 10000,
+    "server starts a ten-second selection countdown");
   const chosen = s.cardChoices[1];
   await req("POST", base + "/api/intent", { type: "selectCard", index: -1 });
   await req("POST", base + "/api/intent", { type: "donePsychic" });
@@ -115,6 +129,7 @@ function latestSnapshot() {
   await sleep(50);
   s = latestSnapshot();
   assert(JSON.stringify(s.card) === JSON.stringify(chosen) && s.cardChoices.length === 0, "selected card synced and candidates cleared");
+  assert(s.timerEnd === null && s.timerKind === null, "selection clears its countdown on every client");
   assert(s.phase === "psychic" && s.round === 1, "round 1 psychic after setup");
   assert(s.teams.A.score === 0 && s.teams.B.score === 1, "scores 0/1 synced");
 
@@ -152,12 +167,20 @@ function latestSnapshot() {
   assert(s.phase === "chooseCard" && s.cardChoices.length === 2 && s.active === "B" && s.round === 2, "next round switched to B with two candidates");
   assert(s.reveal === null, "next round clears previous reveal result");
 
-  await req("POST", base + "/api/intent", { type: "selectCard", index: 0 });
-  await req("POST", base + "/api/intent", { type: "skipCard" });
+  const beforeRedraw = s.cardChoices;
+  await req("POST", base + "/api/intent", { type: "redrawCards" });
   await sleep(100);
   s = latestSnapshot();
-  assert(s.phase === "chooseCard" && s.round === 2, "skip returns to selection, round unchanged");
-  assert(s.cardChoices.length === 2 && s.card === null && s.target === null, "skip broadcasts fresh candidates without a target");
+  assert(s.phase === "chooseCard" && s.round === 2, "redraw stays in selection, round unchanged");
+  assert(s.cardChoices.length === 2 && s.card === null && s.target === null, "redraw broadcasts fresh candidates without a target");
+  assert(s.redrawUsed.B && !s.redrawUsed.A, "server synchronizes separate per-team redraw allowances");
+  assert(s.cardChoices.every(c => !beforeRedraw.some(old => JSON.stringify(c) === JSON.stringify(old))), "redraw replaces both old topics");
+  const redrawChoices = JSON.stringify(s.cardChoices);
+  await req("POST", base + "/api/intent", { type: "redrawCards" });
+  assert(JSON.stringify(state.cardChoices) === redrawChoices, "duplicate redraw request ignored by server");
+  await req("POST", base + "/api/intent", { type: "selectCard", index: 0 });
+  await req("POST", base + "/api/intent", { type: "skipCard" });
+  assert(state.phase === "psychic", "legacy skip cannot bypass redraw quota");
 
   await req("POST", base + "/api/intent", { type: "setOrdered", value: true });
   await req("POST", base + "/api/intent", { type: "setWinScore", value: 0 });
@@ -219,7 +242,76 @@ function latestSnapshot() {
   });
   assert(r.status === 413, "oversized streamed body rejected 413");
 
+  await req("POST", base + "/api/intent", { type: "setup", cardMode: "single" });
+  await req("POST", base + "/api/intent", { type: "startDialTimer", timerSeconds: 1, guessTimerSeconds: 1 });
+  await sleep(1200);
+  assert(state.phase === "psychic", "server retains the psychic phase during grace");
+  state.timerEnd = Date.now() - 1501;
+  await sleep(200);
+  s = latestSnapshot();
+  assert(s.phase === "guess" && s.timerKind === "guess" && Number.isInteger(s.dial) && s.dial >= 0 && s.dial <= 1000,
+    "server expires psychic/dial deadline and broadcasts a random dial without client input");
+  const timedDial = s.dial;
+  await req("POST", base + "/api/intent", { type: "setDial", value: (timedDial + 1) % 1001 });
+  assert(state.dial === timedDial, "late drag cannot replace the server's random dial");
+  state.timerEnd = Date.now() - 1501;
+  await sleep(200);
+  s = latestSnapshot();
+  assert(s.phase === "reveal" && ["L", "R"].includes(s.guess) && s.timerEnd === null,
+    "server expires guess deadline and broadcasts the random side");
+
+  await req("POST", base + "/api/intent", { type: "setup", cardMode: "single" });
+  await req("POST", base + "/api/intent", { type: "startDialTimer", timerSeconds: 60, guessTimerSeconds: 15 });
+  await req("POST", base + "/api/intent", { type: "donePsychic" });
+  state.timerEnd = Date.now() - 1000;
+  await req("POST", base + "/api/intent", { type: "setDial", value: 750 });
+  state.timerEnd = Date.now() - 1501;
+  await sleep(200);
+  s = latestSnapshot();
+  assert(s.phase === "guess" && s.dial === 750 && s.timerKind === "guess",
+    "server locks and broadcasts the nonzero position received during grace without a manual lock");
+  await req("POST", base + "/api/intent", { type: "setDial", value: 500 });
+  assert(state.dial === 750, "late drag cannot replace an automatically preserved dial");
+
+  await req("POST", base + "/api/intent", { type: "setup", cardMode: "choice" });
+  const manualCard = state.cardChoices[1];
+  state.timerEnd = Date.now() - 1000;
+  await req("POST", base + "/api/intent", { type: "selectCard", index: 1 });
+  assert(state.card === manualCard && state.phase === "psychic", "server accepts card selection received during grace");
+  await req("POST", base + "/api/intent", { type: "startDialTimer", timerSeconds: 60 });
+  await req("POST", base + "/api/intent", { type: "donePsychic" });
+  state.timerEnd = Date.now() - 1000;
+  await req("POST", base + "/api/intent", { type: "setDial", value: 123 });
+  await req("POST", base + "/api/intent", { type: "lock", timerSeconds: 15 });
+  assert(state.dial === 123 && state.phase === "guess", "server accepts drag and lock received during grace");
+  state.timerEnd = Date.now() - 1000;
+  await req("POST", base + "/api/intent", { type: "guess", guess: "R" });
+  assert(state.guess === "R" && state.phase === "reveal", "server accepts a guess received during grace");
+
+  await req("POST", base + "/api/intent", { type: "setup", cardMode: "choice" });
+  state.timerEnd = Date.now() - 1000;
+  await sleep(200);
+  assert(state.phase === "chooseCard", "server does not auto-select during choice grace");
+  state.timerEnd = Date.now() - 1501;
+  await sleep(200);
+  s = latestSnapshot();
+  assert(s.phase === "psychic" && s.cardChoices.length === 0 && s.timerEnd === null && s.target,
+    "server automatically selects a topic and broadcasts it when grace ends");
+  const autoCard = state.card;
+  const autoTarget = state.target;
+  await req("POST", base + "/api/intent", { type: "selectCard", index: 1 });
+  assert(state.card === autoCard && state.target === autoTarget, "late selection cannot reroll card or target");
+
+  await req("POST", base + "/api/intent", { type: "setup", cardMode: "single" });
+  await req("POST", base + "/api/intent", { type: "startDialTimer", timerSeconds: 1, guessTimerSeconds: 1 });
   streamReq.destroy();
+  state.timerEnd = Date.now() - 5000;
+  await sleep(200);
+  assert(state.phase === "reveal", "both deadlines progress with no connected clients");
+  await req("POST", base + "/api/intent", { type: "setup", cardMode: "choice" });
+  state.timerEnd = Date.now() - 1501;
+  await sleep(200);
+  assert(state.phase === "psychic", "selection also progresses with no connected clients");
   server.close();
   console.log("SERVER TEST PASSED");
   process.exit(0);

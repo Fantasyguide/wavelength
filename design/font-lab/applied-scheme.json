@@ -1,0 +1,133 @@
+{
+  "format": "wavelength-font-lab",
+  "version": 1,
+  "canvas": {
+    "width": 3904,
+    "height": 672
+  },
+  "stage": "revealed",
+  "palette": {
+    "a": "#079c94",
+    "b": "#de5458",
+    "ink": "#222222",
+    "dim": "#676767",
+    "background": "#ffffff",
+    "cursor": "#94651a",
+    "band2": "#e7a0bb",
+    "band3": "#edb86c",
+    "band4": "#f0d377"
+  },
+  "text": {
+    "teamA": "幻想乡",
+    "teamB": "外来人",
+    "left": "讨好型人格",
+    "right": "反驳型人格",
+    "left2": "岁月静好",
+    "right2": "负重前行",
+    "nicknames": "博丽灵梦\n雾雨魔理沙\n十六夜咲夜\n东风谷早苗\n魂魄妖梦",
+    "mixed": "第 3 轮 · 温度 100°C · １２３４ · −50%"
+  },
+  "groups": {
+    "names": {
+      "font": "FZPingXianYaSong-R-GBK",
+      "size": 103,
+      "weight": 500,
+      "line": 1,
+      "spacing": 0,
+      "color": null,
+      "synthesize": true,
+      "italic": false
+    },
+    "concepts": {
+      "font": "FZYaShiHeiS",
+      "size": 86,
+      "weight": 400,
+      "line": 1.1,
+      "spacing": 0,
+      "color": null,
+      "synthesize": false,
+      "italic": false
+    },
+    "headings": {
+      "font": "Wavelength Song",
+      "size": 40,
+      "weight": 400,
+      "line": 1.2,
+      "spacing": 0,
+      "color": null,
+      "synthesize": false,
+      "italic": false
+    },
+    "phase": {
+      "font": "Wavelength Source Han Serif",
+      "size": 32,
+      "weight": 500,
+      "line": 1.2,
+      "spacing": 0,
+      "color": null,
+      "synthesize": false,
+      "italic": false
+    },
+    "history": {
+      "font": "Wavelength Source Han Serif",
+      "size": 40,
+      "weight": 500,
+      "line": 1.3,
+      "spacing": 0,
+      "color": null,
+      "synthesize": false,
+      "italic": false
+    },
+    "audience": {
+      "font": "Wavelength WenKai",
+      "size": 36,
+      "weight": 700,
+      "line": 1.1,
+      "spacing": 0,
+      "color": null,
+      "synthesize": true,
+      "italic": false
+    },
+    "scores": {
+      "font": "Source Han Serif SC",
+      "size": 136,
+      "weight": 700,
+      "line": 1.1,
+      "spacing": 0,
+      "color": null,
+      "synthesize": false,
+      "italic": false
+    },
+    "numbers": {
+      "font": "Wavelength Numeric",
+      "size": 30,
+      "weight": 700,
+      "line": 1.1,
+      "spacing": 0,
+      "color": null,
+      "synthesize": false,
+      "italic": false
+    },
+    "timer": {
+      "font": "Wavelength Numeric",
+      "size": 48,
+      "weight": 700,
+      "line": 1,
+      "spacing": 0,
+      "color": null,
+      "synthesize": false,
+      "italic": false
+    },
+    "brand": {
+      "font": "Georgia",
+      "size": 44,
+      "weight": 400,
+      "line": 1,
+      "spacing": 3,
+      "color": null,
+      "synthesize": false,
+      "italic": false
+    }
+  },
+  "fontFiles": []
+}

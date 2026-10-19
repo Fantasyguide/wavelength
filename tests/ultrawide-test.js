@@ -41,7 +41,9 @@ function postIntent(port, intent) {
       const groups = [
         [".card-frame", ".card-label, .side-tag, .con"],
         ["#hint", ".phase-message, .guess-choice"],
-        [".scoreboard", ".tname, .tscore, .active-turn, .score-track"],
+        [".team.a", ".tname, .tscore, .score-track"],
+        [".team.b", ".tname, .tscore, .score-track"],
+        [".wrap", ".active-turn"],
         [".spectrum-wrap", ".tick-number, .spectrum-labels span"],
         ["#score-pop", null]
       ];
@@ -56,7 +58,7 @@ function postIntent(port, intent) {
           const r = range.getBoundingClientRect();
           if (r.left < Math.max(0, bounds.left) - 1 || r.right > Math.min(innerWidth, bounds.right) + 1 ||
               r.top < Math.max(0, bounds.top) - 1 || r.bottom > Math.min(innerHeight, bounds.bottom) + 1) {
-            issues.push(`${containerSelector}: ${el.textContent}`);
+            issues.push(`${containerSelector}: ${el.textContent} (text ${r.top.toFixed(1)}–${r.bottom.toFixed(1)}, area ${bounds.top.toFixed(1)}–${bounds.bottom.toFixed(1)})`);
           }
         }
       }
@@ -65,26 +67,40 @@ function postIntent(port, intent) {
         const name = team.querySelector(".tname").getBoundingClientRect();
         const score = team.querySelector(".tscore").getBoundingClientRect();
         const diamonds = Array.from(team.querySelectorAll(".score-track i"), el => el.getBoundingClientRect());
-        if (diamonds.some(r => r.top < Math.max(name.bottom, score.bottom) || r.bottom > bounds.bottom + 1 ||
+        const overlaps = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+        if (diamonds.some(r => overlaps(r, name) || overlaps(r, score) || r.bottom > bounds.bottom + 1 ||
             r.left < bounds.left - 1 || r.right > bounds.right + 1)) issues.push("progress diamonds overlap or leave their team row");
+        const right = team.classList.contains("b");
+        if (Math.abs((score.top + score.bottom - bounds.top - bounds.bottom) / 2) > 1) issues.push("score is not vertically centered in its frame");
+        if (parseFloat(getComputedStyle(team.querySelector(".tscore")).fontSize) <= parseFloat(getComputedStyle(team.querySelector(".tname")).fontSize)) issues.push("score must be larger than team name");
+        if (right ? score.right > name.left : name.right > score.left) issues.push("team name and score are not mirrored");
+        if (diamonds.length > 1 && (right ? diamonds[0].left <= diamonds[1].left : diamonds[0].left >= diamonds[1].left)) {
+          issues.push("progress must fill inward from each team's outside edge");
+        }
+        const outerGap = right ? bounds.right - diamonds[0].right : diamonds[0].left - bounds.left;
+        if (Math.abs(outerGap - 49 * innerWidth / 3904) > 3) issues.push("diamond start is not aligned with the team's outer inset");
+        if (bounds.bottom - Math.max(...diamonds.map(r => r.bottom)) < 30 * innerWidth / 3904) issues.push("diamonds need more space above the bottom frame");
       }
+      for (const pair of document.querySelectorAll(".side .con")) {
+        if (!pair.getClientRects().length) continue;
+        const bounds = pair.getBoundingClientRect();
+        const dash = pair.querySelector("i").getBoundingClientRect();
+        if (Math.abs((dash.left + dash.right - bounds.left - bounds.right) / 2) > 1) issues.push("concept separator is not centered");
+      }
+      if (document.querySelector(".guess-choice")) issues.push("the direction belongs beside the team name, not above the spectrum");
       return issues;
     });
     assert(problems.length === 0, `${phase}: enlarged text stays fully visible (${problems.join("; ")})`);
     const layout = await page.evaluate(() => {
       const rect = (selector) => document.querySelector(selector).getBoundingClientRect();
-      const anchors = [".card-frame", ".card-label", ".phase-message", "#axis", "#score-pop"]
+      const anchors = [".card-frame", ".phase-message", "#axis", "#display-footer"]
         .map(selector => [selector, rect(selector).top]);
       const scale = innerWidth / 3904;
-      const guess = document.querySelector(".guess-choice");
       const gaps = [
         rect(".phase-message").top - rect(".card-frame").bottom,
-        rect("#score-pop").top - rect("#tick-labels").bottom
+        rect("#display-footer").top - rect("#tick-labels").bottom,
+        rect(".dial .arrow").top - rect(".phase-message").bottom
       ];
-      if (guess) {
-        gaps.push(rect(".guess-choice").top - rect(".phase-message").bottom);
-        gaps.push(rect(".dial .arrow").top - rect(".guess-choice").bottom);
-      }
       return { viewport: `${innerWidth}x${innerHeight}`, anchors, gaps: gaps.map(gap => gap / scale) };
     });
     const initial = anchorsByViewport.get(layout.viewport);
@@ -107,21 +123,30 @@ function postIntent(port, intent) {
   });
   assert(roleFits, "role selection is readable and fully visible on the physical display");
   await page.click("#btn-role-monitor");
-  await postIntent(port, { type: "setup", teamA: "蓝队", teamB: "粉队", first: "A" });
+  await postIntent(port, { type: "setup", teamA: "蓝队", teamB: "粉队", first: "A", ruleSet: "original" });
   await page.waitForFunction(() => document.body.classList.contains("monitor-mode") && document.getElementById("sides").children.length > 0);
   const choicesFit = await page.$$eval(".card-choice", (els) => els.length === 2 && els.every((el) => el.scrollWidth <= el.clientWidth && el.scrollHeight <= el.clientHeight));
   assert(choicesFit, "two candidates fit the ultra-wide monitor card area");
+  assert(await page.evaluate(() => {
+    const style = (el, pseudo) => getComputedStyle(el, pseudo);
+    return style(document.querySelector("#card-label")).display === "none" &&
+      [...document.querySelectorAll(".side-tag")].every(el => style(el).display === "none") &&
+      [...document.querySelectorAll(".card-choice")].every(el => style(el).borderTopWidth === "0px" && style(el).backgroundColor === "rgba(0, 0, 0, 0)") &&
+      style(document.getElementById("sides"), "::before").backgroundColor === "rgb(0, 0, 0)" &&
+      style(document.querySelector(".team.a")).borderImageSource === "none" &&
+      style(document.querySelector(".team.a"), "::before").backgroundColor === style(document.getElementById("nameA")).color;
+  }), "topic choices have only a center divider; the active team recolors its single stepped frame");
   const readableType = await page.evaluate(() => {
     const size = (selector) => parseFloat(getComputedStyle(document.querySelector(selector)).fontSize);
-    return devicePixelRatio === 1 && size(".card-choice .con") >= 40 && size("#hint") >= 32 &&
-      size(".tname") >= 40 && size(".tscore") >= 112 && size(".tick-number") >= 24;
+    return devicePixelRatio === 1 && size(".card-choice .con") >= 52 && size("#hint") >= 42 &&
+      size(".tname") >= 103 && size(".tscore") >= 136 && size(".tick-number") >= 30;
   });
   assert(readableType, "key text is readable at native 3904x672 pixels, without browser scaling");
   const teamStyle = await page.evaluate(() => {
     const style = selector => getComputedStyle(document.querySelector(selector));
     const name = style(".tname");
-    return parseFloat(name.fontSize) >= 80 && parseFloat(name.paddingTop) === parseFloat(name.fontSize) / 2 &&
-      parseFloat(name.paddingBottom) === parseFloat(name.fontSize) / 2 && parseFloat(style(".score-track i").width) >= 20 &&
+    return parseFloat(name.fontSize) >= 88 && parseFloat(name.paddingTop) === parseFloat(name.fontSize) / 2 &&
+      parseFloat(name.paddingBottom) === parseFloat(name.fontSize) / 2 && parseFloat(style(".score-track i").width) >= 28 &&
       style("#nameA").color === style("#scoreA").color && style("#nameB").color === style("#scoreB").color &&
       style("#nameA").color !== style("#nameB").color && style("#card-label").color === "rgb(0, 0, 0)";
   });
@@ -136,12 +161,12 @@ function postIntent(port, intent) {
   await assertReadableLayout("dial");
   await postIntent(port, { type: "setDial", value: 600 });
   await postIntent(port, { type: "lock" });
-  await page.waitForFunction(() => document.getElementById("hint").textContent.includes("中心楔形"));
+  await page.waitForFunction(() => document.body.dataset.phase === "guess");
   await assertReadableLayout("guess");
   const selectedTopic = await page.$$eval(".sides .side", (els) => {
     const visible = els.filter(el => el.getClientRects().length);
     return visible.length === 1 && visible[0].classList.contains("selected") &&
-      parseFloat(getComputedStyle(visible[0].querySelector(".con")).fontSize) >= 52;
+      parseFloat(getComputedStyle(visible[0].querySelector(".con")).fontSize) >= 64;
   });
   assert(selectedTopic, "monitor focuses on the chosen side in large type after the clue is given");
   const guessPromptFit = await page.$eval("#hint", (el) => ({
@@ -166,10 +191,11 @@ function postIntent(port, intent) {
       })
     };
   });
-  assert(["00:15", "00:14"].includes(timerAndTicks.timerText) && timerAndTicks.timerTop >= 0 && timerAndTicks.timerBottom <= 672, "guess timer is visible inside the ultra-wide display");
-  assert(timerAndTicks.tickLabels.join(",") === "0%,25%,50%,75%,100%" && timerAndTicks.labelsBelow && timerAndTicks.ticksFit, "percentage tick labels fit below the ultra-wide axis");
+  assert(["00:15", "00:14"].includes(timerAndTicks.timerText) && timerAndTicks.timerTop >= 560 && timerAndTicks.timerBottom <= 648,
+    "guess timer is centered at the bottom with at least 24px of bottom space: " + JSON.stringify(timerAndTicks));
+  assert(timerAndTicks.tickLabels.join(",") === "-100%,-50%,0%,+50%,+100%" && timerAndTicks.labelsBelow && timerAndTicks.ticksFit, "signed percentage tick labels fit below the ultra-wide axis");
   await postIntent(port, { type: "guess", guess: "R" });
-  await page.waitForSelector(".guess-choice");
+  await page.waitForFunction(() => document.body.dataset.phase === "reveal" && document.getElementById("guess-region").dataset.side === "R");
 
   const layout = await page.evaluate(() => {
     const rect = (selector) => {
@@ -179,12 +205,12 @@ function postIntent(port, intent) {
     return {
       viewport: { width: innerWidth, height: innerHeight },
       scroll: { width: document.documentElement.scrollWidth, height: document.documentElement.scrollHeight },
-      scoreboard: rect(".scoreboard"),
+      scoreboard: rect(".team.a"),
+      teamB: rect(".team.b"),
+      audience: rect(".audience-panel"),
       card: rect(".card-area"),
       axis: rect(".axis"),
       log: rect(".log"),
-      guess: rect(".guess-choice"),
-      guessText: document.querySelector(".guess-choice").textContent,
       controls: getComputedStyle(document.getElementById("controls")).display,
       rules: getComputedStyle(document.querySelector("details.rules")).display,
       bodyClass: document.body.className
@@ -194,20 +220,26 @@ function postIntent(port, intent) {
   assert(layout.viewport.width === 3904 && layout.viewport.height === 672, "uses exact 3904x672 viewport");
   assert(layout.bodyClass.includes("monitor-mode"), "monitor role enables wide-screen layout");
   assert(layout.scroll.width <= 3904 && layout.scroll.height <= 672, "layout has no page overflow");
-  assert(layout.scoreboard.width >= 500 && layout.card.width >= 2500 && layout.log.width >= 600, "main game area uses at least 2500 pixels while side panels remain readable");
-  assert(layout.scoreboard.right < layout.card.left && layout.card.right < layout.log.left, "three columns do not overlap");
+  assert(layout.scoreboard.width === 960 && layout.card.width === 1928 && layout.teamB.width === 960,
+    "wider side panels share the space released by the narrower central game area");
+  assert(layout.scoreboard.right < layout.card.left && layout.card.right < layout.teamB.left, "teams occupy opposite sides of the central game area");
+  assert(layout.log.top > layout.scoreboard.bottom && layout.audience.top > layout.teamB.bottom && layout.audience.right <= 3904,
+    "history and audience have separate spaces beneath their respective teams");
   assert(layout.axis.width >= 1800 && layout.axis.height >= 72, "spectrum is wide and readable");
-  assert(layout.guess.width >= 500 && layout.guessText.includes("右边"), "ultra-wide monitor prominently shows the opponent choice");
+  assert(await page.$$(".team-direction").then(els => els.length === 0), "team cards have no gray direction arrows");
+  assert(await page.$eval(".team.b", team => team.getAttribute("aria-label").includes("选择右边")),
+    "the selected direction remains accessible without a team-card arrow");
   assert(layout.scoreboard.bottom <= 672 && layout.log.bottom <= 672, "side panels fit the low-height display");
-  assert(layout.controls === "none" && layout.rules === "block", "monitor layout hides controls and keeps rules button");
+  assert(layout.controls === "none" && layout.rules === "none", "passive monitor hides game controls and local help buttons");
   await assertReadableLayout("reveal");
   await postIntent(port, { type: "reveal" });
   await page.waitForFunction(() => document.body.dataset.phase === "revealed");
   await assertReadableLayout("revealed");
-  const logReadable = await page.$eval("#log li", (el) => parseFloat(getComputedStyle(el).fontSize) >= 28);
-  assert(logReadable, "round history uses at least 28px type on the physical display");
+  const logReadable = await page.$eval("#log li", (el) => parseFloat(getComputedStyle(el).fontSize) >= 40);
+  assert(logReadable, "round history uses at least 40px type on the physical display");
 
-  await page.click("details.rules > summary");
+  await postIntent(port, { type: "setRulesOpen", value: true });
+  await page.waitForFunction(() => document.querySelector("details.rules").open);
   const rulesOverlay = await page.evaluate(() => {
     const details = document.querySelector("details.rules");
     const r = details.getBoundingClientRect();
@@ -220,11 +252,12 @@ function postIntent(port, intent) {
       columns: listStyle.columnCount
     };
   });
-  assert(rulesOverlay.open, "rules button opens the overlay");
+  assert(rulesOverlay.open, "shared rules state opens the monitor overlay without a local click");
   assert(rulesOverlay.width >= 3800 && rulesOverlay.height >= 620, "rules overlay fills almost the entire display");
   assert(rulesOverlay.fontSize >= 22 && rulesOverlay.columns === "2", "rules use large two-column text");
 
-  await page.click("details.rules > summary");
+  await postIntent(port, { type: "setRulesOpen", value: false });
+  await page.waitForFunction(() => !document.querySelector("details.rules").open);
   await postIntent(port, { type: "newGame" });
   await postIntent(port, { type: "setup", teamA: "超长名称幻想乡队", teamB: "超长名称外来人队", first: "A" });
   await postIntent(port, { type: "selectCard", index: 1 });
@@ -233,7 +266,7 @@ function postIntent(port, intent) {
   await postIntent(port, { type: "setDial", value: 600 });
   await postIntent(port, { type: "lock" });
   await page.setViewport({ width: 1952, height: 336, deviceScaleFactor: 1 });
-  await page.waitForFunction(() => innerWidth === 1952 && document.getElementById("hint").textContent.includes("中心楔形"));
+  await page.waitForFunction(() => innerWidth === 1952 && document.body.dataset.phase === "guess");
   const scaledLayout = await page.evaluate(() => {
     const hint = document.getElementById("hint");
     const r = hint.getBoundingClientRect();
@@ -277,7 +310,7 @@ function postIntent(port, intent) {
     await postIntent(port, { type: "lock" });
     await postIntent(port, { type: "guess", guess: "R" });
     await postIntent(port, { type: "reveal" });
-    await page.waitForFunction(() => document.body.dataset.phase === "revealed" && document.querySelector(".guess-choice.neutral"));
+    await page.waitForFunction(() => document.body.dataset.phase === "revealed" && document.querySelector(".team.b").getAttribute("aria-label").includes("选择右边"));
     assert(state[special], `${special} result fixture reached the intended state`);
     for (const [width, height] of [[1952, 336], [3904, 672]]) {
       await page.setViewport({ width, height, deviceScaleFactor: 1 });
@@ -285,6 +318,7 @@ function postIntent(port, intent) {
     }
     if (special === "catchup") {
       assert(await page.$eval("#banner", el => getComputedStyle(el).display === "none"), "catch-up notice stays in the sidebar instead of covering the card");
+      assert(await page.$eval(".team.a", el => el.classList.contains("is-active")), "a catch-up turn keeps the same team highlighted");
     }
   }
 
@@ -312,26 +346,43 @@ function postIntent(port, intent) {
       const pixel = (dx, y) => Array.from(ctx.getImageData(x + dx * direction, y, 1, 1).data).slice(0, 3).join(",");
       return { border: pixel(8, 1), cursor: pixel(0, 4), band: pixel(30, Math.floor(img.height * .8)) };
     }, { png, position });
-    assert(colors.border === "34,34,34", `black frame remains above the color band and target marker at ${position / 10}%`);
+    assert(colors.border === (position === 1000 ? "100,119,138" : "143,61,126"), `selected team frame or unselected blue-gray frame stays above the score band and target marker at ${position / 10}%`);
     assert(colors.cursor === "148,101,26", `player cursor remains above the target marker at ${position / 10}%`);
-    assert(["240,211,119", "237,184,108", "231,160,187"].includes(colors.band), "foreground frame leaves the colored bands visible");
+    assert(["54,86,116", "127,157,185", "202,217,230"].includes(colors.band), "foreground frame leaves the indigo score bands visible");
   }
 
   await postIntent(port, { type: "newGame" });
   await postIntent(port, { type: "loadDeck", cards: [
     ["讨好型人格", "反驳型人格", "太快乐了🤗", "太痛苦了😫"],
-    ["人类友好度高", "人类友好度低", "岁月静好", "负重前行"]
+    ["短", "人类友好度低", "岁月静好", "负重前行"]
   ] });
   await postIntent(port, { type: "setup", first: "A" });
   await page.waitForSelector(".card-choice");
   for (const [width, height] of [[1952, 336], [3904, 672]]) {
     await page.setViewport({ width, height, deviceScaleFactor: 1 });
+    await page.evaluate(async () => { await new Promise(requestAnimationFrame); await document.fonts.ready; });
     const doubleChoicesFit = await page.$$eval(".card-choice", (els) => els.length === 2 && els.every((el) => {
       const r = el.getBoundingClientRect();
       return el.scrollHeight <= el.clientHeight && el.scrollWidth <= el.clientWidth && r.top >= 0 && r.bottom <= innerHeight;
     }));
     assert(doubleChoicesFit, `both sides of long candidate cards fit at ${width}x${height}`);
     await assertReadableLayout(`long candidates at ${width}x${height}`);
+  }
+
+  await postIntent(port, { type: "selectCard", index: 0 });
+  await page.waitForFunction(() => document.body.dataset.phase === "psychic");
+  for (const [width, height] of [[1952, 336], [3904, 672]]) {
+    await page.setViewport({ width, height, deviceScaleFactor: 1 });
+    await assertReadableLayout(`selected double-sided topic at ${width}x${height}`);
+  }
+
+  // Additional progress rows must stay below the names and above the side panels.
+  for (const winScore of [40, 0, 10]) {
+    await postIntent(port, { type: "setWinScore", value: winScore });
+    await page.waitForFunction(expected => document.getElementById("trackA").children.length === expected, {}, winScore || 31);
+    await assertReadableLayout(`progress track for win score ${winScore}`);
+    assert(await page.evaluate(() => document.querySelector(".log").getBoundingClientRect().top > document.querySelector(".team.a").getBoundingClientRect().bottom),
+      "history stays below wrapped progress tracks");
   }
 
   // Long historical titles must wrap at the normal type size and remain reachable by scrolling.
@@ -357,8 +408,8 @@ function postIntent(port, intent) {
         const round = el.querySelector(".log-round").getBoundingClientRect();
         const card = el.querySelector(".log-card").getBoundingClientRect();
         const score = el.querySelector(".log-score").getBoundingClientRect();
-        return card.top >= round.bottom && score.top >= card.bottom &&
-          el.querySelector(".log-card b").textContent === pairs[index].join(" — ") &&
+        return Math.abs(card.top - round.top) < 1 && card.left > round.right && score.top >= card.bottom &&
+          el.querySelector(".log-card b").textContent === pairs[index].join(" VS ") &&
           el.scrollWidth <= el.clientWidth + 1 &&
           Array.from(el.querySelectorAll(".log-separator")).every(sep => getComputedStyle(sep).display === "none");
       });
@@ -374,15 +425,66 @@ function postIntent(port, intent) {
         stable: document.querySelector(".log h3").getBoundingClientRect().top === headingTop && document.getElementById("axis").getBoundingClientRect().top === axisTop
       };
     }, historyPairs);
-    assert(historyLayout.wrapped && historyLayout.fontSize >= 29 * width / 3904,
+    assert(historyLayout.wrapped && historyLayout.fontSize >= 40 * width / 3904,
       `Chinese and unbroken Latin history titles wrap fully at normal type size at ${width}x${height}`);
     assert(historyLayout.scrollable && historyLayout.lastVisible && historyLayout.noOverflow && historyLayout.stable,
       `long history scrolls to its final score without moving the heading or central stage at ${width}x${height}`);
   }
   await page.setViewport({ width: 1280, height: 960, deviceScaleFactor: 1 });
+  await page.waitForFunction(() => !document.querySelector("#log .log-title"));
   const regularSeparators = await page.$$eval("#log .log-separator", els => els.every(el => getComputedStyle(el).display === "inline"));
   assert(regularSeparators, "ordinary screen widths retain both inline separators");
   await page.setViewport({ width: 3904, height: 672, deviceScaleFactor: 1 });
+
+  // Direction and score ordering are independent: B's turn still shows A's gain first.
+  state.log = [
+    { round: 4, team: "A", targetPct: 25, dialPct: 22.5, pair: ["短", "长"], pts: 3, oppPts: 1 },
+    { round: 3, team: "B", targetPct: 25, dialPct: 27.5, pair: ["冷", "热"], pts: 2, oppPts: 0 },
+    { round: 2, team: "B", targetPct: 50, dialPct: 50, pair: ["静", "动"], pts: 4, oppPts: 0 }
+  ];
+  await postIntent(port, { type: "noop" });
+  await page.waitForFunction(() => document.querySelector("#log .log-round").textContent === "第 4 轮");
+  const records = await page.$$eval("#log li", rows => rows.map(row => ({
+    values: [...row.querySelectorAll(".log-value")].map(el => el.textContent),
+    points: [...row.querySelectorAll(".log-points")].map(el => [el.dataset.team, el.textContent]),
+    targetBlack: getComputedStyle(row.querySelector(".log-target")).color === "rgb(0, 0, 0)",
+    dialMatchesTeam: getComputedStyle(row.querySelector(".log-dial")).color === getComputedStyle(row.querySelector(".team-name")).color
+  })));
+  assert(JSON.stringify(records.map(row => row.values)) === JSON.stringify([["-55%", "-50%"], ["-50%", "-45%"], ["0%", "0%"]]),
+    "history shows dial/target in wavelength order on either side of the target");
+  assert(JSON.stringify(records.map(row => row.points)) === JSON.stringify([[["A", "+3"], ["B", "+1"]], [["A", "+0"], ["B", "+2"]], [["A", "+0"], ["B", "+4"]]]),
+    "history gains always map to left A / right B, including B's rounds");
+  assert(records.every(row => row.targetBlack && row.dialMatchesTeam), "history targets are black and dials inherit the acting team's color");
+
+  await postIntent(port, { type: "newGame" });
+  await postIntent(port, { type: "loadDeck", cards: [["人类友好度高", "人类友好度低"]] });
+  await postIntent(port, { type: "setup", ruleSet: "balanced", cardMode: "single", first: "A" });
+  await postIntent(port, { type: "donePsychic" });
+  for (const [width, height] of [[3904, 672], [1952, 336]]) {
+    await page.setViewport({ width, height, deviceScaleFactor: 1 });
+    for (const score of [8, 9, 10, 12]) {
+      state.teams.A.score = score;
+      state.teams.B.score = score + 1;
+      await postIntent(port, { type: "noop" });
+      await page.waitForFunction(s => document.getElementById("trackA").dataset.score === String(s), {}, score);
+      const counts = await page.$$eval(".score-track", tracks => tracks.map(track => ({
+        diamonds: track.querySelectorAll("i.on:not(.score-circle)").length,
+        circles: track.querySelectorAll("i.score-circle").length
+      })));
+      assert(counts[0].diamonds === 8 && counts[1].diamonds === 8 && counts[0].circles === score - 8 && counts[1].circles === score - 7,
+        `overflow points appear as individual circles at ${score}:${score + 1}`);
+      await assertReadableLayout(`overflow score ${score} at ${width}x${height}`);
+    }
+    assert(await page.$eval(".side.selected .con i", el => {
+      const style = getComputedStyle(el), scale = innerWidth / 3904;
+      return el.textContent.trim() === "VS" && style.color === "rgb(0, 0, 0)" &&
+        style.fontFamily.includes("Wavelength Source Han Serif") && style.fontWeight === "600" &&
+        parseFloat(style.fontSize) >= 80 * scale && parseFloat(style.paddingLeft) >= 28 * scale &&
+        parseFloat(style.paddingRight) >= 28 * scale;
+    }), "selected VS uses a large black serif face with spacing from both concepts");
+  }
+  await postIntent(port, { type: "newGame" });
+  await page.waitForFunction(() => document.querySelectorAll(".score-circle").length === 0);
 
   if (process.argv.includes("--screenshot")) {
     await page.screenshot({ path: path.join(__dirname, "ultrawide-qa.png") });

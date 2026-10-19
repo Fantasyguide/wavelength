@@ -3,26 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wavelength 心灵波长</title>
+<title>Returned · 逆转录者</title>
 <link rel="icon" href="data:,">
 <meta name="theme-color" content="#ffffff">
+<link rel="preload" href="assets/fantasyguide/FZPingXianYaSong-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fantasyguide/FZYaShiHei-Medium.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fantasyguide/FZCYSJW.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fantasyguide/SourceHanSerifCN-Bold-Numeric.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fantasyguide/ZaoZiGongFangYanSongTi-1.otf" as="font" type="font/otf" crossorigin>
+<link rel="preload" href="assets/fantasyguide/SourceHanSerifCN-Medium.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fantasyguide/SourceHanSerifCN-SemiBold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fantasyguide/WavelengthNumeric-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="app.css">
 </head>
-<!-- 倒计时秒数可在这里调整；设为 0 可关闭对应倒计时。 -->
+<!-- 出题/拨杆和猜左右的秒数可在这里调整，0 关闭；选题固定 10 秒。各阶段均有 1.5 秒宽限。 -->
 <body data-dial-timer-seconds="60" data-guess-timer-seconds="15">
 <div class="wrap">
 
   <header>
     <div class="brand">
       <span class="brand-seal" aria-hidden="true">☯</span>
-      <div>
-        <h1 id="title-main">WAVELENGTH</h1>
-        <div class="sub"><span id="sub-title">心灵波长</span> · <span id="deck-badge"></span> · <span id="conn-badge"><span class="dot"></span></span></div>
+      <h1 id="title-main">Returned</h1>
+    </div>
+    <div id="sub-title">逆转录者</div>
+    <div class="header-end">
+      <div class="sub"><span id="deck-badge"></span><span id="conn-badge" role="status"><span class="dot"></span></span></div>
+      <div class="header-actions">
+        <div class="timer-display hidden" id="timer-display" aria-live="polite">00:00</div>
+        <button class="btn" id="btn-restart">重新开始</button>
       </div>
     </div>
-    <div class="timer-display hidden" id="timer-display" aria-live="polite">00:00</div>
-    <button class="btn" id="btn-restart">重新开始</button>
   </header>
 
   <div class="banner hidden" id="banner"></div>
@@ -31,15 +41,19 @@
   <section class="scoreboard" aria-label="两队比分">
     <div class="scoreboard-caption" aria-hidden="true">两队对局 <span>TEAM SCORE</span></div>
     <div class="team a">
-      <div class="tname" id="nameA"></div>
+      <div class="team-heading"><div class="tname" id="nameA"></div></div>
       <div class="tscore" id="scoreA">0</div>
+      <span class="team-gain" id="gainA" aria-live="polite"></span>
       <div class="score-track" id="trackA"></div>
+      <div class="overtime-score hidden" id="overtimeA" aria-live="polite"></div>
     </div>
     <div class="vs" aria-label="对阵">对</div>
     <div class="team b">
-      <div class="tname" id="nameB"></div>
-      <div class="tscore" id="scoreB">1</div>
+      <div class="team-heading"><div class="tname" id="nameB"></div></div>
+      <div class="tscore" id="scoreB">0</div>
+      <span class="team-gain" id="gainB" aria-live="polite"></span>
       <div class="score-track" id="trackB"></div>
+      <div class="overtime-score hidden" id="overtimeB" aria-live="polite"></div>
     </div>
     <div class="active-turn" id="turn-indicator"></div>
   </section>
@@ -59,8 +73,10 @@
       <div class="bands" id="bands"></div>
       <div class="center-mark" id="center-mark"></div>
       <div class="bar"></div>
-      <div class="screen" id="screen"><span class="screen-txt">✦ 目标已被蓝屏遮挡 ✦</span></div>
+      <div class="screen" id="screen"><span class="screen-txt">目标已隐藏</span></div>
       <div class="ticks" id="ticks"></div>
+      <div class="guess-region" id="guess-region" hidden aria-hidden="true"></div>
+      <div class="direction-frame" id="direction-frame" hidden aria-hidden="true"></div>
     </div>
     <div class="interact" id="interact"></div>
     <div class="tick-label-row" id="tick-labels" aria-hidden="true"></div>
@@ -69,23 +85,36 @@
 
   <section class="controls" id="controls"></section>
   <div class="score-pop" id="score-pop"></div>
+  <div class="display-footer" id="display-footer"></div>
+
+  <section class="audience-panel hidden" id="audience-panel" aria-labelledby="audience-title">
+    <div class="audience-heading">
+      <h3 id="audience-title">群友竞猜</h3>
+      <span class="audience-connection" id="audience-connection" role="img" aria-label="群互动未启用"></span>
+    </div>
+    <p class="audience-prompt" id="audience-prompt"></p>
+    <p class="audience-status" id="audience-status" aria-live="polite"></p>
+    <ol class="audience-winners" id="audience-winners" data-auto-scroll></ol>
+  </section>
 
   <section class="log">
     <h3>回合记录 <span class="section-subtitle" aria-hidden="true">ROUND CHRONICLE</span></h3>
-    <ul id="log"></ul>
+    <ul id="log" data-auto-scroll></ul>
   </section>
 
   <details class="rules">
     <summary><span class="rules-summary-label">规则速查</span></summary>
     <ul>
-      <li>默认「二选一」模式：每轮抽取两道题，出题人先选一道，再查看目标并给出线索；也可在开始前切换为「经典单题」。</li>
+      <li>位置刻度：最左 −100%，中央 0%，最右 +100%。群友发送 g-50%、g0% 或 g+50% 作答，揭晓前可以修改。</li>
+      <li>二选一：10 秒内选题；超时按标签 1 / 2 各 70% / 30% 代选，同标签各 50%。选定前可重新抽选，双方每局各一次，重新计时。经典单题：直接使用抽到的题目。</li>
       <li>Psychic（出题人）看目标位置后，给一个落在卡片两个概念之间的线索，之后不能再说话。</li>
-      <li>本队讨论后把金色拨杆拖到猜测位置并锁定。</li>
-      <li>对方猜：目标的中心楔形在拨杆左边还是右边。</li>
+      <li>本队讨论后把金色拨杆拖到猜测位置并锁定。查看目标后倒计时 60 秒，宽限结束时，拨杆不在 0% 就锁定当前位置，仍在 0% 才均匀随机选择。</li>
+      <li>对方猜：目标的中心楔形在拨杆左边还是右边。倒计时 15 秒，到时左右各 50% 随机选择。</li>
+      <li>所有倒计时归零后保留 1.5 秒宽限，期间仍可提交操作；宽限结束才自动处理。联网以服务器收到操作的时间为准。</li>
       <li>揭示：本队拨杆落在目标色带内得 2/3/4 分；对方猜对左右得 1 分（本队 4 分时对方不得分）。</li>
-      <li>追赶规则：本队拿 4 分且仍然落后，立刻再行动一轮。</li>
-      <li>获胜：先达到设定分，或第 10 局结束时分数较高者获胜；届时平分则进入加时赛。</li>
-      <li>平分加时赛：两队各出一次题，比较该回合各自得分（含左右猜测的 1 分），谁高谁赢；仍平则重复，直到分出胜负。加时回合不计入主记分板。</li>
+      <li id="rule-turns">平衡快局：双方 0 分起步，两队轮流出题。</li>
+      <li id="rule-ending">获胜：第 4 轮有队达到 8 分则结算，否则第 6 轮结算；领先者胜，平分加时。每轮揭示后，若分差大于落后方剩余可追回分数（本队出题每次 4 分、猜左右每次 1 分），立即提前结束；能追平则继续。</li>
+      <li id="rule-overtime">平分加时赛：两队各出一次题，比较加时得分（含左右猜测的 1 分），谁高谁赢；仍平则和局，整局最多 8 轮。加时分不计入主记分板。</li>
       <li>出题禁忌：禁用卡片上的词/同义词、数字、复合线索、自造事物。</li>
     </ul>
   </details>
@@ -94,23 +123,23 @@
 
 <div class="modal-mask hidden" id="auth-modal">
   <div class="modal">
-    <div class="modal-kicker" aria-hidden="true">幻想指南 · 心灵波长</div>
+    <div class="modal-kicker" aria-hidden="true">幻想指南 · 逆转录者</div>
     <h2>进入对局</h2>
-    <p>输入密码加入<span class="warn">联网对局</span>(控制器/监视器实时同步);<br>也可以跳过密码,直接在<span class="warn">本设备</span>上玩本地热座版(不影响他人联网)。</p>
+    <p>输入密码加入<span class="warn">联网对局</span>，或在<span class="warn">本机</span>开始游戏。</p>
     <div class="field">
       <input type="password" id="auth-password" placeholder="输入密码" autocomplete="off">
     </div>
     <div class="deck-msg" id="auth-msg"></div>
-    <button class="btn primary" id="btn-auth" style="width:100%">确认密码，进入联网</button>
-    <button class="btn" id="btn-guest" style="width:100%;margin-top:10px">🎲 跳过密码，本地热座游玩</button>
+    <button class="btn primary" id="btn-auth" style="width:100%">加入联网对局</button>
+    <button class="btn" id="btn-guest" style="width:100%;margin-top:10px">本机游玩（无需密码）</button>
   </div>
 </div>
 
 <div class="modal-mask hidden" id="role-modal">
   <div class="modal">
-    <div class="modal-kicker" aria-hidden="true">幻想指南 · 心灵波长</div>
+    <div class="modal-kicker" aria-hidden="true">幻想指南 · 逆转录者</div>
     <h2>选择你的席位</h2>
-    <p>选择此设备的角色。控制器（如 iPad）负责操作游戏；监视器（如电脑）实时观看。</p>
+    <p>此设备用于操作游戏，还是观看对局？</p>
     <button class="btn primary btn-block" id="btn-role-controller">🎮 控制器（操作游戏）</button>
     <button class="btn btn-block" id="btn-role-monitor">👀 监视器（实时观看）</button>
   </div>
@@ -119,38 +148,50 @@
 <div class="modal-mask" id="setup-modal">
   <div class="modal">
     <div class="modal-kicker" aria-hidden="true">幻想指南 · 聚会游戏</div>
-    <h2 id="setup-title">Wavelength</h2>
+    <h2 id="setup-title">Returned</h2>
     <div class="ornament-rule" aria-hidden="true"></div>
-    <p>两队轮流派出一位「Psychic」出题，本队猜目标位置，对方猜左右。先拿 10 分或 10 局后领先者获胜。</p>
+    <p>两队轮流派出一位「Psychic」出题，本队猜目标位置，对方猜左右。一队完成一次出题与结算算一轮。</p>
     <div class="field-row">
       <div class="field">
-        <label>蓝队名称（先手 0 分）</label>
-        <input id="input-nameA" value="左脑" maxlength="8">
+        <label for="input-nameA">左队名称</label>
+        <input id="input-nameA" value="射命丸文" maxlength="8">
       </div>
       <div class="field">
-        <label>粉队名称（后手 1 分）</label>
-        <input id="input-nameB" value="右脑" maxlength="8">
+        <label for="input-nameB">右队名称</label>
+        <input id="input-nameB" value="姬海棠果" maxlength="8">
       </div>
+    </div>
+    <div class="field">
+      <label for="opt-rule-set">规则版本</label>
+      <select id="opt-rule-set" aria-describedby="rule-summary">
+        <option value="balanced" selected>平衡快局</option>
+        <option value="original">原版</option>
+      </select>
+      <p class="rule-summary" id="rule-summary"></p>
+    </div>
+    <div class="field">
+      <label for="opt-winscore" id="winscore-label">获胜分数（0 = 不设分数门槛，仍最多 6 轮）</label>
+      <input type="number" id="opt-winscore" min="0" max="999" step="1" value="8">
     </div>
     <div class="field">
       <label>先手队伍</label>
       <select id="select-first">
-        <option value="A">蓝队先手（蓝 0 分 / 粉 1 分）</option>
-        <option value="B">粉队先手（粉 0 分 / 蓝 1 分）</option>
+        <option value="A">左队先手（双方 0 分）</option>
+        <option value="B">右队先手（双方 0 分）</option>
         <option value="R" selected>随机</option>
       </select>
     </div>
     <div class="field">
-      <label for="opt-card-mode">游戏模式</label>
+      <label for="opt-card-mode">出题方式</label>
       <select id="opt-card-mode">
-        <option value="choice" selected>二选一：每轮抽两题，选一题（默认）</option>
+        <option value="choice" selected>二选一：每轮抽两题，选一题</option>
         <option value="single">经典单题：每轮抽一题</option>
       </select>
     </div>
     <details class="advanced">
       <summary>⚙ 高级选项</summary>
       <div class="field" id="deck-server" style="display:none">
-        <label>服务器题库（服务器 decks/ 文件夹）</label>
+        <label>可用题库</label>
         <div class="deck-row">
           <select id="deck-select">
             <option value="">— 选择题库 —</option>
@@ -162,37 +203,25 @@
         <label>题库</label>
         <div class="deck-row">
           <span class="deck-info" id="deck-info"></span>
-          <button type="button" class="btn" id="btn-load-deck">选择文件…</button>
+          <button type="button" class="btn" id="btn-load-deck">导入题库…</button>
           <button type="button" class="btn" id="btn-reset-deck">恢复初始题库</button>
         </div>
         <div class="deck-msg" id="deck-msg"></div>
-        <details class="deck-help">
-          <summary>题库文件格式（JSON / YAML）</summary>
-          <p><b>联网模式</b>：把题库文件放进服务器目录的 <b>decks/</b> 文件夹，控制器端下拉选择即可（改动后点「刷新」）。</p>
-          <p><b>JSON</b>（如 cards.json）：{"name": "题库名", "cards": [["左", "右"], ["左1", "右1", "左2", "右2"]]}，name 可省略。</p>
-          <p><b>YAML</b>（默认 <b>cards.yaml</b>）：首行可选 name: 题库名，然后 cards: 后每行一张 <b>- [左, 右]</b>；双面卡写 4 个概念 <b>- [左1, 右1, 左2, 右2]</b>；<b>#</b> 开头为注释。</p>
-          <p>2 个概念 = 单面卡；4 个概念 = 双面卡（Psychic 可选一面）。概念文字中请勿使用逗号。</p>
-        </details>
       </div>
       <div class="field">
         <label>其他题库</label>
         <div class="deck-row">
-          <button type="button" class="btn" id="btn-builtin-deck">通用题库（原内置）</button>
+          <button type="button" class="btn" id="btn-builtin-deck">通用题库</button>
         </div>
       </div>
       <div class="field">
-        <label>文案（游戏名 / 术语）</label>
+        <label>游戏名称与术语</label>
         <div class="deck-row">
           <span class="deck-info" id="names-info"></span>
-          <button type="button" class="btn" id="btn-load-names">选择文件…</button>
+          <button type="button" class="btn" id="btn-load-names">导入文案…</button>
           <button type="button" class="btn" id="btn-reset-names">恢复默认</button>
         </div>
         <div class="deck-msg" id="names-msg"></div>
-        <details class="deck-help">
-          <summary>文案文件格式</summary>
-          <p><b>JSON</b>（如 names.json）：键值对象，键可省略，省略的键用默认值。常用键：gameName / gameTitle / gameSubtitle / psychic（出题人）/ dial（拨杆）/ target（目标）/ teamDefaultA / teamDefaultB。</p>
-          <p>联网模式下服务器自动加载服务器目录下的 <b>names.json</b>，改完刷新即可生效。</p>
-        </details>
       </div>
       <div class="field-row">
         <div class="field">
@@ -200,20 +229,13 @@
           <label class="check-row"><input type="checkbox" id="opt-ordered"> 按顺序展示（不洗牌，抽完循环）</label>
         </div>
         <div class="field">
-          <label>获胜分数（0 = 不设分数门槛，仍最多 10 局）</label>
-          <input type="number" id="opt-winscore" min="0" max="999" value="10">
+          <label for="opt-bandwidth">得分区宽度（越宽越容易命中）</label>
+          <input type="number" id="opt-bandwidth" min="2" max="200" step="1" value="48" disabled>
         </div>
-        <div class="field">
-          <label>色带基准宽度（4 分 ×0.8 / 3 分 ×1 / 2 分 ×1.1）</label>
-          <input type="number" id="opt-bandwidth" min="2" max="200" step="1" value="40">
-        </div>
-      </div>
-      <div class="field">
-        <label>目标分布（固定公平模式）</label>
-        <div class="setting-note">第 1 局适中 · 第 2 局明显 · 第 3 局及以后推荐</div>
       </div>
     </details>
     <button class="btn primary" id="btn-start" style="width:100%">开始游戏</button>
+    <p style="margin:14px 0 0;text-align:center;font-size:13px"><a href="design/color-lab/index.html" target="_blank" rel="noopener" style="color:var(--dim)">得分区配色预览 ↗</a></p>
   </div>
 </div>
 
@@ -225,11 +247,17 @@
     <div class="modal-kicker" aria-hidden="true">终局 · 此刻同频</div>
     <div class="winner" id="winner-text"></div>
     <div class="final-score" id="final-score"></div>
+    <div class="audience-final hidden" id="audience-final">
+      <h3>本轮群友榜</h3>
+      <p class="audience-status" id="audience-final-status"></p>
+      <ol class="audience-winners" id="audience-final-winners"></ol>
+    </div>
     <button class="btn primary" id="btn-playagain" style="width:100%">再来一局</button>
     <button class="btn" id="btn-over-close" style="width:100%;margin-top:10px">返回复盘</button>
   </div>
 </div>
 
+<script src="target-sampling-config.js"></script>
 <script src="game.js"></script>
 <script src="app.js"></script>
 </body>

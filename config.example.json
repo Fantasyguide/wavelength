@@ -1,0 +1,11 @@
+{
+  "password": "",
+  "qq": {
+    "enabled": false,
+    "groupId": "123456789",
+    "url": "ws://127.0.0.1:5500/v1/events",
+    "token": "",
+    "topN": 5,
+    "guessPolicy": "last"
+  }
+}
