@@ -346,6 +346,9 @@
       clearTimeout(timer);
       if (r.ok) {
         pingFail = 0;
+        return r.json().then(function (info) {
+          if (ONLINE && ROLE === "controller" && !info.authed) promptControllerAuth(info);
+        });
       } else {
         failPing();
       }
@@ -367,14 +370,17 @@
     if (sse) {
       try { sse.close(); } catch (e) {}
     }
-    sse = new EventSource("/api/stream");
-    sse.onopen = function () {
+    var connection = new EventSource("/api/stream?role=" + ROLE);
+    sse = connection;
+    connection.onopen = function () {
+      if (!ONLINE || sse !== connection) return;
       retryDelay = 1000;
       pingFail = 0;
       setConn("ok");
       flushQueue();
     };
-    sse.onmessage = function (ev) {
+    connection.onmessage = function (ev) {
+      if (!ONLINE || sse !== connection) return;
       try {
         var previousPhase = G.phase;
         G = JSON.parse(ev.data);
@@ -382,11 +388,13 @@
         render();
       } catch (e) {}
     };
-    sse.onerror = function () {
-      try { sse.close(); } catch (e) {}
+    connection.onerror = function () {
+      if (!ONLINE || sse !== connection) return;
+      try { connection.close(); } catch (e) {}
       sse = null;
       setConn("retry");
       scheduleReconnect();
+      heartbeat();
     };
   }
 
@@ -425,7 +433,7 @@
   }
 
   function flushQueue() {
-    if (connState !== "ok") return;
+    if (!ONLINE || ROLE !== "controller" || connState !== "ok") return;
     collapseDialQueue();
     var pending = intentQueue.splice(0, intentQueue.length);
     pending.forEach(function (it) { sendIntent(it); });
@@ -455,13 +463,17 @@
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(intent)
     }).then(function (r) {
+      if (r.status === 401) {
+        if (ONLINE && ROLE === "controller") promptControllerAuth({});
+        return;
+      }
       if (!r.ok) return r.json().then(function (j) { throw new Error(j.error || "http " + r.status); });
       intentError = "";
       renderThccb();
     }).catch(function (e) {
       intentError = e.message || "操作发送失败，请重试";
       renderThccb();
-      if (connState !== "ok") {
+      if (ONLINE && ROLE === "controller" && connState !== "ok") {
         queueIntent(intent);
         scheduleFlush();
       }
@@ -1239,20 +1251,35 @@
       return;
     }
     ONLINE = true;
-    if (info.authRequired && !info.authed) {
-      setConn("connecting");
-      $("auth-modal").classList.remove("hidden");
-      render();
-      return;
-    }
+    ROLE = "monitor";
     enterOnline();
+    $("role-modal").classList.remove("hidden");
+  }
+
+  function stopOnline() {
+    if (sse) { sse.close(); sse = null; }
+    clearTimeout(retryTimer);
+    clearTimeout(flushTimer);
+    clearInterval(heartbeatTimer);
+    retryTimer = flushTimer = heartbeatTimer = null;
+    intentQueue = [];
+    intentError = "";
+    psychicViewing = false;
+  }
+
+  function dismissEntry() {
+    $("auth-modal").classList.add("hidden");
+    $("role-modal").classList.add("hidden");
+    $("auth-password").value = "";
+    $("auth-msg").textContent = "";
   }
 
   function enterGuest() {
     ONLINE = false;
-    $("auth-modal").classList.add("hidden");
-    $("auth-password").value = "";
-    $("auth-msg").textContent = "";
+    stopOnline();
+    ROLE = "local";
+    G = WL.createGame();
+    dismissEntry();
     setConn("local");
     initLocalDeck();
     render();
@@ -1262,8 +1289,50 @@
     setConn("connecting");
     connectSSE();
     startHeartbeat();
-    $("role-modal").classList.remove("hidden");
     render();
+  }
+
+  function enterMonitor() {
+    stopOnline();
+    ONLINE = true;
+    ROLE = "monitor";
+    // Clear any formerly privileged snapshot before subscribing as a spectator.
+    G = WL.createGame();
+    dismissEntry();
+    enterOnline();
+  }
+
+  function enterController() {
+    stopOnline();
+    ONLINE = true;
+    ROLE = "controller";
+    thccbLoaded = false;
+    dismissEntry();
+    enterOnline();
+  }
+
+  function promptControllerAuth(info) {
+    enterMonitor();
+    $("auth-modal").classList.remove("hidden");
+    if (info.controllerAvailable === false) {
+      $("auth-msg").textContent = "服务器尚未设置控制器密码，请设置后重启；仍可免密观看或本机游玩。";
+    }
+    $("auth-password").focus();
+  }
+
+  function chooseController() {
+    fetch("/api/ping").then(function (r) {
+      if (!r.ok) throw new Error("暂时无法连接服务器，请稍后重试");
+      return r.json();
+    }).then(function (info) {
+      if (!ONLINE) return;
+      if (info.authed) enterController();
+      else promptControllerAuth(info);
+    }).catch(function (e) {
+      if (!ONLINE) return;
+      promptControllerAuth({});
+      $("auth-msg").textContent = e.message;
+    });
   }
 
   function submitAuth() {
@@ -1278,10 +1347,7 @@
         if (!r.ok) throw new Error(j.error || "认证失败");
       });
     }).then(function () {
-      $("auth-modal").classList.add("hidden");
-      $("auth-password").value = "";
-      $("auth-msg").textContent = "";
-      enterOnline();
+      if (ONLINE && !$("auth-modal").classList.contains("hidden")) enterController();
     }).catch(function (e) {
       msg.textContent = e.message;
       msg.className = "deck-msg err";
@@ -1403,17 +1469,14 @@
   });
   $("btn-role-controller").onclick = function () {
     ensureAudio();
-    ROLE = "controller";
-    thccbLoaded = false;
-    $("role-modal").classList.add("hidden");
-    render();
+    chooseController();
   };
   $("btn-role-monitor").onclick = function () {
     ensureAudio();
-    ROLE = "monitor";
-    $("role-modal").classList.add("hidden");
-    render();
+    enterMonitor();
   };
+  $("btn-role-local").onclick = enterGuest;
+  $("btn-auth-monitor").onclick = enterMonitor;
   $("thccb-save").onclick = function () {
     var button = this;
     button.disabled = true;

@@ -6,6 +6,7 @@ const os = require("node:os");
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 const puppeteer = require("puppeteer-core");
+const fixture = require("./server-fixture");
 
 (async () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "wl-rules-"));
@@ -14,15 +15,16 @@ const puppeteer = require("puppeteer-core");
     process.env.PORT = "0";
     process.env.WL_CONFIG = path.join(tmp, "config.json");
     process.env.WL_AUTH_SESSIONS = path.join(tmp, "auth.json");
-    fs.writeFileSync(process.env.WL_CONFIG, JSON.stringify({ password: "" }));
+    fs.writeFileSync(process.env.WL_CONFIG, JSON.stringify({ password: fixture.password }));
     const backend = require("../server.js");
     server = backend.server;
     await new Promise(resolve => server.once("listening", resolve));
     const base = "http://127.0.0.1:" + server.address().port;
+    const cookie = await fixture.login(base);
     const state = backend.state;
     async function intent(type, extra = {}) {
       const response = await fetch(base + "/api/intent", { method: "POST",
-        headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type, ...extra }) });
+        headers: { "Content-Type": "application/json", Cookie: cookie }, body: JSON.stringify({ type, ...extra }) });
       assert.equal(response.status, 200);
     }
     browser = await puppeteer.launch({ executablePath: require("./chrome.js")(), headless: true,
@@ -83,7 +85,8 @@ const puppeteer = require("puppeteer-core");
       await p.bringToFront();
       await p.goto(base, { waitUntil: "domcontentloaded" });
       await p.waitForSelector("#role-modal:not(.hidden)");
-      await p.click("#btn-role-" + role);
+      if (role === "controller") await fixture.loginController(p);
+      else await p.click("#btn-role-monitor");
       await p.evaluate(() => document.fonts.ready);
     }
     await controller.bringToFront();

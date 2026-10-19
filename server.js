@@ -33,7 +33,7 @@ var MIME = {
 };
 
 var state = WL.createGame();
-var clients = new Set();
+var clients = new Map();
 var DECKS_DIR = path.join(ROOT, "decks");
 
 function loadConfig() {
@@ -275,7 +275,7 @@ function safeEqual(a, b) {
 }
 
 function isAuthed(req) {
-  if (!config.password) return true;
+  if (!config.password) return false;
   var token = authToken(req);
   if (!token) return false;
   pruneSessions();
@@ -286,8 +286,9 @@ function isAuthed(req) {
 }
 
 function requireAuth(req, res, cb) {
+  if (!config.password) return sendJson(res, 403, { ok: false, error: "服务器尚未设置控制器密码，请设置后重启；观看战况和本机游玩无需密码" });
   if (isAuthed(req)) return cb();
-  sendJson(res, 401, { ok: false, error: "需要密码" });
+  sendJson(res, 401, { ok: false, error: "操作联网对局需要控制器密码" });
 }
 
 function listDecks() {
@@ -336,13 +337,28 @@ var defaultDeck = {
   cards: JSON.parse(JSON.stringify(state.cards))
 };
 
-function publicState() { return state; }
+function publicState(controller) {
+  if (controller) return state;
+  var snapshot = Object.assign({}, state, {
+    target: ["revealed", "over"].includes(state.phase) ? state.target : null
+  });
+  delete snapshot.thccb;
+  return snapshot;
+}
+
+function streamAuthorized(res, client) {
+  if (!client.controller || isAuthed(client.req)) return true;
+  clients.delete(res);
+  res.end();
+  return false;
+}
 
 function broadcast() {
-  var payload = "data: " + JSON.stringify(publicState()) + "\n\n";
-  clients.forEach(function (res) {
+  var publicPayload = "data: " + JSON.stringify(publicState(false)) + "\n\n";
+  var controllerPayload = "data: " + JSON.stringify(publicState(true)) + "\n\n";
+  clients.forEach(function (client, res) {
     try {
-      res.write(payload);
+      if (streamAuthorized(res, client)) res.write(client.controller ? controllerPayload : publicPayload);
     } catch (e) {
       clients.delete(res);
     }
@@ -350,9 +366,9 @@ function broadcast() {
 }
 
 var keepalive = setInterval(function () {
-  clients.forEach(function (res) {
+  clients.forEach(function (client, res) {
     try {
-      res.write(": keepalive\n\n");
+      if (streamAuthorized(res, client)) res.write(": keepalive\n\n");
     } catch (e) {
       clients.delete(res);
     }
@@ -372,7 +388,7 @@ var gameTimer = setInterval(function () {
 gameTimer.unref();
 
 function sendJson(res, code, obj, headers) {
-  var allHeaders = { "Content-Type": "application/json; charset=utf-8" };
+  var allHeaders = { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" };
   Object.keys(headers || {}).forEach(function (key) { allHeaders[key] = headers[key]; });
   res.writeHead(code, allHeaders);
   res.end(JSON.stringify(obj));
@@ -452,7 +468,8 @@ var server = http.createServer(function (req, res) {
   if (req.method === "GET" && url === "/api/ping") {
     return sendJson(res, 200, {
       ok: true,
-      authRequired: !!config.password,
+      authRequired: true,
+      controllerAvailable: !!config.password,
       authed: isAuthed(req),
       deck: state.deckName,
       cards: state.cards.length
@@ -460,9 +477,10 @@ var server = http.createServer(function (req, res) {
   }
 
   if (req.method === "POST" && url === "/api/auth") {
+    if (!config.password) return requireAuth(req, res, function () {});
     return readJsonBody(req, res, function (body) {
       var pass = typeof body.password === "string" ? body.password : "";
-      if (!config.password || safeEqual(pass, config.password)) {
+      if (safeEqual(pass, config.password)) {
         var token = crypto.randomBytes(32).toString("base64url");
         var now = Date.now();
         authStore.sessions.push({
@@ -489,6 +507,7 @@ var server = http.createServer(function (req, res) {
       });
       saveAuthStore();
     }
+    broadcast();
     return sendJson(res, 200, { ok: true }, {
       "Set-Cookie": authCookie(req, "", 0)
     });
@@ -521,17 +540,19 @@ var server = http.createServer(function (req, res) {
   }
 
   if (req.method === "GET" && url === "/api/stream") {
-    return requireAuth(req, res, function () {
+    var controller = new URL(req.url, "http://localhost").searchParams.get("role") === "controller";
+    var openStream = function () {
       res.writeHead(200, {
         "Content-Type": "text/event-stream; charset=utf-8",
-        "Cache-Control": "no-cache",
+        "Cache-Control": "no-store",
         "Connection": "keep-alive"
       });
       res.write("retry: 2000\n\n");
-      res.write("data: " + JSON.stringify(publicState()) + "\n\n");
-      clients.add(res);
+      res.write("data: " + JSON.stringify(publicState(controller)) + "\n\n");
+      clients.set(res, { req: req, controller: controller });
       req.on("close", function () { clients.delete(res); });
-    });
+    };
+    return controller ? requireAuth(req, res, openStream) : openStream();
   }
 
   if (req.method === "POST" && url === "/api/intent") {

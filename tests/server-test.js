@@ -1,4 +1,7 @@
 process.env.PORT = "0";
+const fixture = require("./server-fixture");
+fixture.configure();
+let cookie = "";
 const http = require("http");
 const fs = require("fs");
 const strictAssert = require("node:assert/strict");
@@ -13,8 +16,8 @@ function req(method, url, body) {
   return new Promise((resolve, reject) => {
     const u = new URL(url);
     const r = http.request({
-      hostname: u.hostname, port: u.port, path: u.pathname, method,
-      headers: body ? { "Content-Type": "application/json" } : {}
+      hostname: u.hostname, port: u.port, path: u.pathname + u.search, method,
+      headers: { ...(body ? { "Content-Type": "application/json" } : {}), Cookie: cookie }
     }, (res) => {
       let d = "";
       res.on("data", (c) => { d += c; });
@@ -30,7 +33,7 @@ function reqRaw(method, url, raw, headers) {
   return new Promise((resolve, reject) => {
     const u = new URL(url);
     const r = http.request({
-      hostname: u.hostname, port: u.port, path: u.pathname, method, headers: headers || {}
+      hostname: u.hostname, port: u.port, path: u.pathname + u.search, method, headers: { ...headers, Cookie: cookie }
     }, (res) => {
       let d = "";
       res.on("data", (c) => { d += c; });
@@ -63,10 +66,11 @@ function latestSnapshot() {
 
   let r = await req("GET", base + "/api/ping");
   let j = JSON.parse(r.body);
-  assert(r.status === 200 && j.ok === true && j.authRequired === false, "ping ok, no auth");
+  assert(r.status === 200 && j.ok === true && j.authRequired === true, "public ping reports controller authentication");
 
-  assert((await req("GET", base + "/api/thccb")).status === 403, "THCCB config requires a configured shared password");
-  assert((await req("POST", base + "/api/thccb", { enabled: true })).status === 403, "THCCB config writes require a configured shared password");
+  assert((await req("GET", base + "/api/thccb")).status === 401, "THCCB config requires authentication");
+  assert((await req("POST", base + "/api/thccb", { enabled: true })).status === 401, "THCCB config writes require authentication");
+  cookie = await fixture.login(base);
 
   r = await req("GET", base + "/");
   assert(r.status === 200 && r.body.indexOf("Returned") !== -1, "index.html served");
@@ -89,7 +93,7 @@ function latestSnapshot() {
   r = await req("GET", base + "/nope");
   assert(r.status === 404, "missing file 404");
 
-  const streamReq = http.get(base + "/api/stream", (res) => {
+  const streamReq = http.get(base + "/api/stream?role=controller", { headers: { Cookie: cookie } }, (res) => {
     res.on("data", (c) => { streamText += c.toString(); });
   });
   await sleep(150);

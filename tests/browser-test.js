@@ -1,4 +1,6 @@
 process.env.PORT = "3101";
+const fixture = require("./server-fixture");
+fixture.configure();
 const path = require("path");
 const puppeteer = require("puppeteer-core");
 const findChrome = require("./chrome.js");
@@ -25,7 +27,7 @@ function assert(cond, msg) {
   await page.waitForFunction(() => document.getElementById("conn-badge").textContent.indexOf("已连接") !== -1, { timeout: 5000 });
   console.log("ok: connection badge connected");
 
-  await page.click("#btn-role-controller");
+  await fixture.loginController(page);
   await sleep(300);
   assert(await page.$eval("#setup-modal", (el) => el.className.indexOf("hidden") === -1), "setup modal shown for controller");
   await page.$eval("#select-first", (el) => { el.value = "A"; });
@@ -69,7 +71,7 @@ function assert(cond, msg) {
   console.log("ok: badge detects disconnection");
 
   delete require.cache[require.resolve(serverPath)];
-  const { server: server2 } = require(serverPath);
+  const { server: server2, state: state2 } = require(serverPath);
   await new Promise((r) => server2.once("listening", r));
 
   await page.waitForFunction(() => document.getElementById("conn-badge").textContent.indexOf("已连接") !== -1, { timeout: 15000 });
@@ -80,6 +82,32 @@ function assert(cond, msg) {
   await page.click(".card-choice");
   await sleep(500);
   assert(await page.$eval("body", el => el.dataset.phase) === "psychic", "game works again after reconnect");
+
+  const guestContext = await browser.createBrowserContext();
+  const local = await guestContext.newPage();
+  local.on("pageerror", e => consoleErrors.push(e.message));
+  await local.goto("http://127.0.0.1:3101/", { waitUntil: "domcontentloaded" });
+  await local.waitForSelector("#role-modal:not(.hidden)");
+  assert(await local.$eval("#auth-modal", el => el.classList.contains("hidden")), "role choice is public");
+  await local.click("#btn-role-local");
+  await local.waitForSelector("#setup-modal:not(.hidden)");
+  const onlineBefore = JSON.stringify(state2);
+  await local.click("#btn-start");
+  await local.waitForSelector(".card-choice");
+  await local.click(".card-choice");
+  await local.waitForFunction(() => document.body.dataset.phase === "psychic");
+  assert(JSON.stringify(state2) === onlineBefore, "local game does not change the online match");
+  await page.evaluate(() => fetch('/api/intent', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'newGame' }) }));
+  await page.waitForSelector("#setup-modal:not(.hidden)");
+  assert(await local.$eval("body", el => el.dataset.phase) === "psychic", "online updates do not replace the local game");
+  await guestContext.close();
+
+  await page.evaluate(() => fetch('/api/logout', { method: 'POST' }));
+  await page.waitForSelector("#auth-modal:not(.hidden)");
+  assert(await page.$eval("#thccb-settings", el => el.hidden), "revoked controller loses private controls");
+  await page.click("#btn-auth-monitor");
+  await page.waitForFunction(() => document.body.classList.contains('monitor-mode') && document.getElementById('conn-badge').textContent.includes('已连接'));
+  assert(await page.$eval("#auth-modal", el => el.classList.contains("hidden")), "revoked controller can continue watching without login");
 
   console.log("JS errors on page:", consoleErrors.length === 0 ? "none" : consoleErrors.join(" | "));
   browser.close();

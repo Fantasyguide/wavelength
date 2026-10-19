@@ -1,4 +1,7 @@
 process.env.PORT = "0";
+const fixture = require("./server-fixture");
+fixture.configure();
+let cookie = "";
 const http = require("http");
 const path = require("path");
 const puppeteer = require("puppeteer-core");
@@ -18,7 +21,7 @@ function postIntent(port, intent) {
       port,
       path: "/api/intent",
       method: "POST",
-      headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(raw) }
+      headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(raw), Cookie: cookie }
     }, (res) => {
       res.resume();
       res.on("end", resolve);
@@ -31,6 +34,7 @@ function postIntent(port, intent) {
 (async function () {
   await new Promise((resolve) => server.once("listening", resolve));
   const port = server.address().port;
+  cookie = await fixture.login(`http://127.0.0.1:${port}`);
   const browser = await puppeteer.launch({ executablePath: findChrome(), headless: "new", args: ["--no-sandbox"] });
   const page = await browser.newPage();
   await page.emulateMediaFeatures([{ name: "prefers-reduced-motion", value: "reduce" }]);

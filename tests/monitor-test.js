@@ -5,6 +5,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const puppeteer = require("puppeteer-core");
+const fixture = require("./server-fixture");
 
 (async () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "wl-monitor-"));
@@ -13,15 +14,16 @@ const puppeteer = require("puppeteer-core");
     process.env.PORT = "0";
     process.env.WL_CONFIG = path.join(tmp, "config.json");
     process.env.WL_AUTH_SESSIONS = path.join(tmp, "auth.json");
-    fs.writeFileSync(process.env.WL_CONFIG, JSON.stringify({ password: "" }));
+    fs.writeFileSync(process.env.WL_CONFIG, JSON.stringify({ password: fixture.password }));
     const backend = require("../server.js");
     server = backend.server;
     await new Promise(resolve => server.once("listening", resolve));
     console.log("monitor QA: isolated server ready");
     const state = backend.state;
     const base = "http://127.0.0.1:" + server.address().port;
+    const cookie = await fixture.login(base);
     async function intent(type, extra = {}) {
-      const res = await fetch(base + "/api/intent", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type, ...extra }) });
+      const res = await fetch(base + "/api/intent", { method: "POST", headers: { "Content-Type": "application/json", Cookie: cookie }, body: JSON.stringify({ type, ...extra }) });
       assert.equal(res.status, 200);
     }
     browser = await puppeteer.launch({ executablePath: require("./chrome.js")(), headless: true, args: ["--no-sandbox", "--disable-dev-shm-usage"] });
@@ -46,7 +48,8 @@ const puppeteer = require("puppeteer-core");
       await page.goto(base, { waitUntil: "domcontentloaded" });
       await page.evaluate(() => document.fonts.ready);
       await page.waitForSelector("#role-modal:not(.hidden)");
-      await page.click("#btn-role-" + role);
+      if (role === "controller") await fixture.loginController(page);
+      else await page.click("#btn-role-monitor");
       console.log("monitor QA: selected " + role);
     }
     await intent("loadDeck", { cards: [["短", "右边较长的概念", "独处", "喜欢热闹"]] });

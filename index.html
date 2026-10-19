@@ -119,13 +119,14 @@
 <div class="modal-mask hidden" id="auth-modal">
   <div class="modal">
     <div class="modal-kicker" aria-hidden="true">幻想指南 · 逆转录者</div>
-    <h2>进入对局</h2>
-    <p>输入密码加入<span class="warn">联网对局</span>，或在<span class="warn">本机</span>开始游戏。</p>
+    <h2>进入控制器</h2>
+    <p>操作联网对局需要密码。观看战况和本机游玩无需密码。</p>
     <div class="field">
       <input type="password" id="auth-password" placeholder="输入密码" autocomplete="off">
     </div>
     <div class="deck-msg" id="auth-msg"></div>
-    <button class="btn primary" id="btn-auth" style="width:100%">加入联网对局</button>
+    <button class="btn primary" id="btn-auth" style="width:100%">验证密码并进入控制器</button>
+    <button class="btn" id="btn-auth-monitor" style="width:100%;margin-top:10px">观看联网战况（无需密码）</button>
     <button class="btn" id="btn-guest" style="width:100%;margin-top:10px">本机游玩（无需密码）</button>
   </div>
 </div>
@@ -134,9 +135,10 @@
   <div class="modal">
     <div class="modal-kicker" aria-hidden="true">幻想指南 · 逆转录者</div>
     <h2>选择你的席位</h2>
-    <p>此设备用于操作游戏，还是观看对局？</p>
-    <button class="btn primary btn-block" id="btn-role-controller">🎮 控制器（操作游戏）</button>
-    <button class="btn btn-block" id="btn-role-monitor">👀 监视器（实时观看）</button>
+    <p>选择操作联网对局、观看战况，或在本机游玩。</p>
+    <button class="btn primary btn-block" id="btn-role-controller">🎮 控制器（需要密码）</button>
+    <button class="btn btn-block" id="btn-role-monitor">👀 监视器（无需密码）</button>
+    <button class="btn btn-block" id="btn-role-local">🎲 本机游玩（无需密码）</button>
   </div>
 </div>
 

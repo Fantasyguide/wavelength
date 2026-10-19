@@ -1,4 +1,7 @@
 process.env.PORT = "0";
+const fixture = require("./server-fixture");
+fixture.configure();
+let cookie = "";
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
@@ -17,7 +20,7 @@ class FakeES {
     this.onmessage = null;
     this.onopen = null;
     this._buf = "";
-    const req = http.get(BASE + "/api/stream", (res) => {
+    const req = http.get(new URL(url, BASE), { headers: { Cookie: cookie } }, (res) => {
       setTimeout(() => { if (this.onopen) this.onopen(); }, 10);
       res.on("data", (c) => {
         this._buf += c.toString();
@@ -42,7 +45,8 @@ function makePage() {
     resources: "usable",
     pretendToBeVisual: true,
     beforeParse(window) {
-      window.fetch = (u, opts) => global.fetch(new URL(u, BASE + "/").href, opts);
+      window.fetch = (u, opts) => global.fetch(new URL(u, BASE + "/").href,
+        { ...opts, headers: { ...opts?.headers, Cookie: cookie } });
       window.EventSource = FakeES;
     }
   });
@@ -71,6 +75,7 @@ function click(doc, id) {
 (async function () {
   await new Promise((r) => server.once("listening", r));
   BASE = `http://127.0.0.1:${server.address().port}`;
+  cookie = await fixture.login(BASE);
 
   const controller = makePage();
   const monitor = makePage();
