@@ -92,6 +92,17 @@
   <div class="display-footer" id="display-footer"></div>
 
 
+  <section class="audience-results hidden" id="audience-results" aria-live="polite">
+    <h3>观众竞猜前五名</h3>
+    <p id="audience-results-note"></p>
+    <div class="audience-results-scroll">
+      <table id="audience-results-table" class="hidden">
+        <thead><tr><th scope="col">名次</th><th scope="col">玩家</th><th scope="col">竞猜位置</th><th scope="col">误差</th><th scope="col">到账</th></tr></thead>
+        <tbody id="audience-results-rows"></tbody>
+      </table>
+    </div>
+  </section>
+
   <section class="log">
     <h3>回合记录 <span class="section-subtitle" aria-hidden="true">ROUND CHRONICLE</span></h3>
     <ul id="log" data-auto-scroll></ul>

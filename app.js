@@ -84,7 +84,32 @@
     });
   }
 
+  function renderAudienceResults() {
+    var info = G.thccb;
+    var show = ONLINE && info && info.enabled && ["revealed", "over"].includes(G.phase);
+    $("audience-results").classList.toggle("hidden", !show);
+    if (!show) return;
+    var results = info.results;
+    $("audience-results-table").classList.toggle("hidden", !results || !results.top_five.length);
+    $("audience-results-note").textContent = info.results_error || (!results ? "正在同步竞猜结果…" :
+      !results.top_five.length ? "本轮没有观众参与竞猜。" : "目标 " + WL.formatPercent(WL.toSignedPercent(results.target_position)) + "，位置按本页刻度显示，到账单位为金圆券。");
+    var rows = $("audience-results-rows");
+    rows.replaceChildren();
+    if (results) results.top_five.forEach(function (entry, index) {
+      var row = document.createElement("tr");
+      [index + 1, entry.username, WL.formatPercent(WL.toSignedPercent(entry.position)),
+        (entry.distance / 5).toFixed(1) + "%", Number(entry.payout).toLocaleString("zh-CN")].forEach(function (value, column) {
+        var cell = document.createElement("td");
+        cell.textContent = String(value);
+        if (column === 1) { cell.className = "audience-player"; cell.title = String(value); }
+        row.appendChild(cell);
+      });
+      rows.appendChild(row);
+    });
+  }
+
   function renderThccb() {
+    renderAudienceResults();
     var controller = ONLINE && ROLE === "controller";
     $("thccb-settings").hidden = !controller;
     if (controller && connState === "ok") loadThccbConfig();
