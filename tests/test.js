@@ -104,6 +104,7 @@ async function pickFile(name, content, inputId) {
   assert(doc.querySelectorAll(".card-choice").length === 2, "two candidate cards shown before psychic phase");
   assert(doc.getElementById("controls").children.length === 1 && doc.getElementById("btn-redraw"), "only redraw is available before choosing a card");
   assert(doc.getElementById("bands").children.length === 0, "no target rendered while choosing");
+  assert(doc.querySelector(".card-choice .con i").textContent.trim() === "VS", "candidate concepts use VS");
   assert(doc.getElementById("timer-display").textContent === "00:10", "selection shows ten-second countdown");
   const choiceStart = realDateNow();
   window.Date.now = () => choiceStart + 5000;
@@ -139,6 +140,7 @@ async function pickFile(name, content, inputId) {
 
   const skipBtn = Array.from(doc.getElementById("controls").children).find((b) => b.textContent.indexOf("跳过此题") !== -1);
   assert(!skipBtn, "selected choice-mode topic cannot be skipped");
+  assert(doc.querySelector(".side .con i").textContent.trim() === "VS", "selected concepts use VS");
 
   click(doc.getElementById("controls").children[0]);
   assert(doc.getElementById("screen").className.indexOf("open") !== -1, "screen opened for psychic");
@@ -219,6 +221,7 @@ async function pickFile(name, content, inputId) {
   assert(logA.indexOf("color:var(--cA)") !== -1, "team name colored in log");
   assert(logA.indexOf("目标") !== -1 && logA.indexOf("拨杆") !== -1, "log shows target-dial range");
   const logText = doc.getElementById("log").children[0].textContent;
+  assert(doc.querySelector(".log-card b").textContent.includes(" VS "), "history concepts use VS");
   assert(logText.indexOf("% / ") !== -1, "log uses an unambiguous separator for signed values");
   const pcts = logText.match(/[+-]?\d+(?:\.\d)?%/g).map((s) => parseFloat(s));
   assert(pcts.length === 2 && pcts[0] <= pcts[1], "log percents sorted ascending");

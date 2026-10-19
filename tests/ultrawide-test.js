@@ -41,8 +41,8 @@ function postIntent(port, intent) {
       const groups = [
         [".card-frame", ".card-label, .side-tag, .con"],
         ["#hint", ".phase-message, .guess-choice"],
-        [".team.a", ".tname, .tscore, .score-track, .team-direction"],
-        [".team.b", ".tname, .tscore, .score-track, .team-direction"],
+        [".team.a", ".tname, .tscore, .score-track"],
+        [".team.b", ".tname, .tscore, .score-track"],
         [".wrap", ".active-turn"],
         [".spectrum-wrap", ".tick-number, .spectrum-labels span"],
         ["#score-pop", null]
@@ -52,7 +52,7 @@ function postIntent(port, intent) {
         const bounds = container.getBoundingClientRect();
         const elements = contentSelector ? container.querySelectorAll(contentSelector) : [container];
         for (const el of elements) {
-          if (!el.getClientRects().length || !el.textContent.trim() || el.classList.contains("team-direction")) continue;
+          if (!el.getClientRects().length || !el.textContent.trim()) continue;
           const range = document.createRange();
           range.selectNodeContents(el);
           const r = range.getBoundingClientRect();
@@ -195,7 +195,7 @@ function postIntent(port, intent) {
     "guess timer is centered at the bottom with at least 24px of bottom space: " + JSON.stringify(timerAndTicks));
   assert(timerAndTicks.tickLabels.join(",") === "-100%,-50%,0%,+50%,+100%" && timerAndTicks.labelsBelow && timerAndTicks.ticksFit, "signed percentage tick labels fit below the ultra-wide axis");
   await postIntent(port, { type: "guess", guess: "R" });
-  await page.waitForFunction(() => document.getElementById("directionB").textContent === "→");
+  await page.waitForFunction(() => document.body.dataset.phase === "reveal" && document.getElementById("guess-region").dataset.side === "R");
 
   const layout = await page.evaluate(() => {
     const rect = (selector) => {
@@ -211,8 +211,6 @@ function postIntent(port, intent) {
       card: rect(".card-area"),
       axis: rect(".axis"),
       log: rect(".log"),
-      guess: rect("#directionB"),
-      guessText: document.querySelector("#directionB").textContent,
       controls: getComputedStyle(document.getElementById("controls")).display,
       rules: getComputedStyle(document.querySelector("details.rules")).display,
       bodyClass: document.body.className
@@ -228,16 +226,9 @@ function postIntent(port, intent) {
   assert(layout.log.top > layout.scoreboard.bottom && layout.audience.top > layout.teamB.bottom && layout.audience.right <= 3904,
     "history and audience have separate spaces beneath their respective teams");
   assert(layout.axis.width >= 1800 && layout.axis.height >= 72, "spectrum is wide and readable");
-  assert(layout.guess.width >= 800 && layout.guessText === "→" && layout.guess.left > layout.teamB.left && layout.guess.right < layout.teamB.right &&
-    layout.guess.top > layout.teamB.top && layout.guess.bottom < layout.teamB.bottom,
-    "the opponent's direction arrow fills the team backdrop while staying inside its frame");
-  assert(await page.$eval(".team.b", team => {
-    const arrow = getComputedStyle(team.querySelector(".team-direction"));
-    return arrow.position === "absolute" && arrow.pointerEvents === "none" &&
-      arrow.backgroundColor === "rgb(211, 211, 211)" &&
-      [...team.querySelectorAll(".team-heading, .tscore, .score-track, .team-gain")]
-        .every(el => Number(getComputedStyle(el).zIndex) > Number(arrow.zIndex));
-  }), "gray background arrow stays below every team-card element without intercepting input");
+  assert(await page.$$(".team-direction").then(els => els.length === 0), "team cards have no gray direction arrows");
+  assert(await page.$eval(".team.b", team => team.getAttribute("aria-label").includes("选择右边")),
+    "the selected direction remains accessible without a team-card arrow");
   assert(layout.scoreboard.bottom <= 672 && layout.log.bottom <= 672, "side panels fit the low-height display");
   assert(layout.controls === "none" && layout.rules === "none", "passive monitor hides game controls and local help buttons");
   await assertReadableLayout("reveal");
@@ -319,7 +310,7 @@ function postIntent(port, intent) {
     await postIntent(port, { type: "lock" });
     await postIntent(port, { type: "guess", guess: "R" });
     await postIntent(port, { type: "reveal" });
-    await page.waitForFunction(() => document.body.dataset.phase === "revealed" && document.getElementById("directionB").textContent === "→");
+    await page.waitForFunction(() => document.body.dataset.phase === "revealed" && document.querySelector(".team.b").getAttribute("aria-label").includes("选择右边"));
     assert(state[special], `${special} result fixture reached the intended state`);
     for (const [width, height] of [[1952, 336], [3904, 672]]) {
       await page.setViewport({ width, height, deviceScaleFactor: 1 });
@@ -378,6 +369,13 @@ function postIntent(port, intent) {
     await assertReadableLayout(`long candidates at ${width}x${height}`);
   }
 
+  await postIntent(port, { type: "selectCard", index: 0 });
+  await page.waitForFunction(() => document.body.dataset.phase === "psychic");
+  for (const [width, height] of [[1952, 336], [3904, 672]]) {
+    await page.setViewport({ width, height, deviceScaleFactor: 1 });
+    await assertReadableLayout(`selected double-sided topic at ${width}x${height}`);
+  }
+
   // Additional progress rows must stay below the names and above the side panels.
   for (const winScore of [40, 0, 10]) {
     await postIntent(port, { type: "setWinScore", value: winScore });
@@ -411,7 +409,7 @@ function postIntent(port, intent) {
         const card = el.querySelector(".log-card").getBoundingClientRect();
         const score = el.querySelector(".log-score").getBoundingClientRect();
         return Math.abs(card.top - round.top) < 1 && card.left > round.right && score.top >= card.bottom &&
-          el.querySelector(".log-card b").textContent === pairs[index].join(" — ") &&
+          el.querySelector(".log-card b").textContent === pairs[index].join(" VS ") &&
           el.scrollWidth <= el.clientWidth + 1 &&
           Array.from(el.querySelectorAll(".log-separator")).every(sep => getComputedStyle(sep).display === "none");
       });
@@ -457,6 +455,36 @@ function postIntent(port, intent) {
   assert(JSON.stringify(records.map(row => row.points)) === JSON.stringify([[["A", "+3"], ["B", "+1"]], [["A", "+0"], ["B", "+2"]], [["A", "+0"], ["B", "+4"]]]),
     "history gains always map to left A / right B, including B's rounds");
   assert(records.every(row => row.targetBlack && row.dialMatchesTeam), "history targets are black and dials inherit the acting team's color");
+
+  await postIntent(port, { type: "newGame" });
+  await postIntent(port, { type: "loadDeck", cards: [["人类友好度高", "人类友好度低"]] });
+  await postIntent(port, { type: "setup", ruleSet: "balanced", cardMode: "single", first: "A" });
+  await postIntent(port, { type: "donePsychic" });
+  for (const [width, height] of [[3904, 672], [1952, 336]]) {
+    await page.setViewport({ width, height, deviceScaleFactor: 1 });
+    for (const score of [8, 9, 10, 12]) {
+      state.teams.A.score = score;
+      state.teams.B.score = score + 1;
+      await postIntent(port, { type: "noop" });
+      await page.waitForFunction(s => document.getElementById("trackA").dataset.score === String(s), {}, score);
+      const counts = await page.$$eval(".score-track", tracks => tracks.map(track => ({
+        diamonds: track.querySelectorAll("i.on:not(.score-circle)").length,
+        circles: track.querySelectorAll("i.score-circle").length
+      })));
+      assert(counts[0].diamonds === 8 && counts[1].diamonds === 8 && counts[0].circles === score - 8 && counts[1].circles === score - 7,
+        `overflow points appear as individual circles at ${score}:${score + 1}`);
+      await assertReadableLayout(`overflow score ${score} at ${width}x${height}`);
+    }
+    assert(await page.$eval(".side.selected .con i", el => {
+      const style = getComputedStyle(el), scale = innerWidth / 3904;
+      return el.textContent.trim() === "VS" && style.color === "rgb(0, 0, 0)" &&
+        style.fontFamily.includes("Wavelength Source Han Serif") && style.fontWeight === "600" &&
+        parseFloat(style.fontSize) >= 80 * scale && parseFloat(style.paddingLeft) >= 28 * scale &&
+        parseFloat(style.paddingRight) >= 28 * scale;
+    }), "selected VS uses a large black serif face with spacing from both concepts");
+  }
+  await postIntent(port, { type: "newGame" });
+  await page.waitForFunction(() => document.querySelectorAll(".score-circle").length === 0);
 
   if (process.argv.includes("--screenshot")) {
     await page.screenshot({ path: path.join(__dirname, "ultrawide-qa.png") });

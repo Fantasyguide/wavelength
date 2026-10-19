@@ -159,7 +159,7 @@ const { mockSatori, message, waitFor } = require("./qq-test-helpers.js");
     }
     await intent("newGame");
     await monitor.waitForFunction(() => document.body.dataset.phase === "setup");
-    assert(await monitor.$$eval(".team-direction", els => els.every(el => !el.textContent)), "direction arrows clear for a new game");
+    assert.equal(await monitor.$$(".team-direction").then(els => els.length), 0, "team cards have no gray arrow elements");
     assert(await monitor.$eval("#over-modal", el => el.classList.contains("hidden")));
     // A reveal animates once, while repeated SSE snapshots and a reconnect do not.
     await monitor.setViewport({ width: 3904, height: 672, deviceScaleFactor: 1 });
@@ -204,8 +204,9 @@ const { mockSatori, message, waitFor } = require("./qq-test-helpers.js");
     await intent("setDial", { value: 745 });
     await intent("lock");
     await intent("guess", { guess: "L" });
-    await monitor.waitForFunction(() => document.getElementById("directionA").textContent === "←");
-    assert.equal(await monitor.$eval("#directionB", el => el.textContent), "", "the direction moves to A when B takes the dial");
+    await monitor.waitForFunction(() => document.getElementById("guess-region").dataset.side === "L");
+    assert(await monitor.$eval(".team.a", el => el.getAttribute("aria-label").includes("选择左边")), "A's direction is accessible when B takes the dial");
+    assert.equal(await monitor.$$(".team-direction").then(els => els.length), 0, "guessing never adds a gray team-card arrow");
     mock.rejectAuth = true;
     mock.connections.at(-1).terminate();
     await monitor.waitForFunction(() => !document.getElementById("audience-connection").classList.contains("connected"));

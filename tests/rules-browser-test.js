@@ -177,6 +177,26 @@ const puppeteer = require("puppeteer-core");
     await monitor.waitForFunction(() => document.getElementById("rule-turns").textContent.startsWith("原版"), { polling: 50 });
     assert.deepEqual([state.winScore, state.bandWidth], [10, 40]);
 
+    // Nine on turn five still needs the matching turn when a tie remains possible.
+    await intent("setup", { ruleSet: "balanced", cardMode: "single", first: "A" });
+    state.round = 5;
+    state.teams.A.score = 5;
+    state.teams.B.score = 5;
+    state.target.center = 500;
+    await intent("donePsychic");
+    await intent("setDial", { value: 500 });
+    await intent("lock", { timerSeconds: 0 });
+    await intent("guess", { guess: "L" });
+    await intent("reveal");
+    await monitor.waitForFunction(() => document.querySelectorAll("#trackA .score-circle").length === 1);
+    assert.equal(state.phase, "revealed", "9:5 on turn five still preserves a possible tie");
+    assert.equal(await monitor.$$("#trackA i.on:not(.score-circle)").then(els => els.length), 8);
+    assert.equal(await controller.$$("#trackA .score-circle").then(els => els.length), 1, "controller also shows the extra point");
+    await intent("nextRound");
+    assert.equal(state.active, "B");
+    assert.equal(await monitor.$$("#trackA .score-circle").then(els => els.length), 1, "overflow circle stays through the next turn");
+    await intent("newGame");
+    await monitor.waitForFunction(() => document.querySelectorAll(".score-circle").length === 0);
 
     await intent("setup", { ruleSet: "balanced", cardMode: "single", first: "A" });
     state.round = 3;
@@ -198,7 +218,7 @@ const puppeteer = require("puppeteer-core");
     await intent("nextRound");
     assert.equal(state.round, 3, "server refuses to continue a decided match");
     assert.deepEqual(errors, [], "no browser errors, including draw rendering");
-    console.log("RULES BROWSER TEST PASSED: local mobile, shared presets, overtime, early finish, recap, reconnect, and restart");
+    console.log("RULES BROWSER TEST PASSED: local mobile, shared presets, overtime, early finish, circle scores, recap, reconnect, and restart");
   } finally {
     if (browser) await browser.close();
     if (server) {

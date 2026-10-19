@@ -428,7 +428,7 @@
     if (G.phase !== "dial") dragging = false;
     var A = G.teams.A, B = G.teams.B;
     // Keep progress in the name column, leaving room for larger score digits.
-    var trackCount = G.winScore > 0 ? Math.min(G.winScore, 40) : 31;
+    var trackCount = Math.max(scoreTrackCount(A.score), scoreTrackCount(B.score));
     var scoreDigits = Math.max(String(G.teams.A.score).length, String(G.teams.B.score).length);
     var trackColumns = Math.max(1, Math.floor((790 - scoreDigits * 140) / 44));
     document.body.style.setProperty("--team-card-height", 344 + (Math.ceil(trackCount / trackColumns) - 1) * 44);
@@ -517,15 +517,11 @@
       previousDisplay.phase !== "revealed" && previousDisplay.phase !== "over";
     ["A", "B"].forEach(function (letter) {
       var panel = $("name" + letter).closest(".team");
-      var direction = $("direction" + letter);
       var hasGuess = G.guess && letter === WL.other(G.active) && ["reveal", "revealed", "over"].includes(G.phase);
-      direction.textContent = hasGuess ? (G.guess === "L" ? "←" : "→") : "";
-      direction.dataset.direction = hasGuess ? G.guess : "";
-      direction.setAttribute("aria-label", hasGuess ? G.teams[letter].name + "选择" + (G.guess === "L" ? "左边" : "右边") : "");
-      direction.setAttribute("aria-hidden", hasGuess && wideMonitor() ? "false" : "true");
       panel.classList.toggle("is-active", G.phase !== "setup" && actor === letter);
       panel.classList.toggle("is-winner", G.phase === "over" && actor === letter);
       panel.setAttribute("aria-label", G.teams[letter].name + "，" + G.teams[letter].score + " 分" +
+        (hasGuess ? "，选择" + (G.guess === "L" ? "左边" : "右边") : "") +
         (G.phase === "over" && actor === letter ? "，获胜" : actor === letter && G.phase !== "setup" ? "，行动中" : ""));
       if (!revealed || !wideMonitor()) {
         var running = scoreAnimations.get(letter);
@@ -665,6 +661,10 @@
     renderAudienceList("audience-final-winners", winners);
   }
 
+  function scoreTrackCount(score) {
+    return G.winScore > 0 ? Math.min(G.winScore, 40) + Math.max(0, score - G.winScore) : 31;
+  }
+
   function renderTrack(id, score, cls) {
     var el = $(id);
     var signature = JSON.stringify([score, G.winScore]);
@@ -675,12 +675,18 @@
     el.innerHTML = "";
     el.className = "score-track " + cls;
     var limit = G.winScore > 0 ? Math.min(G.winScore, 40) : 30;
-    for (var i = 0; i < limit; i++) {
+    var extra = G.winScore > 0 ? Math.max(0, score - G.winScore) : 0;
+    el.setAttribute("role", "img");
+    el.setAttribute("aria-label", score + " 分" + (extra ? "，超出门槛 " + extra + " 分，每个圆代表 1 分" : ""));
+    for (var i = 0; i < limit + extra; i++) {
       var d = document.createElement("i");
+      d.setAttribute("aria-hidden", "true");
       if (i < score) d.className = "on";
-      if (i >= previousScore && i < score) {
+      if (i >= limit) d.classList.add("score-circle");
+      var point = i < limit ? i : G.winScore + i - limit;
+      if (point >= previousScore && point < score) {
         d.classList.add("just-scored");
-        d.style.setProperty("--gain-index", i - previousScore);
+        d.style.setProperty("--gain-index", point - previousScore);
       }
       el.appendChild(d);
     }
@@ -772,7 +778,8 @@
   function cardPair(pair) {
     var con = document.createElement("span");
     con.className = "con";
-    con.innerHTML = "<span class='l'></span><i>—</i><span class='r'></span>";
+    con.style.setProperty("--concept-length", Math.max(Array.from(pair[0]).length, Array.from(pair[1]).length, 1));
+    con.innerHTML = "<span class='l'></span><i> VS </i><span class='r'></span>";
     con.querySelector(".l").textContent = pair[0];
     con.querySelector(".r").textContent = pair[1];
     return con;
@@ -1063,7 +1070,7 @@
         "（" + labels + " " + vals + "）</span><span class='log-separator'> · </span>" +
         "<span class='log-card'>卡片：<b></b></span><span class='log-separator'> · </span>" +
         "<span class='log-score'>左队 / 右队 " + points + "</span>";
-      li.querySelector(".log-card b").textContent = e.pair[0] + " — " + e.pair[1];
+      li.querySelector(".log-card b").textContent = e.pair[0] + " VS " + e.pair[1];
       if (wideMonitor()) {
         li.querySelector(".log-round").textContent = "第 " + e.round + " " + T("roundUnit");
         li.querySelector(".log-card").firstChild.textContent = "";
