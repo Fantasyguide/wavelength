@@ -236,7 +236,8 @@ function rng(seed) {
 let replayed = 0;
 let earlyReplays = 0;
 const earlyReplayRounds = { 2605970957: 3, 3823669892: 5 };
-const replayWL = WL;
+// Historical fixtures predate history-based sampling; preserve their original RNG stream.
+const replayWL = require("./load-game.js")({ enabled: false });
 const replayApply = (g, type, extra = {}) => replayWL.applyIntent(g, { type, ...extra });
 for (const match of replay.matches) {
   const g = replayWL.createGame();

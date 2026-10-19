@@ -1,6 +1,20 @@
 (function (global) {
   "use strict";
 
+  var samplingConfig = typeof module !== "undefined" && module.exports
+    ? require("./target-sampling-config.js") : global.WLTargetSamplingConfig;
+  if (!samplingConfig || typeof samplingConfig.enabled !== "boolean" ||
+      !Number.isFinite(samplingConfig.easyThreshold) || samplingConfig.easyThreshold < 0 || samplingConfig.easyThreshold >= 100 ||
+      !Number.isFinite(samplingConfig.strength) || samplingConfig.strength < 0 ||
+      !Number.isFinite(samplingConfig.minEasyProbability) || !Number.isFinite(samplingConfig.maxEasyProbability) ||
+      samplingConfig.minEasyProbability < 0 || samplingConfig.maxEasyProbability > 1 ||
+      samplingConfig.minEasyProbability > samplingConfig.maxEasyProbability) {
+    throw new Error("Invalid target-sampling-config.js settings");
+  }
+  samplingConfig = Object.freeze(Object.assign({}, samplingConfig));
+  // Runtime-only history: neither settings nor sampling history enter shared game snapshots.
+  var targetHistories = new WeakMap();
+
   var BUILTIN_DECK = [
     ["热的", "冷的"], ["吸引人的", "不吸引人的"],
     ["被低估的", "被高估的"], ["怀旧的", "前卫的"],
@@ -140,12 +154,63 @@
     return DIST_DEFAULT;
   }
 
+  // Integral of the symmetric proposal density from 0 to a (0 <= a <= 0.5).
+  function targetDensityArea(pr, a) {
+    var width = a <= pr.U ? pr.U : 0.5 - pr.U;
+    var t = a <= pr.U ? a / width : (a - pr.U) / width;
+    var blend = t * t * t - t * t * t * t / 2;
+    return a <= pr.U ? pr.M * a + (pr.V - pr.M) * width * blend
+      : pr.U * (pr.M + pr.V) / 2 + pr.V * (a - pr.U) + (pr.E - pr.V) * width * blend;
+  }
+
+  function targetBaseProbability() {
+    var pr = DIST_PRESETS.recommended;
+    // Classify the rounded 0..1000 center, including the half-step rounding boundary.
+    var edge = (Math.floor(500 + samplingConfig.easyThreshold * 5) + 0.5 - 500) / 1000;
+    return 1 - targetDensityArea(pr, edge) / targetDensityArea(pr, 0.5);
+  }
+  var baseEasyProbability = targetBaseProbability();
+
+  function targetCenter(s, dist) {
+    var history, own, q, easyRate, hardRate;
+    if (samplingConfig.enabled && s && s.ruleSet === "balanced" && s.round > 0 &&
+        (s.active === "A" || s.active === "B")) {
+      history = targetHistories.get(s);
+      if (!history) {
+        history = { A: { n: 0, e: 0 }, B: { n: 0, e: 0 }, last: null };
+        targetHistories.set(s, history);
+      }
+      own = history[s.active];
+      // A classic-mode skip replaces this turn's target instead of adding another turn.
+      if (history.last && history.last.round === s.round && history.last.team === s.active) {
+        own.n--;
+        own.e -= history.last.easy ? 1 : 0;
+      }
+      q = Math.max(samplingConfig.minEasyProbability, Math.min(samplingConfig.maxEasyProbability,
+        baseEasyProbability + samplingConfig.strength * (own.n * baseEasyProbability - own.e)));
+      easyRate = q / baseEasyProbability;
+      hardRate = (1 - q) / (1 - baseEasyProbability);
+      var scale = Math.max(easyRate, hardRate);
+      easyRate /= scale;
+      hardRate /= scale;
+    }
+    for (;;) {
+      var c = Math.max(0, Math.min(1000, Math.round(500 + 1000 * sampleTargetX(dist))));
+      if (!own) return c;
+      var easy = Math.abs(c - 500) / 5 > samplingConfig.easyThreshold;
+      if (Math.random() < (easy ? easyRate : hardRate)) {
+        own.n++;
+        own.e += easy ? 1 : 0;
+        history.last = { round: s.round, team: s.active, easy: easy };
+        return c;
+      }
+    }
+  }
+
   function newTarget(s) {
     var bw = s && s.bandWidth > 0 ? s.bandWidth : BAND_WIDTH;
     var dist = s && s.round > 0 ? targetDistForRound(s.round, s.ruleSet) : (s && s.dist ? s.dist : DIST_DEFAULT);
-    var u = sampleTargetX(dist);
-    var c = Math.round(500 + 1000 * u);
-    c = Math.max(0, Math.min(1000, c));
+    var c = targetCenter(s, dist);
     // Half of the 4-point band, then one full 3-point and 2-point band.
     var w4 = bw * 0.4;
     var w3 = w4 + bw;
@@ -270,6 +335,7 @@
       s.bandWidth = rulesFor(s).bandWidth;
     }
     if (intent.winScore !== undefined) s.winScore = normalizeWinScore(intent.winScore);
+    targetHistories.delete(s);
     if (intent.cardMode === "choice" || intent.cardMode === "single") s.cardMode = intent.cardMode;
     s.teams.A = { name: intent.teamA || "射命丸文", score: 0 };
     s.teams.B = { name: intent.teamB || "姬海棠果", score: 0 };
@@ -291,6 +357,7 @@
   }
 
   function doNewGame(s) {
+    targetHistories.delete(s);
     s.rulesOpen = false;
     s.redrawUsed = { A: false, B: false };
     resetStartingScores(s);

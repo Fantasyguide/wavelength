@@ -168,6 +168,11 @@ const puppeteer = require("puppeteer-core");
     await monitor.waitForFunction(() => !document.getElementById("rule-ending").textContent.includes("达到"));
     assert.equal(state.winScore, 0);
     assert.match(await text(monitor, "#rule-ending"), /第 6 轮结算/);
+    for (const p of [controller, monitor]) {
+      assert(!/软保底|保底|接受率|拒绝采样|soft pity|sampling/i.test(await p.$eval("body", el => el.innerText)),
+        "no sampling mechanism is mentioned in player-facing text");
+      assert.equal(await p.$$eval("[id*='sampling'], [id*='pity'], [name*='sampling']", els => els.length), 0);
+    }
     await controller.select("#opt-rule-set", "original");
     await monitor.waitForFunction(() => document.getElementById("rule-turns").textContent.startsWith("原版"), { polling: 50 });
     assert.deepEqual([state.winScore, state.bandWidth], [10, 40]);

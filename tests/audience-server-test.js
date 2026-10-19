@@ -74,7 +74,7 @@ const { mockSatori, message, waitFor } = require("./qq-test-helpers.js");
   }
   try {
     // Isolated backend copy allows security fixtures without touching shared UI files.
-    for (const name of ["server.js", "game.js", "audience.js", "audience-archive.js", "satori.js", "cards.yaml"])
+    for (const name of ["server.js", "game.js", "target-sampling-config.js", "audience.js", "audience-archive.js", "satori.js", "cards.yaml"])
       fs.copyFileSync(path.join(root, name), path.join(tmp, name));
     fs.symlinkSync(path.join(root, "node_modules"), path.join(tmp, "node_modules"), "dir");
     fs.mkdirSync(path.join(tmp, "assets"));

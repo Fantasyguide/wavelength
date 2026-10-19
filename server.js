@@ -398,7 +398,7 @@ var server = http.createServer(function (req, res) {
   var isAsset = asset.startsWith("assets/") && asset.split("/").every(function (part) {
     return part && !part.startsWith(".");
   }) && /\.(svg|png|jpe?g|webp|gif|ico|otf|ttf|woff2?)$/i.test(asset);
-  if (!["index.html", "app.css", "app.js", "game.js", "cards.yaml", "cards.json", "names.json"].includes(asset) &&
+  if (!["index.html", "app.css", "app.js", "game.js", "target-sampling-config.js", "cards.yaml", "cards.json", "names.json"].includes(asset) &&
       !isAsset && !isColorLab) {
     return sendJson(res, 404, { ok: false, error: "not found" });
   }
