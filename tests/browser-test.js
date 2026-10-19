@@ -34,9 +34,8 @@ function assert(cond, msg) {
   await page.click(".card-choice");
   await sleep(500);
 
-  const hint = await page.$eval("#hint", (el) => el.textContent);
-  assert(hint.indexOf("Psychic") !== -1, "game started");
-  assert(await page.$eval("#scoreB", (el) => el.textContent) === "1", "B score 1");
+  assert(await page.$eval("body", el => el.dataset.phase) === "psychic", "game started with the configured role name");
+  assert(await page.$eval("#scoreB", (el) => el.textContent) === "0", "B starts at 0 with default balanced rules");
 
   await page.click("#controls .btn");
   await sleep(200);
@@ -44,8 +43,7 @@ function assert(cond, msg) {
   await page.click("#controls .btn");
   await sleep(300);
   assert(await page.$eval("#screen", (el) => el.className.indexOf("open") === -1), "screen closed after psychic done");
-  const hint2 = await page.$eval("#hint", (el) => el.textContent);
-  assert(hint2.indexOf("拨杆") !== -1, "dial phase reached");
+  assert(await page.$eval("body", el => el.dataset.phase) === "dial", "dial phase reached with the configured terminology");
   assert(await page.$eval("#interact", (el) => el.className.indexOf("lock-touch") !== -1), "interact locks touch during dial");
   const sideOpacity = await page.$eval(".side", (el) => getComputedStyle(el).opacity);
   assert(sideOpacity === "1", "card side never grey after psychic");
@@ -81,8 +79,7 @@ function assert(cond, msg) {
   await page.waitForSelector(".card-choice");
   await page.click(".card-choice");
   await sleep(500);
-  const hint3 = await page.$eval("#hint", (el) => el.textContent);
-  assert(hint3.indexOf("Psychic") !== -1, "game works again after reconnect");
+  assert(await page.$eval("body", el => el.dataset.phase) === "psychic", "game works again after reconnect");
 
   console.log("JS errors on page:", consoleErrors.length === 0 ? "none" : consoleErrors.join(" | "));
   browser.close();

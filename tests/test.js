@@ -13,15 +13,27 @@ const dom = new JSDOM(html, {
 });
 const { window } = dom;
 const doc = window.document;
+const realDateNow = window.Date.now;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let warningBeeps = 0;
+const tones = [];
 window.AudioContext = class {
   constructor() { this.state = "running"; this.currentTime = 0; this.destination = {}; }
   createOscillator() {
-    return { frequency: { setValueAtTime() {} }, connect() {}, start() { warningBeeps++; }, stop() {} };
+    const tone = {};
+    return {
+      frequency: { setValueAtTime(value) { tone.frequency = value; } },
+      connect(gain) { tone.levels = gain.levels; },
+      start(time) { tone.start = time; tones.push(tone); warningBeeps++; },
+      stop(time) { tone.duration = time - tone.start; }
+    };
   }
   createGain() {
-    return { gain: { setValueAtTime() {}, exponentialRampToValueAtTime() {} }, connect() {} };
+    const levels = [];
+    return { levels, gain: {
+      setValueAtTime(value) { levels.push(value); },
+      exponentialRampToValueAtTime(value) { levels.push(value); }
+    }, connect() {} };
   }
 };
 
@@ -49,6 +61,10 @@ async function pickFile(name, content, inputId) {
   assert(doc.getElementById("setup-modal").className.indexOf("hidden") === -1, "setup modal shown initially");
   assert(doc.getElementById("conn-badge").textContent.indexOf("本地模式") !== -1, "local mode badge shown");
   assert(doc.getElementById("title-main").textContent === "Returned", "default game title");
+  assert(doc.getElementById("opt-rule-set").value === "balanced" && doc.getElementById("opt-winscore").value === "8" &&
+    doc.getElementById("opt-bandwidth").value === "48", "local setup defaults to balanced rules");
+  doc.getElementById("opt-rule-set").value = "original";
+  doc.getElementById("opt-rule-set").dispatchEvent(new window.Event("change", { bubbles: true }));
 
   await pickFile("my.json", JSON.stringify({
     name: "测试题库",
@@ -86,9 +102,29 @@ async function pickFile(name, content, inputId) {
 
   assert(doc.getElementById("opt-card-mode").value === "choice", "two-choice mode is the default");
   assert(doc.querySelectorAll(".card-choice").length === 2, "two candidate cards shown before psychic phase");
-  assert(doc.getElementById("controls").children.length === 0, "cannot view target before choosing a card");
+  assert(doc.getElementById("controls").children.length === 1 && doc.getElementById("btn-redraw"), "only redraw is available before choosing a card");
   assert(doc.getElementById("bands").children.length === 0, "no target rendered while choosing");
+  assert(doc.getElementById("timer-display").textContent === "00:10", "selection shows ten-second countdown");
+  const choiceStart = realDateNow();
+  window.Date.now = () => choiceStart + 5000;
+  await sleep(250);
+  assert(doc.getElementById("timer-display").textContent === "00:05" && warningBeeps === 1, "selection gives one five-second warning");
+  assert(tones.at(-1).duration === 0.25, "advance warning lasts a quarter second");
+  window.Date.now = () => choiceStart + 11000;
+  await sleep(250);
+  assert(doc.getElementById("timer-display").textContent === "00:00" && doc.querySelectorAll(".card-choice").length === 2,
+    "selection stays actionable at zero during grace");
+  assert(warningBeeps === 2 && tones.at(-1).duration === 0.75, "selection zero plays one three-quarter-second tone");
+  await sleep(250);
+  assert(warningBeeps === 2, "zero tone does not repeat during selection grace");
+  click("btn-redraw");
+  assert(doc.getElementById("timer-display").textContent === "00:10", "redraw during grace restarts selection countdown");
+  assert(doc.getElementById("btn-redraw").disabled, "redraw disabled after this team's single chance");
+  assert(doc.getElementById("card-label").textContent.indexOf("第 1 轮") !== -1, "redraw keeps the round number");
+  window.Date.now = () => choiceStart + 22000;
   click(doc.querySelector(".card-choice"));
+  assert(doc.getElementById("timer-display").classList.contains("hidden"), "manual selection during grace clears its timer");
+  window.Date.now = realDateNow;
   assert(doc.getElementById("setup-modal").className.indexOf("hidden") !== -1, "setup modal closed");
   assert(doc.getElementById("scoreA").textContent === "0", "A starts at 0");
   assert(doc.getElementById("scoreB").textContent === "1", "B starts at 1");
@@ -102,24 +138,24 @@ async function pickFile(name, content, inputId) {
   assert(Array.from(doc.querySelectorAll("#tick-labels .tick-number")).map((el) => el.textContent).join(",") === "-100%,-50%,0%,+50%,+100%", "signed percentage labels render below the bar");
 
   const skipBtn = Array.from(doc.getElementById("controls").children).find((b) => b.textContent.indexOf("跳过此题") !== -1);
-  assert(!!skipBtn, "skip button present in psychic phase");
-  click(skipBtn);
-  assert(doc.querySelectorAll(".card-choice").length === 2, "skip draws two fresh candidates");
-  click(doc.querySelector(".card-choice"));
-  assert(doc.getElementById("hint").textContent.indexOf("查看目标") !== -1, "still psychic phase after skip");
-  assert(doc.getElementById("card-label").textContent.indexOf("第 1 轮") !== -1, "round unchanged after skip");
+  assert(!skipBtn, "selected choice-mode topic cannot be skipped");
 
   click(doc.getElementById("controls").children[0]);
   assert(doc.getElementById("screen").className.indexOf("open") !== -1, "screen opened for psychic");
   assert(!doc.getElementById("timer-display").classList.contains("hidden") && doc.getElementById("timer-display").textContent === "01:00", "60-second dial timer starts when target is viewed");
-  const realDateNow = window.Date.now;
+  const beepsBeforeDial = warningBeeps;
   const warningNow = realDateNow();
+  window.Date.now = () => warningNow + 49000;
+  await sleep(250);
+  assert(doc.getElementById("timer-display").textContent === "00:11" && warningBeeps === beepsBeforeDial,
+    "dial warning does not play before ten seconds remain");
+  window.Date.now = () => warningNow + 50000;
+  await sleep(250);
+  assert(doc.getElementById("timer-display").classList.contains("warning") && doc.getElementById("timer-display").textContent === "00:10", "dial timer warns with ten seconds remaining");
+  assert(warningBeeps === beepsBeforeDial + 1, "ten-second warning sound plays once");
   window.Date.now = () => warningNow + 55000;
   await sleep(250);
-  assert(doc.getElementById("timer-display").classList.contains("warning") && doc.getElementById("timer-display").textContent === "00:05", "timer turns red with five seconds remaining");
-  assert(warningBeeps === 1, "five-second warning sound plays once");
-  await sleep(250);
-  assert(warningBeeps === 1, "warning sound does not repeat");
+  assert(warningBeeps === beepsBeforeDial + 1, "dial does not repeat the warning at five seconds");
   window.Date.now = realDateNow;
   click(doc.getElementById("controls").children[0]);
   assert(doc.getElementById("screen").className.indexOf("open") === -1, "screen closed after psychic done");
@@ -129,6 +165,10 @@ async function pickFile(name, content, inputId) {
   const axis = doc.getElementById("axis");
   axis.getBoundingClientRect = () => ({ left: 0, width: 1000 });
   const PE = window.PointerEvent || window.MouseEvent;
+  window.Date.now = () => warningNow + 61000;
+  await sleep(250);
+  assert(doc.getElementById("timer-display").textContent === "00:00", "dial countdown displays zero during grace");
+  assert(warningBeeps === beepsBeforeDial + 2 && tones.at(-1).duration === 0.75, "dial zero adds one long tone");
   interact.dispatchEvent(new PE("pointerdown", { clientX: 750, pointerId: 1, bubbles: true }));
   interact.dispatchEvent(new PE("pointermove", { clientX: 750, pointerId: 1, bubbles: true }));
   interact.dispatchEvent(new window.Event("pointerup", { bubbles: true }));
@@ -138,12 +178,25 @@ async function pickFile(name, content, inputId) {
   assert(doc.getElementById("hint").textContent.indexOf("左边") !== -1, "guess phase");
   assert(doc.getElementById("guess-region").hidden && doc.getElementById("direction-frame").hidden, "no direction highlight before the opponent chooses");
   assert(doc.getElementById("timer-display").textContent === "00:15", "15-second guess timer starts after locking dial");
-  const expiryNow = realDateNow();
+  const expiryNow = window.Date.now();
+  const realRandom = window.Math.random;
+  const beepsBeforeGuess = warningBeeps;
+  window.Date.now = () => expiryNow + 10000;
+  await sleep(250);
+  assert(doc.getElementById("timer-display").textContent === "00:05" && warningBeeps === beepsBeforeGuess + 1,
+    "guessing also gives one five-second warning");
+  window.Math.random = () => 0.75;
   window.Date.now = () => expiryNow + 16000;
   await sleep(250);
-  assert(doc.getElementById("timer-display").textContent === "00:00" && doc.getElementById("hint").textContent.indexOf("左边") !== -1, "expired timer stays at zero without forcing an action");
+  assert(doc.getElementById("timer-display").textContent === "00:00" && !doc.querySelector(".guess-choice"),
+    "guessing remains undecided during grace");
+  assert(warningBeeps === beepsBeforeGuess + 2 && tones.at(-1).duration === 0.75, "guess zero adds one long tone");
+  window.Date.now = () => expiryNow + 16500;
+  await sleep(250);
+  assert(doc.getElementById("timer-display").classList.contains("hidden") && doc.getElementById("hint").textContent.indexOf("揭示目标") !== -1, "expired guess timer automatically advances to reveal");
+  assert(warningBeeps === beepsBeforeGuess + 2, "end of grace does not repeat the zero tone");
   window.Date.now = realDateNow;
-  click(doc.getElementById("controls").children[1]);
+  window.Math.random = realRandom;
   assert(doc.getElementById("hint").textContent.indexOf("揭示目标") !== -1, "reveal phase");
   assert(doc.getElementById("timer-display").classList.contains("hidden"), "guess timer clears after left/right choice");
   assert(doc.querySelector(".guess-choice") && doc.querySelector(".guess-choice").textContent.indexOf("右边") !== -1, "opponent choice shown before reveal");
@@ -179,6 +232,7 @@ async function pickFile(name, content, inputId) {
   assert(doc.getElementById("hint").textContent.indexOf("粉队") !== -1, "turn switched to B");
 
   assert(doc.querySelectorAll(".card-choice").length === 2, "next round starts with two candidates");
+  assert(!doc.getElementById("btn-redraw").disabled, "other team retains its redraw chance");
   click(doc.querySelectorAll(".card-choice")[1]);
   click(doc.getElementById("controls").children[0]);
   click(doc.getElementById("controls").children[0]);
@@ -272,6 +326,64 @@ async function pickFile(name, content, inputId) {
   reveal();
   assert(doc.getElementById("over-modal").className.indexOf("hidden") === -1, "sudden death decided after both teams' turns");
   assert(doc.getElementById("winner-text").textContent.indexOf("蓝队") !== -1, "higher sudden-death round score wins");
+
+  click("btn-restart");
+  doc.getElementById("opt-card-mode").value = "choice";
+  doc.getElementById("opt-card-mode").dispatchEvent(new window.Event("change", { bubbles: true }));
+  doc.body.setAttribute("data-guess-timer-seconds", "7");
+  click("btn-start");
+  assert(!doc.getElementById("btn-redraw").disabled, "new match restores redraw allowance");
+  click(doc.querySelector(".card-choice"));
+  click(doc.getElementById("controls").children[0]);
+  const dialExpiry = realDateNow() + 61600;
+  window.Math.random = () => 0.25;
+  window.Date.now = () => dialExpiry;
+  await sleep(250);
+  assert(!doc.getElementById("screen").classList.contains("open"), "dial timeout hides the psychic's target");
+  assert(doc.getElementById("dial").style.left === "25%", "dial timeout displays the random position");
+  assert(doc.getElementById("hint").textContent.includes("左边") && doc.getElementById("timer-display").textContent === "00:07",
+    "dial timeout advances to guessing with the configured duration");
+  window.Date.now = realDateNow;
+  window.Math.random = realRandom;
+
+  click("btn-restart");
+  click("btn-start");
+  click(doc.querySelector(".card-choice"));
+  click(doc.getElementById("controls").children[0]);
+  click(doc.getElementById("controls").children[0]);
+  const movedDialStart = realDateNow();
+  window.Date.now = () => movedDialStart + 61000;
+  interact.dispatchEvent(new PE("pointerdown", { clientX: 800, pointerId: 1, bubbles: true }));
+  interact.dispatchEvent(new window.Event("pointerup", { bubbles: true }));
+  window.Math.random = () => 0.25;
+  window.Date.now = () => movedDialStart + 61600;
+  await sleep(250);
+  assert(doc.getElementById("dial").style.left === "80%" && doc.getElementById("hint").textContent.includes("左边"),
+    "local timeout preserves a dial moved during grace and advances without pressing lock");
+  assert(doc.getElementById("timer-display").textContent === "00:07", "preserved dial starts the configured guess timer");
+  window.Date.now = realDateNow;
+  window.Math.random = realRandom;
+
+  click("btn-restart");
+  click("btn-start");
+  const selectionExpiry = realDateNow() + 11600;
+  const beepsBeforeExpiry = warningBeeps;
+  // The built-in cards are untagged, so 0.75 selects the right candidate.
+  const rightTopic = doc.querySelectorAll(".card-choice")[1].querySelector(".con").textContent;
+  let firstSample = true;
+  window.Math.random = () => { if (firstSample) { firstSample = false; return 0.75; } return realRandom(); };
+  window.Date.now = () => selectionExpiry;
+  await sleep(250);
+  assert(doc.querySelectorAll(".card-choice").length === 0 && doc.getElementById("hint").textContent.includes("查看目标"),
+    "selection timeout enters psychic phase without another click");
+  assert(doc.querySelector(".side .con").textContent === rightTopic, "equal-tag timeout selects the sampled candidate");
+  assert(!doc.getElementById("screen").classList.contains("open") && doc.getElementById("timer-display").classList.contains("hidden"),
+    "automatic selection keeps target hidden and waits to start the next timer");
+  assert(warningBeeps === beepsBeforeExpiry, "resuming past grace does not play stale tones");
+  assert(tones.every(tone => tone.frequency === 880 && Math.max(...tone.levels) === 0.32),
+    "short and long tones share 880Hz and peak gain 0.32");
+  window.Date.now = realDateNow;
+  window.Math.random = realRandom;
 
   console.log("ALL TESTS PASSED");
   process.exit(0);

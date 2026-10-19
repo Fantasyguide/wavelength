@@ -123,7 +123,7 @@ function postIntent(port, intent) {
   });
   assert(roleFits, "role selection is readable and fully visible on the physical display");
   await page.click("#btn-role-monitor");
-  await postIntent(port, { type: "setup", teamA: "蓝队", teamB: "粉队", first: "A" });
+  await postIntent(port, { type: "setup", teamA: "蓝队", teamB: "粉队", first: "A", ruleSet: "original" });
   await page.waitForFunction(() => document.body.classList.contains("monitor-mode") && document.getElementById("sides").children.length > 0);
   const choicesFit = await page.$$eval(".card-choice", (els) => els.length === 2 && els.every((el) => el.scrollWidth <= el.clientWidth && el.scrollHeight <= el.clientHeight));
   assert(choicesFit, "two candidates fit the ultra-wide monitor card area");

@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "npm run test:logic && npm run test:dom && npm run test:server && npm run test:browser && npm run test:qq",
-    "test:logic": "node tests/dist-test.js && node tests/card-mode-test.js && node tests/rules-test.js",
+    "test:logic": "node tests/dist-test.js && node tests/card-mode-test.js && node tests/card-tags-test.js && node tests/timer-test.js && node tests/rules-test.js",
     "test:dom": "node tests/test.js && node tests/online-test.js && node tests/auth-test.js",
     "test:server": "node tests/server-test.js",
     "test:browser": "node tests/static-test.js && node tests/mobile-test.js && node tests/ultrawide-test.js && node tests/monitor-test.js && node tests/rules-browser-test.js && node tests/browser-test.js",

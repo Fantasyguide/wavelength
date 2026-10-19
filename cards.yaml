@@ -1,58 +1,113 @@
 # 默认题库
-# 格式：name: 题库名（可省略）；cards: 后每行一张 - [左, 右]，双面卡写 4 个概念；# 开头为注释
+# 格式：concepts 写两个概念（双面卡写四个）；tag: 1 偏节目效果，tag: 2 普通易答
+# 标签为初步分类，可自行调整；不填 tag 或使用旧格式 - [左, 右] 时按标签 2 处理
 name: 车万版
 cards:
-  - [大, 小]
-  - [像男的, 像女的]
-  - [老资历, 小资历]
-  - [老太婆, 小萝莉]
-  - [人类, 妖怪]
-  - [人类友好度高, 人类友好度低]
-  - [强强, 弱弱]
-  - [居住点海拔高, 居住点海拔低]
-  - [审美积累, 审美积积]
-  - [人气排名高, 人气排名低]
-  - [活泼, 冷静]
-  - [聪明, 笨蛋]
-  - [有文化底蕴, 没有文化底蕴]
-  - [幸运, 不幸]
-  - [富裕, 贫穷]
-  - [开朗阳光, 孤僻阴暗]
-  - [孩子气, 妈妈]
-  - [维新, 传统]
-  - [现充, 御宅族]
-  - [精英, 草根]
-  - [纯情, 海王]
-  - [0, 1]
-  - [s, m]
-  - [香, 臭]
-  - [威严满满, 抱头蹲防]
-  - [左, 右]
-  - [黑白, 七彩]
-  - [西洋, 东洋]
-  - [外向, 内向]
-  - [兽, 人]
-  - [高, 矮]
-  - [长发, 短发]
-  - [文, 理]
-  - [CP多, CP少]
-  - [活着的, 死掉了]
-  - [科技, 幻想]
-  - [北大, 清华]
-  - [大々吉, 大々凶]
-  - [清真, 不清真]
-  - [（音乐）豪庭的钥匙, （音乐）南亭的钥匙]
-  - [常见, 罕见]
-  - [夯, 拉完了]
-  - [强健, 病弱]
-  - [胆子大, 胆子小]
-  - [文明, 野蛮]
-  - [猫, 狗]
-  - [GPA4.0, GPA1.0]
-  - [讨好型人格, 反驳型人格]
-  - [波长长, 波长短]
-  - [岁月静好, 负重前行]
-  - [太快乐了🤗, 太痛苦了😫]
-  - [叮咚鸡, 大狗叫]
-  - [星宇旺盛, 星宇low]
-  - [串子, 纯良]
+  - concepts: [大, 小]
+    tag: 1
+  - concepts: [像男的, 像女的]
+    tag: 1
+  - concepts: [老资历, 小资历]
+    tag: 2
+  - concepts: [老太婆, 小萝莉]
+    tag: 1
+  - concepts: [人类, 妖怪]
+    tag: 2
+  - concepts: [人类友好度高, 人类友好度低]
+    tag: 2
+  - concepts: [强强, 弱弱]
+    tag: 1
+  - concepts: [居住点海拔高, 居住点海拔低]
+    tag: 2
+  - concepts: [审美积累, 审美积积]
+    tag: 1
+  - concepts: [人气排名高, 人气排名低]
+    tag: 2
+  - concepts: [活泼, 冷静]
+    tag: 2
+  - concepts: [聪明, 笨蛋]
+    tag: 2
+  - concepts: [有文化底蕴, 没有文化底蕴]
+    tag: 1
+  - concepts: [幸运, 不幸]
+    tag: 2
+  - concepts: [富裕, 贫穷]
+    tag: 2
+  - concepts: [开朗阳光, 孤僻阴暗]
+    tag: 2
+  - concepts: [孩子气, 妈妈]
+    tag: 1
+  - concepts: [维新派, 传统派]
+    tag: 1
+  - concepts: [现充, 御宅族]
+    tag: 2
+  - concepts: [精英, 草根]
+    tag: 2
+  - concepts: [纯情, 海王]
+    tag: 1
+  - concepts: [0, 1]
+    tag: 1
+  - concepts: [S, M]
+    tag: 1
+  - concepts: [香, 臭]
+    tag: 1
+  - concepts: [威严满满, 抱头蹲防]
+    tag: 1
+  - concepts: [左, 右]
+    tag: 1
+  - concepts: [黑白, 七彩]
+    tag: 2
+  - concepts: [西洋, 东洋]
+    tag: 2
+  - concepts: [外向, 内向]
+    tag: 2
+  - concepts: [兽, 人]
+    tag: 2
+  - concepts: [高, 矮]
+    tag: 2
+  - concepts: [长发, 短发]
+    tag: 2
+  - concepts: [文, 理]
+    tag: 2
+  - concepts: [CP多, CP少]
+    tag: 1
+  - concepts: [活着的, 死掉了]
+    tag: 1
+  - concepts: [科技, 幻想]
+    tag: 2
+  - concepts: [北大, 清华]
+    tag: 1
+  - concepts: [大々吉, 大々凶]
+    tag: 2
+  - concepts: [清真, 不清真]
+    tag: 1
+  - concepts: [（角色曲）豪庭的钥匙, （角色曲）南亭的钥匙]
+    tag: 1
+  - concepts: [常见, 罕见]
+    tag: 1
+  - concepts: [夯爆了, 拉完了]
+    tag: 1
+  - concepts: [强健, 病弱]
+    tag: 2
+  - concepts: [胆子大, 胆子小]
+    tag: 2
+  - concepts: [文明, 野蛮]
+    tag: 1
+  - concepts: [猫, 狗]
+    tag: 1
+  - concepts: [GPA4.0, GPA1.0]
+    tag: 1
+  - concepts: [讨好型人格, 反驳型人格]
+    tag: 1
+  - concepts: [波长长, 波长短]
+    tag: 1
+  - concepts: [岁月静好, 负重前行]
+    tag: 1
+  - concepts: [太快乐了🤗, 太痛苦了😫]
+    tag: 1
+  - concepts: [叮咚鸡, 大狗叫]
+    tag: 1
+  - concepts: [星宇旺盛, 星宇low]
+    tag: 1
+  - concepts: [串子, 纯良]
+    tag: 1

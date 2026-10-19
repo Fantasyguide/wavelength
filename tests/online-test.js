@@ -133,7 +133,7 @@ function click(doc, id) {
   assert(mdoc.querySelectorAll(".card-choice").length === 2, "monitor cannot choose a card");
   click(cdoc, cdoc.querySelectorAll(".card-choice")[1]);
   await waitFor(() => mdoc.getElementById("hint").textContent.indexOf("查看目标") !== -1, "monitor sees psychic phase");
-  assert(cdoc.getElementById("scoreB").textContent === "1", "controller sees B score 1");
+  assert(cdoc.getElementById("scoreB").textContent === "0", "controller sees B start at 0 with default balanced rules");
 
   const mSides = mdoc.getElementById("sides").children;
   for (let i = 0; i < mSides.length; i++) {
@@ -149,7 +149,7 @@ function click(doc, id) {
   await waitFor(() => mdoc.getElementById("timer-display").textContent === "01:00" || mdoc.getElementById("timer-display").textContent === "00:59", "monitor receives 60-second dial timer");
 
   click(cdoc, cdoc.getElementById("controls").children[0]);
-  await waitFor(() => mdoc.getElementById("hint").textContent.indexOf("拖动金色拨杆") !== -1, "monitor sees dial phase");
+  await waitFor(() => mdoc.body.dataset.phase === "dial", "monitor sees dial phase with the configured terminology");
 
   const axis = cdoc.getElementById("axis");
   axis.getBoundingClientRect = () => ({ left: 0, width: 1000 });

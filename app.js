@@ -55,6 +55,7 @@
   var heartbeatTimer = null;
   var retryDelay = 1000;
   var warnedTimerEnd = null;
+  var expiredTimerEnd = null;
   var audioContext = null;
 
   var $ = function (id) { return document.getElementById(id); };
@@ -77,7 +78,7 @@
     }
   }
 
-  function playTimerWarning() {
+  function playTimerTone(duration) {
     var ctx = ensureAudio();
     if (!ctx) return;
     try {
@@ -87,16 +88,21 @@
       osc.type = "sine";
       osc.frequency.setValueAtTime(880, now);
       gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.exponentialRampToValueAtTime(0.16, now + 0.015);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.24);
+      gain.gain.exponentialRampToValueAtTime(0.32, now + 0.015);
+      if (duration > 0.25) gain.gain.setValueAtTime(0.32, now + duration - 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration - 0.01);
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.start(now);
-      osc.stop(now + 0.25);
+      osc.stop(now + duration);
     } catch (e) {}
   }
 
   function renderTimer() {
+    if (!ONLINE && WL.advanceTimers(G)) {
+      render();
+      return;
+    }
     var el = $("timer-display");
     if (!el) return;
     var footer = $("display-footer");
@@ -106,16 +112,22 @@
       el.className = "timer-display hidden";
       el.textContent = "00:00";
       warnedTimerEnd = null;
+      expiredTimerEnd = null;
       return;
     }
     var remaining = Math.max(0, Math.ceil((G.timerEnd - Date.now()) / 1000));
     var minutes = Math.floor(remaining / 60);
     var seconds = remaining % 60;
+    var warningSeconds = G.timerKind === "dial" ? 10 : 5;
     el.textContent = String(minutes).padStart(2, "0") + ":" + String(seconds).padStart(2, "0");
-    el.className = "timer-display" + (remaining === 0 ? " expired" : remaining <= 5 ? " warning" : "");
-    if (remaining > 0 && remaining <= 5 && warnedTimerEnd !== G.timerEnd) {
+    el.className = "timer-display" + (remaining === 0 ? " expired" : remaining <= warningSeconds ? " warning" : "");
+    if (remaining > 0 && remaining <= warningSeconds && warnedTimerEnd !== G.timerEnd) {
       warnedTimerEnd = G.timerEnd;
-      playTimerWarning();
+      playTimerTone(0.25);
+    }
+    if (remaining === 0 && expiredTimerEnd !== G.timerEnd) {
+      expiredTimerEnd = G.timerEnd;
+      playTimerTone(0.75);
     }
   }
 
@@ -412,6 +424,8 @@
   }
 
   function render() {
+    if (G.phase !== "psychic") psychicViewing = false;
+    if (G.phase !== "dial") dragging = false;
     var A = G.teams.A, B = G.teams.B;
     // Keep progress in the name column, leaving room for larger score digits.
     var trackCount = G.winScore > 0 ? Math.min(G.winScore, 40) : 31;
@@ -453,27 +467,30 @@
 
   function monitorPhase() {
     if (G.phase === "over" && G.result && G.result.draw) return "和局复盘";
+    if (G.phase === "over" && G.result && G.result.early) return "提前结束 · 复盘";
     return { setup: "待开局", chooseCard: "选题", psychic: "出题", dial: "讨论", guess: "猜左右",
       reveal: "揭晓", revealed: "结算", over: "复盘" }[G.phase] || "";
   }
 
   function renderRuleSet() {
     var balanced = G.ruleSet === "balanced";
+    var balancedEnding = G.winScore > 0
+      ? "第 4 轮有队达到 " + G.winScore + " 分则结算，否则第 6 轮结算" : "第 6 轮结算";
     $("opt-rule-set").value = balanced ? "balanced" : "original";
     $("opt-rule-set").disabled = G.phase !== "setup";
     $("rule-summary").textContent = balanced
-      ? "双方 0 分起步，严格轮流。至少 4 轮，双方行动后有人达到 8 分则结算；常规最多 6 轮。平分时各加赛一轮，仍平则和局。"
+      ? "双方 0 分起步，严格轮流。通常" + balancedEnding + "；落后方已无法追平时提前结束。平分时各加赛一轮，仍平则和局。"
       : "先手 0 分，后手补 1 分。先到设定分即结算，常规最多 10 轮；4 分且仍落后可再行动，平分加时直到分出胜负。";
     $("select-first").querySelector('[value="A"]').textContent = balanced ? "左队先手（双方 0 分）" : "左队先手（左 0 分 / 右 1 分）";
     $("select-first").querySelector('[value="B"]').textContent = balanced ? "右队先手（双方 0 分）" : "右队先手（右 0 分 / 左 1 分）";
-    $("opt-winscore").disabled = balanced;
+    $("opt-winscore").disabled = G.phase !== "setup";
     $("opt-bandwidth").disabled = balanced;
-    $("winscore-label").textContent = balanced ? "结算门槛（平衡快局固定 8 分）" : "获胜分数（0 = 不设分数门槛，仍最多 10 轮）";
+    $("winscore-label").textContent = "获胜分数（0 = 不设分数门槛，仍最多 " + WL.rulesFor(G).maxRounds + " 轮）";
     $("rule-turns").textContent = balanced
       ? "平衡快局：双方 0 分起步，两队轮流出题。"
       : "原版：先手 0 分，后手 1 分。本队拿 4 分且仍然落后，立刻再行动一轮。";
     $("rule-ending").textContent = balanced
-      ? "获胜：第 4 轮结束后，有队达到 8 分则比较总分；否则第 6 轮结算。领先者胜，平分加时。双方行动次数相等。"
+      ? "获胜：" + balancedEnding + "；领先者胜，平分加时。每轮揭示后，若分差大于落后方剩余可追回分数（本队出题每次 4 分、猜左右每次 1 分），立即提前结束；能追平则继续。"
       : "获胜：" + (G.winScore > 0 ? "先达到 " + G.winScore + " 分，或" : "") + "第 10 轮结束时分数较高者获胜；届时平分则进入加时赛。";
     $("rule-overtime").textContent = "平分加时赛：两队各出一次题，比较加时得分（含左右猜测的 1 分），谁高谁赢；" +
       (balanced ? "仍平则和局，整局最多 8 轮。" : "仍平则重复，直到分出胜负。") + "加时分不计入主记分板。";
@@ -843,9 +860,14 @@
   }
 
   function setDialFromEvent(e) {
+    if (!ONLINE && WL.advanceTimers(G)) {
+      render();
+      return;
+    }
+    if (G.phase !== "dial" || (G.timerEnd && Date.now() >= G.timerEnd + WL.TIMER_GRACE_MS)) return;
     var rect = $("axis").getBoundingClientRect();
     var pct = (e.clientX - rect.left) / rect.width;
-    WL.applyIntent(G, { type: "setDial", value: Math.round(pct * WL.UNIT) });
+    G.dial = WL.clampDial(pct * WL.UNIT);
     renderDial();
   }
 
@@ -871,6 +893,14 @@
     } else if (G.phase === "chooseCard") {
       hint.innerHTML = teamName(G.active, t.name) + " · " + T("psychic") +
         (G.cardChoices.length > 1 ? "：选择本轮题目。" : "：确认本轮题目。");
+      if (control) {
+        var redraw = mk(G.redrawUsed[G.active] ? "重新抽选（本局已用）" : "重新抽选（本局剩余 1 次）", "", function () {
+          dispatch({ type: "redrawCards" });
+        });
+        redraw.id = "btn-redraw";
+        redraw.disabled = G.redrawUsed[G.active];
+        box.appendChild(redraw);
+      }
     } else if (G.phase === "psychic") {
       hint.innerHTML = teamName(G.active, t.name) + " · " + T("psychic") + "：" + (psychicViewing
         ? "给出" + T("clue") + "后点击「出题完成」，随后保持沉默。"
@@ -887,15 +917,18 @@
             ensureAudio();
             dispatch({
               type: "startDialTimer",
-              timerSeconds: configuredTimerSeconds("data-dial-timer-seconds", 60)
+              timerSeconds: configuredTimerSeconds("data-dial-timer-seconds", 60),
+              guessTimerSeconds: configuredTimerSeconds("data-guess-timer-seconds", 15)
             });
             render();
           }));
         }
-        box.appendChild(mk(T("skipBtn"), "", function () {
-          psychicViewing = false;
-          dispatch({ type: "skipCard" });
-        }));
+        if (G.cardMode === "single") {
+          box.appendChild(mk(T("skipBtn"), "", function () {
+            psychicViewing = false;
+            dispatch({ type: "skipCard" });
+          }));
+        }
       }
     } else if (G.phase === "dial") {
       hint.innerHTML = teamName(G.active, t.name) + "：讨论" + T("clue") + "，拖动金色" + T("dial") + "后锁定。<span class='warn'>" + T("psychic") + " 保持沉默。</span>";
@@ -952,7 +985,7 @@
           " 行动，请换一位新 " + T("psychic") + " 出题。";
       } else if (G.phase === "over" && G.result) {
         hint.innerHTML = G.result.draw ? "双方和局 · 加时仍平，精彩同频！" :
-          teamName(G.result.winner, G.teams[G.result.winner].name) + " 获胜！ · 对局复盘" + (G.result.sudden ? "（加时赛决出）" : "");
+          teamName(G.result.winner, G.teams[G.result.winner].name) + " 获胜！ · 对局复盘" + (G.result.sudden ? "（加时赛决出）" : G.result.early ? "（对方已无法追平，提前结束）" : "");
       }
     }
 
@@ -1068,7 +1101,7 @@
       $("winner-text").className = "winner" + (G.result.draw ? "" : G.result.winner === "A" ? " a" : " b");
       $("final-score").textContent = G.teams.A.name + " " + G.teams.A.score + " 分　VS　" + G.teams.B.name + " " + G.teams.B.score + " 分" +
         (G.result.sudden ? "（加时 " + G.sdPts.A + " : " + G.sdPts.B + (G.result.draw ? "，仍平）" : "）") :
-          G.result.maxRounds ? "（" + WL.rulesFor(G).maxRounds + " 轮结算）" : "");
+          G.result.early ? "（对方已无法追平，提前结束）" : G.result.maxRounds ? "（" + WL.rulesFor(G).maxRounds + " 轮结算）" : "");
     }
 
     var isMonitor = ROLE === "monitor";
@@ -1098,12 +1131,14 @@
   }
 
   function startGame() {
+    ensureAudio();
     var nA = $("input-nameA").value.trim() || T("teamDefaultA");
     var nB = $("input-nameB").value.trim() || T("teamDefaultB");
     var first = $("select-first").value;
     if (first === "R") first = Math.random() < 0.5 ? "A" : "B";
     psychicViewing = false;
-    dispatch({ type: "setup", teamA: nA, teamB: nB, first: first, cardMode: $("opt-card-mode").value, ruleSet: $("opt-rule-set").value });
+    dispatch({ type: "setup", teamA: nA, teamB: nB, first: first, cardMode: $("opt-card-mode").value,
+      ruleSet: $("opt-rule-set").value, winScore: Number($("opt-winscore").value) });
   }
 
   function deckMsg(text, ok) {
@@ -1347,7 +1382,8 @@
   });
   $("opt-winscore").addEventListener("change", function () {
     var v = Math.floor(Number(this.value));
-    if (isNaN(v) || v < 0) v = 0;
+    if (!Number.isFinite(v) || v < 0) v = 0;
+    v = Math.min(999, v);
     this.value = v;
     dispatch({ type: "setWinScore", value: v });
   });

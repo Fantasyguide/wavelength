@@ -67,6 +67,7 @@ function finishPerfectRound(game) {
 }
 
 const scheduled = WL.createGame();
+WL.applyIntent(scheduled, { type: "setRuleSet", value: "original" });
 WL.applyIntent(scheduled, { type: "setCardMode", value: "single" });
 WL.applyIntent(scheduled, { type: "setWinScore", value: 0 });
 WL.applyIntent(scheduled, { type: "setup", teamA: "先手", teamB: "后手", first: "A" });
@@ -86,6 +87,7 @@ for (;;) {
 assert(scheduled.round === WL.MAX_ROUNDS && scheduled.result.winner === "B" && scheduled.result.maxRounds, "round 10 ends an unlimited-score game with the higher score winning");
 
 const tiedAtTen = WL.createGame();
+WL.applyIntent(tiedAtTen, { type: "setRuleSet", value: "original" });
 WL.applyIntent(tiedAtTen, { type: "setCardMode", value: "single" });
 WL.applyIntent(tiedAtTen, { type: "setWinScore", value: 0 });
 WL.applyIntent(tiedAtTen, { type: "setup", teamA: "甲", teamB: "乙", first: "A" });

@@ -9,6 +9,7 @@ const send = (game, type, args = {}) => WL.applyIntent(game, { type, ...args });
 
 const game = WL.createGame();
 assert.equal(game.cardMode, "choice");
+send(game, "setRuleSet", { value: "original" });
 send(game, "loadDeck", { cards: [topicA, topicB, topicC] });
 send(game, "setOrdered", { value: true });
 send(game, "setWinScore", { value: 0 });
@@ -18,17 +19,20 @@ assert.deepEqual(game.cardChoices, [topicC, topicB]);
 assert.deepEqual(game.deck, [topicA]);
 assert.equal(game.card, null);
 assert.equal(game.target, null);
+const choiceDeadline = game.timerEnd;
+assert.equal(game.timerKind, "chooseCard");
 for (const index of [-1, 2, 0.5, "0", null]) send(game, "selectCard", { index });
 send(game, "donePsychic");
 send(game, "startDialTimer", { timerSeconds: 60 });
 send(game, "lock");
 assert.equal(game.phase, "chooseCard");
-assert.equal(game.timerEnd, null);
+assert.equal(game.timerEnd, choiceDeadline, "invalid actions cannot reset the selection countdown");
 assert.equal(game.target, null);
 send(game, "setCardMode", { value: "single" });
 assert.equal(game.cardMode, "choice", "mode cannot change during a round");
 send(game, "selectCard", { index: 1 });
 assert.equal(game.phase, "psychic");
+assert.equal(game.timerEnd, null, "selecting a card clears its countdown");
 assert.deepEqual(game.card, topicB);
 assert.deepEqual(game.cardChoices, []);
 assert.equal(game.target.dist, "mild");
@@ -39,12 +43,11 @@ send(game, "selectSide", { side: 1 });
 assert.equal(game.side, 1, "double-sided card still supports side selection");
 send(game, "startDialTimer", { timerSeconds: 60 });
 send(game, "skipCard");
-assert.equal(game.phase, "chooseCard");
+assert.equal(game.phase, "psychic", "choice mode cannot bypass redraw limits after selection");
 assert.equal(game.round, 1);
-assert.equal(game.target, null);
-assert.equal(game.timerEnd, null);
-assert.equal(game.side, 0);
-assert.deepEqual(game.cardChoices, [topicA, topicC], "deck refill provides the second candidate");
+assert.equal(game.target, selectedTarget);
+assert.equal(game.side, 1);
+send(game, "setup");
 
 for (let round = 1; round <= WL.MAX_ROUNDS; round++) {
   assert.equal(game.phase, "chooseCard");
@@ -89,14 +92,14 @@ for (const cards of [[topicA], [topicA, topicA], [topicA, topicB], [topicA, topi
     send(small, "selectCard", { index: 0 });
     send(small, "selectSide", { side: 1 });
     assert(small.side < WL.cardSides(small.card).length);
-    send(small, "skipCard");
+    send(small, "setup");
   }
 }
 
 for (const sign of [-1, 1]) {
   for (const [distance, points] of [[0, 4], [16, 4], [17, 3], [56, 3], [57, 2], [100, 2], [101, 0]]) {
     const scoreGame = WL.createGame();
-    send(scoreGame, "setup");
+    send(scoreGame, "setup", { ruleSet: "original" });
     send(scoreGame, "selectCard", { index: 0 });
     scoreGame.target.center = 500;
     send(scoreGame, "donePsychic");
@@ -107,5 +110,45 @@ for (const sign of [-1, 1]) {
     assert.equal(scoreGame.reveal.pts, points, `score at signed distance ${sign * distance}`);
   }
 }
+
+const redraw = WL.createGame();
+send(redraw, "loadDeck", { cards: [topicA, topicB, topicC, ["上", "下"]] });
+send(redraw, "setOrdered", { value: true });
+send(redraw, "setup");
+const oldChoices = redraw.cardChoices.slice();
+send(redraw, "redrawCards");
+assert.equal(redraw.phase, "chooseCard");
+assert.equal(redraw.round, 1);
+assert.equal(redraw.target, null);
+assert(redraw.cardChoices.every(c => !oldChoices.includes(c)), "both candidates replaced when enough topics exist");
+assert.deepEqual(redraw.redrawUsed, { A: true, B: false });
+const freshChoices = redraw.cardChoices;
+send(redraw, "redrawCards");
+assert.equal(redraw.cardChoices, freshChoices, "repeat redraw cannot spend another chance");
+for (let round = 1; round <= 3; round++) {
+  send(redraw, "selectCard", { index: 0 });
+  send(redraw, "redrawCards");
+  assert.equal(redraw.phase, "psychic", "redraw only allowed before selection");
+  send(redraw, "donePsychic");
+  send(redraw, "setDial", { value: redraw.target.center > 500 ? 0 : 1000 });
+  send(redraw, "lock", { timerSeconds: 0 });
+  send(redraw, "guess", { guess: "L" });
+  send(redraw, "reveal");
+  send(redraw, "nextRound");
+  if (round === 1) {
+    assert.equal(redraw.active, "B");
+    send(redraw, "redrawCards");
+    assert.deepEqual(redraw.redrawUsed, { A: true, B: true }, "other team gets its own chance");
+  }
+}
+redraw.sudden = true;
+const overtimeChoices = redraw.cardChoices;
+send(redraw, "redrawCards");
+assert.equal(redraw.cardChoices, overtimeChoices, "redraw stays spent in later rounds and overtime");
+send(redraw, "newGame");
+assert.deepEqual(redraw.redrawUsed, { A: false, B: false }, "restart restores both chances");
+send(redraw, "setup", { first: "B" });
+send(redraw, "redrawCards");
+assert.deepEqual(redraw.redrawUsed, { A: false, B: true }, "B can redraw when going first");
 
 console.log("CARD MODE TEST PASSED: selection, validation, refill, small decks, full game, classic mode, scoring boundaries");

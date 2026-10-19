@@ -55,6 +55,7 @@ const { mockSatori, message, waitFor } = require("./qq-test-helpers.js");
       console.log("monitor QA: selected " + role);
     }
     await intent("loadDeck", { cards: [["短", "右边较长的概念", "独处", "喜欢热闹"]] });
+    await intent("setRuleSet", { value: "original" });
     await intent("setWinScore", { value: 4 });
     await intent("setup", { teamA: "幻想乡", teamB: "外来人", first: "A", cardMode: "single" });
     state.target.center = 250;

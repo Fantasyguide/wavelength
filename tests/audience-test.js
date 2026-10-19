@@ -46,7 +46,7 @@ function submit(userId, text, extra) {
 }
 
 assert.equal(submit("1", "g34%"), false, "setup is closed");
-intent("setup", { first: "A", cardMode: "single" });
+intent("setup", { first: "A", cardMode: "single", ruleSet: "original" });
 state.target.center = 670;
 assert.equal(submit("1", "g34%"), false, "psychic is closed");
 intent("skipCard");

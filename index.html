@@ -16,7 +16,7 @@
 <link rel="preload" href="assets/fantasyguide/WavelengthNumeric-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="app.css">
 </head>
-<!-- 倒计时秒数可在这里调整；设为 0 可关闭对应倒计时。 -->
+<!-- 出题/拨杆和猜左右的秒数可在这里调整，0 关闭；选题固定 10 秒。各阶段均有 1.5 秒宽限。 -->
 <body data-dial-timer-seconds="60" data-guess-timer-seconds="15">
 <div class="wrap">
 
@@ -52,7 +52,7 @@
     <div class="team b">
       <span class="team-direction" id="directionB" role="img"></span>
       <div class="team-heading"><div class="tname" id="nameB"></div></div>
-      <div class="tscore" id="scoreB">1</div>
+      <div class="tscore" id="scoreB">0</div>
       <span class="team-gain" id="gainB" aria-live="polite"></span>
       <div class="score-track" id="trackB"></div>
       <div class="overtime-score hidden" id="overtimeB" aria-live="polite"></div>
@@ -108,14 +108,15 @@
     <summary><span class="rules-summary-label">规则速查</span></summary>
     <ul>
       <li>位置刻度：最左 −100%，中央 0%，最右 +100%。群友发送 g-50%、g0% 或 g+50% 作答，揭晓前可以修改。</li>
-      <li>二选一：出题人从两道题中选一道；经典单题：直接使用抽到的题目。</li>
+      <li>二选一：10 秒内选题；超时按标签 1 / 2 各 70% / 30% 代选，同标签各 50%。选定前可重新抽选，双方每局各一次，重新计时。经典单题：直接使用抽到的题目。</li>
       <li>Psychic（出题人）看目标位置后，给一个落在卡片两个概念之间的线索，之后不能再说话。</li>
-      <li>本队讨论后把金色拨杆拖到猜测位置并锁定。</li>
-      <li>对方猜：目标的中心楔形在拨杆左边还是右边。</li>
+      <li>本队讨论后把金色拨杆拖到猜测位置并锁定。查看目标后倒计时 60 秒，宽限结束时，拨杆不在 0% 就锁定当前位置，仍在 0% 才均匀随机选择。</li>
+      <li>对方猜：目标的中心楔形在拨杆左边还是右边。倒计时 15 秒，到时左右各 50% 随机选择。</li>
+      <li>所有倒计时归零后保留 1.5 秒宽限，期间仍可提交操作；宽限结束才自动处理。联网以服务器收到操作的时间为准。</li>
       <li>揭示：本队拨杆落在目标色带内得 2/3/4 分；对方猜对左右得 1 分（本队 4 分时对方不得分）。</li>
-      <li id="rule-turns">原版：先手 0 分，后手 1 分。本队拿 4 分且仍然落后，立刻再行动一轮。</li>
-      <li id="rule-ending">获胜：先达到设定分，或第 10 轮结束时分数较高者获胜；届时平分则进入加时赛。</li>
-      <li id="rule-overtime">平分加时赛：两队各出一次题，比较加时得分（含左右猜测的 1 分），谁高谁赢；仍平则重复，直到分出胜负。加时分不计入主记分板。</li>
+      <li id="rule-turns">平衡快局：双方 0 分起步，两队轮流出题。</li>
+      <li id="rule-ending">获胜：第 4 轮有队达到 8 分则结算，否则第 6 轮结算；领先者胜，平分加时。每轮揭示后，若分差大于落后方剩余可追回分数（本队出题每次 4 分、猜左右每次 1 分），立即提前结束；能追平则继续。</li>
+      <li id="rule-overtime">平分加时赛：两队各出一次题，比较加时得分（含左右猜测的 1 分），谁高谁赢；仍平则和局，整局最多 8 轮。加时分不计入主记分板。</li>
       <li>出题禁忌：禁用卡片上的词/同义词、数字、复合线索、自造事物。</li>
     </ul>
   </details>
@@ -165,16 +166,20 @@
     <div class="field">
       <label for="opt-rule-set">规则版本</label>
       <select id="opt-rule-set" aria-describedby="rule-summary">
-        <option value="original" selected>原版</option>
-        <option value="balanced">平衡快局</option>
+        <option value="balanced" selected>平衡快局</option>
+        <option value="original">原版</option>
       </select>
       <p class="rule-summary" id="rule-summary"></p>
     </div>
     <div class="field">
+      <label for="opt-winscore" id="winscore-label">获胜分数（0 = 不设分数门槛，仍最多 6 轮）</label>
+      <input type="number" id="opt-winscore" min="0" max="999" step="1" value="8">
+    </div>
+    <div class="field">
       <label>先手队伍</label>
       <select id="select-first">
-        <option value="A">左队先手（左 0 分 / 右 1 分）</option>
-        <option value="B">右队先手（右 0 分 / 左 1 分）</option>
+        <option value="A">左队先手（双方 0 分）</option>
+        <option value="B">右队先手（双方 0 分）</option>
         <option value="R" selected>随机</option>
       </select>
     </div>
@@ -226,12 +231,8 @@
           <label class="check-row"><input type="checkbox" id="opt-ordered"> 按顺序展示（不洗牌，抽完循环）</label>
         </div>
         <div class="field">
-          <label for="opt-winscore" id="winscore-label">获胜分数（0 = 不设分数门槛，仍最多 10 轮）</label>
-          <input type="number" id="opt-winscore" min="0" max="999" value="10">
-        </div>
-        <div class="field">
           <label for="opt-bandwidth">得分区宽度（越宽越容易命中）</label>
-          <input type="number" id="opt-bandwidth" min="2" max="200" step="1" value="40">
+          <input type="number" id="opt-bandwidth" min="2" max="200" step="1" value="48" disabled>
         </div>
       </div>
     </details>

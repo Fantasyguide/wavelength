@@ -171,7 +171,7 @@ if (deckFile) {
 // Keep the startup deck separate from later controller selections.
 var defaultDeck = {
   name: state.deckName,
-  cards: state.cards.map(function (card) { return card.slice(); })
+  cards: JSON.parse(JSON.stringify(state.cards))
 };
 
 function publicState() {
@@ -200,6 +200,12 @@ var keepalive = setInterval(function () {
   });
 }, 15000);
 keepalive.unref();
+
+// The server owns online deadlines, even when every controller disconnects.
+var gameTimer = setInterval(function () {
+  if (WL.advanceTimers(state)) broadcast();
+}, 100);
+gameTimer.unref();
 
 function sendJson(res, code, obj, headers) {
   var allHeaders = { "Content-Type": "application/json; charset=utf-8" };
@@ -350,7 +356,7 @@ var server = http.createServer(function (req, res) {
           WL.applyIntent(state, intent && intent.type === "resetDeck" ? {
             type: "loadDeck",
             name: defaultDeck.name,
-            cards: defaultDeck.cards.map(function (card) { return card.slice(); })
+            cards: JSON.parse(JSON.stringify(defaultDeck.cards))
           } : intent);
           if (intent && (intent.type === "setup" || intent.type === "newGame")) audience.newGame();
           broadcast();
@@ -418,6 +424,7 @@ satori = QQ.connectSatori(qqConfig, function (event) {
 }, broadcast);
 server.on("close", function () {
   clearInterval(keepalive);
+  clearInterval(gameTimer);
   satori.stop();
   if (archive) void archive.close();
 });
