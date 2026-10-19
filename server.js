@@ -106,7 +106,7 @@ function checkedBridge(body) {
 async function notifyBridge(action, payload) {
   var suffix = action === "start" ? "/rounds/start" : "/rounds/" + encodeURIComponent(bridgeRound.key) + "/" + action;
   try {
-    var response = await fetch(bridge.base_url + "/api/v1/wavelength" + suffix, {
+    var response = await fetch(bridge.base_url + "/api/v1/returned" + suffix, {
       method: "POST", redirect: "error",
       headers: { Authorization: "Bearer " + bridge.secret, "Content-Type": "application/json" },
       body: payload === undefined ? undefined : JSON.stringify(payload),
