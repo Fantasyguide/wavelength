@@ -65,6 +65,9 @@ function latestSnapshot() {
   let j = JSON.parse(r.body);
   assert(r.status === 200 && j.ok === true && j.authRequired === false, "ping ok, no auth");
 
+  assert((await req("GET", base + "/api/thccb")).status === 403, "THCCB config requires a configured shared password");
+  assert((await req("POST", base + "/api/thccb", { enabled: true })).status === 403, "THCCB config writes require a configured shared password");
+
   r = await req("GET", base + "/");
   assert(r.status === 200 && r.body.indexOf("WAVELENGTH") !== -1, "index.html served");
   r = await req("GET", base + "/game.js");

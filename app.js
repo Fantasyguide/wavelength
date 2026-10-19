@@ -19,6 +19,46 @@
   var retryDelay = 1000;
   var warnedTimerEnd = null;
   var audioContext = null;
+  var thccbLoaded = false;
+  var intentError = "";
+
+  function thccbRequest(options) {
+    return fetch("/api/thccb", options).then(function (r) {
+      return r.json().then(function (j) {
+        if (!r.ok) throw new Error(j.error || "读取联动配置失败");
+        return j.config;
+      });
+    });
+  }
+
+  function showThccbConfig(c) {
+    $("thccb-enabled").checked = c.enabled;
+    $("thccb-url").value = c.base_url;
+    $("thccb-secret").value = "";
+    $("thccb-secret-state").textContent = c.secret_configured ? "已配置密钥；保存时留空即可保留。" : "尚未配置密钥。";
+  }
+
+  function loadThccbConfig() {
+    if (thccbLoaded) return;
+    thccbLoaded = true;
+    thccbRequest().then(showThccbConfig).catch(function (e) {
+      $("thccb-config-message").textContent = e.message;
+    });
+  }
+
+  function renderThccb() {
+    var controller = ONLINE && ROLE === "controller";
+    $("thccb-settings").hidden = !controller;
+    if (controller && connState === "ok") loadThccbConfig();
+    var info = G.thccb;
+    var status = $("thccb-status");
+    var show = controller && (intentError || (info && (info.enabled || info.error)));
+    status.classList.toggle("hidden", !show);
+    if (!show) return;
+    var labels = { idle: "等待开盘", starting: "开盘待确认", open: "竞猜已开盘", closed: "已封盘", result: "结果已送达", cancelled: "竞猜已取消" };
+    status.textContent = intentError || (info.error || "THCCB：" + (labels[info.status] || info.status) + (info.round_key ? "，轮号 " + info.round_key : ""));
+    status.classList.toggle("err", !!intentError || !!(info && info.error));
+  }
 
   var $ = function (id) { return document.getElementById(id); };
 
@@ -363,7 +403,11 @@
       body: JSON.stringify(intent)
     }).then(function (r) {
       if (!r.ok) return r.json().then(function (j) { throw new Error(j.error || "http " + r.status); });
-    }).catch(function () {
+      intentError = "";
+      renderThccb();
+    }).catch(function (e) {
+      intentError = e.message || "操作发送失败，请重试";
+      renderThccb();
       if (connState !== "ok") {
         queueIntent(intent);
         scheduleFlush();
@@ -394,6 +438,7 @@
     renderTargetVisibility();
     renderModals();
     renderTimer();
+    renderThccb();
   }
 
   function renderTrack(id, score, cls) {
@@ -1046,7 +1091,11 @@
     overDismissed = true;
     render();
   };
-  $("btn-restart").onclick = function () { dispatch({ type: "newGame" }); };
+  $("btn-restart").onclick = function () {
+    if (ONLINE && G.thccb && ["starting", "open", "closed"].indexOf(G.thccb.status) !== -1 &&
+        !window.confirm("重新开局会取消当前 THCCB 竞猜并退还下注，确认终止这一局？")) return;
+    dispatch({ type: "newGame" });
+  };
   $("btn-load-deck").onclick = function () { $("file-deck").click(); };
   $("btn-reset-deck").onclick = resetDeck;
   $("btn-builtin-deck").onclick = function () {
@@ -1086,6 +1135,7 @@
   $("btn-role-controller").onclick = function () {
     ensureAudio();
     ROLE = "controller";
+    thccbLoaded = false;
     $("role-modal").classList.add("hidden");
     render();
   };
@@ -1094,6 +1144,17 @@
     ROLE = "monitor";
     $("role-modal").classList.add("hidden");
     render();
+  };
+  $("thccb-save").onclick = function () {
+    var button = this;
+    button.disabled = true;
+    $("thccb-config-message").textContent = "正在保存…";
+    var body = { enabled: $("thccb-enabled").checked, base_url: $("thccb-url").value, secret: $("thccb-secret").value };
+    $("thccb-secret").value = "";
+    thccbRequest({ method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+      .then(function (c) { showThccbConfig(c); $("thccb-config-message").textContent = "联动配置已保存并生效。"; })
+      .catch(function (e) { $("thccb-config-message").textContent = e.message; })
+      .finally(function () { button.disabled = false; });
   };
   $("btn-auth").onclick = submitAuth;
   $("btn-guest").onclick = enterGuest;

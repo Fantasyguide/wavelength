@@ -889,3 +889,9 @@
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
   }
+
+/* Long external round identifiers must fit phone controllers. */
+#thccb-status, #thccb-config-message { overflow-wrap: anywhere; }
+#thccb-settings input[type="url"], #thccb-settings input[type="password"] { width: 100%; min-width: 0; box-sizing: border-box; }
+#thccb-settings label { margin-top: 10px; }
+#thccb-save { margin-top: 10px; }

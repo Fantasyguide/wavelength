@@ -27,6 +27,7 @@
 
   <div class="banner hidden" id="banner"></div>
   <div class="banner err hidden" id="conn-warn"></div>
+  <div class="banner hidden" id="thccb-status" role="status" aria-live="polite"></div>
 
   <section class="scoreboard" aria-label="两队比分">
     <div class="scoreboard-caption" aria-hidden="true">两队对局 <span>TEAM SCORE</span></div>
@@ -149,6 +150,17 @@
     </div>
     <details class="advanced">
       <summary>⚙ 高级选项</summary>
+      <div id="thccb-settings" class="field" hidden>
+        <label class="check-row"><input type="checkbox" id="thccb-enabled"> 开启 THCCB 资金联动</label>
+        <div class="setting-note">需要服务器共享密码和已登录设备。未结束的竞猜须先揭晓或取消，才能修改配置。</div>
+        <label for="thccb-url">THCCB 站点地址</label>
+        <input id="thccb-url" type="url" placeholder="https://thccb.example.com" autocomplete="off">
+        <label for="thccb-secret">联动密钥</label>
+        <input id="thccb-secret" type="password" autocomplete="new-password" placeholder="至少 32 字符；留空保留原密钥">
+        <div class="setting-note" id="thccb-secret-state"></div>
+        <button type="button" class="btn" id="thccb-save">保存联动配置</button>
+        <div class="setting-note" id="thccb-config-message" role="status" aria-live="polite"></div>
+      </div>
       <div class="field" id="deck-server" style="display:none">
         <label>服务器题库（服务器 decks/ 文件夹）</label>
         <div class="deck-row">

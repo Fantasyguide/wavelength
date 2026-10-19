@@ -1,0 +1,141 @@
+// Core integration behavior uses real HTTP routes and a local THCCB source endpoint.
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const http = require('node:http');
+const { once } = require('node:events');
+const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wl-thccb-'));
+process.env.PORT = '0';
+process.env.WL_CONFIG = path.join(dir, 'config.json');
+process.env.WL_AUTH_SESSIONS = path.join(dir, 'sessions.json');
+fs.writeFileSync(process.env.WL_CONFIG, JSON.stringify({ password: 'shared-password', retained: 'keep-me' }));
+const { server, state } = require('../server.js');
+const calls = [];
+let rejectAction = '';
+const source = http.createServer(async (req, res) => {
+  let text = '';
+  for await (const chunk of req) text += chunk;
+  calls.push({ url: req.url, auth: req.headers.authorization, body: text ? JSON.parse(text) : null });
+  const rejected = req.url.endsWith('/' + rejectAction);
+  // A brief response delay allows concurrent controller intents to overlap.
+  await new Promise(resolve => setTimeout(resolve, 15));
+  res.writeHead(rejected ? 503 : 200);
+  res.end(JSON.stringify({ ok: !rejected }));
+});
+let base, cookie = '';
+async function request(url, body, useAuth = true) {
+  const response = await fetch(base + url, {
+    method: body === undefined ? 'GET' : 'POST',
+    headers: { 'Content-Type': 'application/json', ...(useAuth ? { Cookie: cookie } : {}) },
+    body: body === undefined ? undefined : JSON.stringify(body)
+  });
+  const text = await response.text();
+  return { status: response.status, text, json: (() => { try { return JSON.parse(text); } catch { return null; } })(), response };
+}
+async function intent(type, extra = {}) { return request('/api/intent', { type, ...extra }); }
+(async () => {
+  await once(server, 'listening');
+  source.listen(0, '127.0.0.1');
+  await once(source, 'listening');
+  base = 'http://127.0.0.1:' + server.address().port;
+  const origin = 'http://127.0.0.1:' + source.address().port;
+  assert.equal((await request('/api/thccb', undefined, false)).status, 401);
+  assert.equal((await request('/api/thccb', { enabled: true }, false)).status, 401);
+  const login = await request('/api/auth', { password: 'shared-password' });
+  cookie = login.response.headers.get('set-cookie').split(';')[0];
+  assert.equal((await request('/api/thccb')).json.config.enabled, false);
+  await intent('setup', { cardMode: 'single' });
+  await intent('donePsychic');
+  assert.equal(calls.length, 0, 'disabled mode does not contact THCCB');
+  await intent('newGame');
+  const secret = 'test-secret-that-is-at-least-32-characters';
+  const settings = { enabled: true, base_url: origin, secret };
+  for (const invalid of ['ftp://example.com', 'https://user@example.com', 'http://@example.com', origin + '?token=x', origin + '#x']) {
+    assert.equal((await request('/api/thccb', { ...settings, base_url: invalid })).status, 400);
+  }
+  assert.equal((await request('/api/thccb', { ...settings, secret: 'short' })).status, 400);
+  const saved = await request('/api/thccb', settings);
+  assert.equal(saved.status, 200);
+  assert.equal(saved.json.config.secret_configured, true);
+  assert.ok(!saved.text.includes(secret));
+  const disk = JSON.parse(fs.readFileSync(process.env.WL_CONFIG));
+  assert.equal(disk.password, 'shared-password');
+  assert.equal(disk.retained, 'keep-me');
+  await request('/api/thccb', { ...settings, secret: '' });
+  assert.equal(JSON.parse(fs.readFileSync(process.env.WL_CONFIG)).thccb.secret, secret);
+  for (const file of ['/config.json', '/auth-sessions.json', '/auth-ips.json', '/.git/config', '/server.js', '/package.json']) {
+    assert.equal((await request(file)).status, 404, file + ' is not public');
+  }
+  assert.equal((await request('/assets/fantasyguide/Yin.svg')).status, 200);
+  assert.equal((await request('/decks/' + encodeURIComponent('车万版.json'))).status, 200);
+
+  await intent('setup', { cardMode: 'single', teamA: '测试队' });
+  const target = state.target.center;
+  rejectAction = 'start';
+  assert.equal((await intent('donePsychic')).status, 502);
+  assert.equal(state.phase, 'psychic');
+  const firstKey = calls[0].body.round_key;
+  assert.equal((await intent('selectSide', { side: 1 })).status, 400, 'failed start freezes the selected question');
+  assert.equal((await intent('skipCard')).status, 400);
+  assert.equal((await intent('setup')).status, 400);
+  assert.equal((await request('/api/deck', { text: '- [new, old]' })).status, 400);
+  assert.equal((await request('/api/thccb', { ...settings, enabled: false, secret: '' })).status, 400);
+  rejectAction = '';
+  const starts = await Promise.all([intent('donePsychic'), intent('donePsychic')]);
+  assert.ok(starts.every(r => r.status === 200));
+  assert.equal(calls.length, 2, 'duplicate device intent only sends one successful start');
+  assert.deepEqual(calls[0].body, calls[1].body, 'retry keeps identical round and stable labels');
+  assert.equal(calls[1].auth, 'Bearer ' + secret);
+  assert.deepEqual(Object.keys(calls[1].body).sort(), ['game_key', 'left_label', 'right_label', 'round_key', 'round_number', 'team_name']);
+  assert.equal(calls[1].body.team_name, '测试队');
+  assert.equal(state.phase, 'dial');
+  rejectAction = 'close';
+  assert.equal((await intent('lock')).status, 502);
+  assert.equal(state.phase, 'dial');
+  await intent('setDial', { value: 500 });
+  assert.match(state.thccb.error, /通知失败/, 'unrelated dial updates keep the notification failure visible');
+  rejectAction = '';
+  await Promise.all([intent('lock'), intent('lock')]);
+  assert.equal(calls.filter(c => c.url.endsWith('/close')).length, 2);
+  await intent('guess', { guess: 'L' });
+  rejectAction = 'result';
+  assert.equal((await intent('reveal')).status, 502);
+  assert.equal(state.phase, 'reveal');
+  rejectAction = '';
+  await Promise.all([intent('reveal'), intent('reveal')]);
+  assert.equal(state.phase, 'revealed');
+  assert.deepEqual(calls.at(-1).body, { target_position: target });
+  assert.ok(decodeURIComponent(calls.at(-1).url).includes(firstKey));
+  assert.ok(!JSON.stringify(state).includes(secret));
+
+  await intent('nextRound');
+  await intent('donePsychic');
+  const secondKey = calls.at(-1).body.round_key;
+  assert.notEqual(firstKey, secondKey);
+  rejectAction = 'cancel';
+  assert.equal((await intent('newGame')).status, 502);
+  assert.equal(state.phase, 'dial');
+  rejectAction = '';
+  await intent('newGame');
+  assert.equal(state.phase, 'setup');
+  assert.ok(decodeURIComponent(calls.at(-1).url).includes(secondKey));
+  assert.equal(calls.at(-1).body, null);
+  await intent('setup', { cardMode: 'single' });
+  await intent('donePsychic');
+  assert.notEqual(calls.at(-1).body.game_key, calls[0].body.game_key);
+  await intent('newGame');
+
+  fs.unlinkSync(process.env.WL_CONFIG);
+  fs.mkdirSync(process.env.WL_CONFIG);
+  const failedSave = await request('/api/thccb', { ...settings, enabled: false, secret: '' });
+  assert.equal(failedSave.status, 400);
+  assert.match(failedSave.json.error, /写入失败/);
+  assert.equal((await request('/api/thccb')).json.config.enabled, true, 'failed disk write does not activate changes');
+  console.log('THCCB SERVER TEST PASSED: auth, config, secret privacy, public files, notification order, retries, cancellation, duplicate devices');
+})().catch(error => { console.error(error); process.exitCode = 1; }).finally(async () => {
+  server.closeAllConnections();
+  source.closeAllConnections();
+  await Promise.all([new Promise(resolve => server.close(resolve)), new Promise(resolve => source.close(resolve))]);
+  fs.rmSync(dir, { recursive: true, force: true });
+});
