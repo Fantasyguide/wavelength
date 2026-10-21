@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 64" fill="none">
+  <title>Returned · 逆转录者</title>
+  <desc>A horizontal double helix reads as a wave; a returning strand points back toward its source.</desc>
+  <!-- Sparse base-pair links keep the side-on helix legible at header sizes. -->
+  <path d="M28 19.272V44.728 M38 14V50 M48 19.272V44.728 M68 44.728V19.272 M78 50V14 M88 44.728V19.272" stroke="#222" stroke-opacity=".5" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- The return strand stays continuous; the other wave passes behind it. -->
+  <g stroke="#222" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 44.728 C10.25 42.479 12.5 39.623 14.75 36.545 M21.25 27.455 C24.583 22.895 27.917 18.854 31.25 16.471 C34.583 14.088 37.917 13.393 41.25 14.583 C44.583 15.773 47.917 18.833 51.25 22.898 C52.417 24.321 53.583 25.859 54.75 27.455 M61.25 36.545 C64.583 41.105 67.917 45.146 71.25 47.529 C74.583 49.912 77.917 50.607 81.25 49.417 C83.5 48.614 85.75 46.977 88 44.728"/>
+    <path d="M12 23.828 C15.333 28.027 18.667 33.081 22 37.562 C25.333 42.044 28.667 45.899 32 48.038 C35.333 50.177 38.667 50.575 42 49.119 C45.333 47.663 48.667 44.371 52 40.172 C55.333 35.973 58.667 30.919 62 26.438 C65.333 21.956 68.667 18.101 72 15.962 C75.333 13.823 78.667 13.425 82 14.881 C84 15.755 86 17.273 88 19.272"/>
+  </g>
+  <!-- The return arrow is part of the strand, not a separate circular frame. -->
+  <path d="M4.85 14.821 L16.308 20.408 L7.692 27.248 Z" fill="#222" stroke="#222" stroke-width="1.5" stroke-linejoin="round"/>
+</svg>

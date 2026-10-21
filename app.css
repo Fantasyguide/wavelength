@@ -629,7 +629,10 @@
   .wrap { min-width: 0; }
   .brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
   .brand h1 { min-width: 0; white-space: nowrap; }
-  .brand-seal { font-family: var(--sans); font-size: 44px; line-height: 1; flex-shrink: 0; }
+  .brand-seal {
+    display: block; width: 1.5em; height: 1em; flex-shrink: 0;
+    font-size: 44px; line-height: 1;
+  }
   .header-end { display: flex; align-items: center; justify-content: flex-end; gap: 12px; min-width: 0; }
   header .sub { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 5px; margin: 0; min-width: 0; }
   #deck-badge { display: none; }
