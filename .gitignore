@@ -11,3 +11,9 @@ node_modules/
 # Local multi-agent playtest scripts, transcripts, and generated reports.
 # Reusable regression fixtures belong in tests/fixtures/.
 /docs/playtests/
+
+# Game-flow screenshots, previews, verification files, and countdown exports.
+/docs/game-flow-2026-10-21*/
+/docs/game-flow-screenshots-*.zip
+/docs/countdown-assets-2026-10-21/
+/docs/design/
