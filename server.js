@@ -221,17 +221,17 @@ async function applyOnlineIntent(req, intent, receivedAt) {
   }
   // Cancellation must remain possible even when an overdue bridge notification fails.
   if (type !== "newGame") {
-    if (timerBlocked && !["retryThccb", "donePsychic", "lock"].includes(type)) {
+    if (timerBlocked && !["retryThccb", "donePsychic", "lock", "penaltyLock"].includes(type)) {
       throw new Error("计时已结束，THCCB 通知待重试；请重试联动或重新开局取消竞猜");
     }
     var advanced = await advanceOnlineTimers(receivedAt === undefined ? Date.now() : receivedAt);
     if (type === "retryThccb" || (advanced && ["selectCard", "selectSide", "donePsychic", "startDialTimer",
-      "setDial", "lock", "guess", "reveal", "skipCard", "redrawCards"].includes(type))) return;
+      "setDial", "lock", "penaltyLock", "guess", "reveal", "skipCard", "redrawCards"].includes(type))) return;
   }
   if (bridge.enabled) {
     if (type === "donePsychic" && state.phase === "psychic") {
       await openBridgeRound();
-    } else if (type === "lock" && state.phase === "dial") {
+    } else if ((type === "lock" || type === "penaltyLock") && state.phase === "dial") {
       await closeBridgeRound();
     } else if (type === "reveal" && state.phase === "reveal" && activeBridgeRound()) {
       if (bridgeRound.status !== "closed") throw new Error("请先锁定并封盘，再揭晓结果");

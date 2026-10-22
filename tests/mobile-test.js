@@ -57,6 +57,24 @@ function assert(cond, msg) {
   const hint = await page.evaluate(() => document.getElementById("hint").textContent);
   assert(hint.indexOf("查看目标") !== -1, "game started after scrolling + tapping start");
 
+  await page.click("#controls .btn");
+  await page.click("#controls .btn");
+  await page.waitForSelector("#btn-penalty-lock");
+  const controlsFit = await page.evaluate(() => {
+    const lock = document.getElementById("btn-lock").getBoundingClientRect();
+    const penalty = document.getElementById("btn-penalty-lock").getBoundingClientRect();
+    return lock.top === penalty.top && lock.right <= penalty.left && lock.left >= 0 && penalty.right <= innerWidth;
+  });
+  assert(controlsFit, "lock and speaking penalty fit side by side on a 360px phone");
+  page.once("dialog", dialog => dialog.dismiss());
+  await page.click("#btn-penalty-lock");
+  assert(await page.$eval("body", el => el.dataset.phase) === "dial", "dismissing the native confirmation keeps discussion open");
+  await page.evaluate(() => { Math.random = () => 0.25; });
+  page.once("dialog", dialog => dialog.accept());
+  await page.click("#btn-penalty-lock");
+  await page.waitForFunction(() => document.body.dataset.phase === "guess");
+  assert(await page.$eval("#dial", el => el.style.left) === "25%", "accepting the native confirmation randomizes and locks the dial");
+
   await browser.close();
   console.log("MOBILE TEST PASSED");
   process.exit(0);

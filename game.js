@@ -533,7 +533,7 @@
     // Late input cannot override an automatic action or act on its new phase.
     // The online server coordinates timers with asynchronous THCCB confirmations.
     if (!(options && options.deferTimers) && advanceTimers(s) && ["selectCard", "selectSide", "donePsychic", "startDialTimer",
-      "setDial", "lock", "guess", "reveal", "skipCard", "redrawCards"].indexOf(intent.type) !== -1) return s;
+      "setDial", "lock", "penaltyLock", "guess", "reveal", "skipCard", "redrawCards"].indexOf(intent.type) !== -1) return s;
     switch (intent.type) {
       case "setRulesOpen":
         if (typeof intent.value === "boolean") s.rulesOpen = intent.value;
@@ -569,7 +569,9 @@
         }
         break;
       case "lock":
+      case "penaltyLock":
         if (s.phase === "dial") {
+          if (intent.type === "penaltyLock") s.dial = Math.floor(Math.random() * (UNIT + 1));
           s.phase = "guess";
           startTimer(s, "guess", intent.timerSeconds, s.guessTimerSeconds);
         }

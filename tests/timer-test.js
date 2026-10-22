@@ -153,6 +153,46 @@ try {
   assert.equal(resumed.dial, 750, "resuming a suspended page retains its nonzero dial");
   assert.equal(resumed.guess, "R", "the 50% boundary chooses right");
 
+  // A speaking penalty replaces even a moved dial, without changing the target
+  // or scoring before the opponent has guessed and the target is revealed.
+  for (const [sample, expected] of [[0, 0], [0.25, 250], [0.5, 500], [0.999999, 1000]]) {
+    const penalty = timedGame("dial", 7);
+    send(penalty, "setDial", { value: 800 });
+    const target = JSON.stringify(penalty.target);
+    const teams = JSON.stringify(penalty.teams);
+    now = penalty.timerEnd + grace - 1;
+    nextRandom(sample);
+    send(penalty, "penaltyLock", { value: 123 });
+    assert.equal(penalty.dial, expected, "penalty uniformly samples the whole scale, ignoring client position");
+    assert.equal(penalty.phase, "guess");
+    assert.equal(penalty.timerEnd, now + 7000, "penalty starts a full configured guess countdown even during grace");
+    assert.equal(JSON.stringify(penalty.target), target);
+    assert.equal(JSON.stringify(penalty.teams), teams);
+    assert.equal(penalty.log.length, 0);
+    const locked = JSON.stringify(penalty);
+    send(penalty, "penaltyLock");
+    send(penalty, "lock");
+    send(penalty, "setDial", { value: 123 });
+    assert.equal(JSON.stringify(penalty), locked, "duplicate penalty and late dragging cannot change the locked result");
+  }
+  for (const phase of ["setup", "chooseCard", "psychic", "guess", "reveal", "revealed", "over"]) {
+    const invalid = WL.createGame();
+    invalid.phase = phase;
+    const before = JSON.stringify(invalid);
+    send(invalid, "penaltyLock");
+    assert.equal(JSON.stringify(invalid), before, "speaking penalty is only accepted during discussion");
+  }
+  const untimedPenalty = timedGame("dial");
+  send(untimedPenalty, "penaltyLock", { timerSeconds: 0 });
+  assert.equal(untimedPenalty.phase, "guess");
+  assert.equal(untimedPenalty.timerEnd, null, "penalty respects a disabled guess countdown");
+  const latePenalty = timedGame("dial", 7);
+  send(latePenalty, "setDial", { value: 800 });
+  now = latePenalty.timerEnd + grace;
+  send(latePenalty, "penaltyLock", { timerSeconds: 3600 });
+  assert.equal(latePenalty.dial, 800, "a penalty confirmed after expiry cannot override the automatic lock");
+  assert.equal(latePenalty.timerEnd, now + 7000);
+
   const noGuessClock = timedGame("dial", 0);
   now = noGuessClock.timerEnd + 20000;
   WL.advanceTimers(noGuessClock);

@@ -936,6 +936,17 @@
         });
         lock.id = "btn-lock";
         box.appendChild(lock);
+        var penalty = mk("说话处罚", "magenta", function () {
+          if (!window.confirm("确认" + T("psychic") + "在隐藏" + T("target") + "后、锁定" + T("dial") +
+              "前说话违规？\n确认后将把" + T("dial") + "在整条刻度上均匀随机放置并立即锁定，无法撤销。")) return;
+          ensureAudio();
+          dispatch({
+            type: "penaltyLock",
+            timerSeconds: configuredTimerSeconds("data-guess-timer-seconds", 15)
+          });
+        });
+        penalty.id = "btn-penalty-lock";
+        box.appendChild(penalty);
       }
     } else if (G.phase === "guess") {
       hint.innerHTML = teamName(WL.other(G.active), o.name) + "：" + T("target") + "中心在" + T("dial") + "<b>左边</b>还是<b>右边</b>？";

@@ -388,6 +388,32 @@ async function pickFile(name, content, inputId) {
   window.Date.now = realDateNow;
   window.Math.random = realRandom;
 
+  assert(!doc.getElementById("btn-penalty-lock"), "speaking penalty is unavailable before closing the target");
+  psychicPass();
+  assert(doc.getElementById("btn-lock").nextElementSibling.id === "btn-penalty-lock",
+    "speaking penalty appears beside the regular lock during discussion");
+  dragTo(800);
+  const originalConfirm = window.confirm;
+  let confirmation = "";
+  window.confirm = message => { confirmation = message; return false; };
+  click("btn-penalty-lock");
+  assert(confirmation.includes("说话违规") && confirmation.includes("随机") && confirmation.includes("立即锁定"),
+    "penalty confirmation explains the violation and irreversible random lock");
+  assert(doc.body.dataset.phase === "dial" && doc.getElementById("dial").style.left === "80%",
+    "cancelling the penalty preserves the position and discussion phase");
+  window.confirm = () => true;
+  window.Math.random = () => 0.25;
+  click("btn-penalty-lock");
+  window.Math.random = realRandom;
+  window.confirm = originalConfirm;
+  assert(doc.body.dataset.phase === "guess" && doc.getElementById("dial").style.left === "25%",
+    "confirming the penalty replaces a moved dial and locks immediately");
+  assert(doc.getElementById("timer-display").textContent === "00:07", "penalty uses the configured guess timer");
+  assert(!doc.getElementById("btn-lock") && !doc.getElementById("btn-penalty-lock") &&
+    !doc.getElementById("screen").classList.contains("open"), "penalty removes lock actions and keeps the target hidden");
+  dragTo(600);
+  assert(doc.getElementById("dial").style.left === "25%", "penalized dial cannot be dragged after locking");
+
   console.log("ALL TESTS PASSED");
   process.exit(0);
 })().catch((e) => { console.error(e); process.exit(1); });

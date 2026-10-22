@@ -257,6 +257,40 @@ async function intent(type, extra = {}) { return request('/api/intent', { type, 
   assert.equal((await monitorSnapshot()).thccb, undefined);
   responseDelay = 15;
 
+  // Speaking penalties follow the same authenticated, serialized close flow.
+  await intent('setup', { cardMode: 'single' });
+  await intent('donePsychic');
+  await intent('setDial', { value: 800 });
+  const penaltyKey = state.thccb.round_key;
+  const penaltyTarget = state.target.center;
+  const penaltyCalls = calls.length;
+  assert.equal((await request('/api/intent', { type: 'penaltyLock' }, false)).status, 401);
+  rejectAction = 'close';
+  assert.equal((await intent('penaltyLock')).status, 502);
+  assert.equal(state.phase, 'dial', 'failed closure leaves the speaking penalty retryable');
+  assert.equal(state.dial, 800, 'failed closure does not partially randomize the dial');
+  assert.equal(state.thccb.round_key, penaltyKey);
+  rejectAction = '';
+  const penalties = await Promise.all([intent('penaltyLock', { timerSeconds: 7 }), intent('penaltyLock', { timerSeconds: 7 })]);
+  assert(penalties.every(result => result.status === 200));
+  assert.equal(state.phase, 'guess');
+  assert.equal(state.thccb.status, 'closed', 'speaking penalty confirms THCCB closure before guessing');
+  assert.equal(state.thccb.round_key, penaltyKey);
+  assert.equal(state.target.center, penaltyTarget);
+  assert(Number.isInteger(state.dial) && state.dial >= 0 && state.dial <= 1000);
+  assert(state.timerEnd > Date.now() + 6000 && state.timerEnd <= Date.now() + 7000);
+  assert.deepEqual(calls.slice(penaltyCalls).map(call => call.url.split('/').at(-1)), ['close', 'close'],
+    'concurrent penalty confirmations send only one successful close');
+  const penaltyPosition = state.dial;
+  await intent('penaltyLock');
+  await intent('setDial', { value: -1 });
+  assert.equal(state.dial, penaltyPosition, 'repeated penalty and late movement cannot reroll the result');
+  const penaltySnapshot = await monitorSnapshot();
+  assert.equal(penaltySnapshot.phase, 'guess');
+  assert.equal(penaltySnapshot.dial, penaltyPosition);
+  assert.equal(penaltySnapshot.target, null, 'penalty keeps the answer hidden from monitors');
+  await intent('newGame');
+
   fs.unlinkSync(process.env.WL_CONFIG);
   fs.mkdirSync(process.env.WL_CONFIG);
   const failedSave = await request('/api/thccb', { ...settings, enabled: false, secret: '' });
