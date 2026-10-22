@@ -1315,6 +1315,11 @@
       line-height: 1.1;
     }
     body.monitor-mode .card-choice .con { font-size: calc(64 * var(--display-unit)); }
+    body.monitor-mode .card-choice:not(:has(.con + .con)) .con { font-size: calc(72 * var(--display-unit)); }
+    /* Center wrapped lines within each concept, keeping short concepts beside VS. */
+    body.monitor-mode .card-choice .con :is(.l, .r) { width: fit-content; max-width: 100%; text-align: center; }
+    body.monitor-mode .card-choice .con .l { justify-self: end; }
+    body.monitor-mode .card-choice .con .r { justify-self: start; }
     /* Double-sided cards still share the card area until the clue is finished. */
     body.monitor-mode[data-phase="psychic"] .side:not(.only) .con { font-size: calc(64 * var(--display-unit)); }
     body.monitor-mode[data-phase="psychic"] .side:not(.only) .con i {
