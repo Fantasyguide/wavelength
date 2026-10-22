@@ -23,6 +23,7 @@ function turn(g, points, defense = 0) {
   apply(g, "reveal");
   assert.equal(g.reveal.pts, points);
   assert.equal(g.reveal.oppPts, defense);
+  assert.equal(g.log[0].guess, defense ? "L" : "R", "history preserves the actual guess, including wrong and perfect-hit turns");
   if (g.ruleSet === "balanced") assert.equal(g.catchup, false);
 }
 function rounds(g, points) {

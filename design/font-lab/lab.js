@@ -8,7 +8,7 @@
   const groups = [
     {id:'names', label:'两队队名', selectors:'.team .tname,.team-name', sizeSelectors:'.team .tname', font:'Wavelength PingXian', size:116, weight:500, line:1, stroke:.008, sample:'幻想乡 · 外来人 01', note:'默认平显雅宋，原字体为常规体，队名用 0.008em 微量描边增重。字号是上限，长队名会缩小。记录里的队名只同步字形。'},
     {id:'concepts', label:'大题目 / 概念', selectors:'.side .con', sizeSelectors:'.side .con', font:'Wavelength YaShi', size:100, weight:400, line:1.1, sample:'讨好型人格 — 反驳型人格', note:'默认雅士黑。二选一题卡按 72 / 100 的比例使用较小字号；中间横线始终居中。'},
-    {id:'headings', label:'栏目标题', selectors:'.log h3,.audience-heading h3', font:'Wavelength Song', size:40, weight:400, line:1.2, sample:'回合记录 · 群友竞猜', note:'修改左右两侧的栏目标题。'},
+    {id:'headings', label:'栏目标题', selectors:'.log h3,.audience-heading h3', font:'Wavelength Song', size:40, weight:400, line:1.2, sample:'轮次记录 · 群友竞猜', note:'修改左右两侧的栏目标题。'},
     {id:'phase', label:'阶段 / 提示', selectors:'.phase-message', font:'FZYaSongS-B-GB', size:56, weight:400, line:1.1, sample:'第 3 轮 · 结算', note:'默认使用 FZCYSJW（FZYaSongS-B-GB）的原始字形。阶段文字位于长条上方。'},
     {id:'history', label:'记录正文', selectors:'.log li,.log-card b', sizeSelectors:'.log li', font:'Wavelength Source Han Serif', size:48, weight:500, line:1.25, sample:'永远的幻想乡 — 短暂的异变', note:'题目与第几轮在同一行。记录中的数字使用独立数字字体；可在预览中滚动长记录。'},
     {id:'audience', label:'群友昵称', selectors:'.audience-person strong,.audience-avatar', sizeSelectors:'.audience-person strong', font:'Wavelength WenKai', size:36, weight:700, line:1.1, synthesize:true, sample:'博丽灵梦 · 雾雨魔理沙', note:'修改群友榜昵称与头像里的文字。'},
@@ -168,7 +168,11 @@
       card.append(make('b','',words.join(' — ')));title.append(make('span','log-round','第 '+(3-i)+' 轮'),card);
       const dial=make('span','log-value log-dial','-50%'),target=make('span','log-value log-target','-50%');dial.style.color='var(--c'+letter+')';target.style.color='#000';
       const a=make('span','log-points','+'+(letter==='A'?4:0)),b=make('span','log-points','+'+(letter==='B'?4:0));a.dataset.team='A';b.dataset.team='B';a.style.color='var(--cA)';b.style.color='var(--cB)';
-      score.append(teamName(letter,t['team'+letter]),d.createTextNode(' · '),dial,d.createTextNode(' / '),target,d.createTextNode(' · '),a,d.createTextNode(' / '),b);li.append(title,score);return li;
+      const positions=make('span','log-positions'),gains=make('span','log-gains'),guess=make('span','log-guess');
+      guess.dataset.side=i===1?'L':'R';guess.innerHTML='<svg viewBox="0 0 48 32" aria-hidden="true" focusable="false"><path d="M3 16H42M30 4L42 16L30 28"/></svg>';
+      guess.style.color='var(--c'+(letter==='A'?'B':'A')+')';guess.setAttribute('role','img');guess.setAttribute('aria-label','另一队猜测'+(i===1?'左侧':'右侧'));
+      positions.append(dial,d.createTextNode(' / '),target);gains.append(a,d.createTextNode(' / '),b);
+      score.append(teamName(letter,t['team'+letter]),positions,guess,gains);li.append(title,score);return li;
     }));
     const rules=d.querySelector('details.rules');if(rules)rules.open=false;
     for(const g of groups) d.querySelectorAll(g.selectors).forEach(e=>{e.dataset.labGroup=g.id;});

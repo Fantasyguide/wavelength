@@ -84,24 +84,62 @@
     });
   }
 
+  function audienceErrorColor(errorPercent) {
+    // Reserve saturated emerald for an exact hit, with a visible color step at zero.
+    if (errorPercent === 0) return "#008544";
+    // Interpolate hue at the THCCB payout thresholds (in displayed percentage points).
+    var stops = [[0, 100], [3.2, 90], [11.2, 70], [20, 40], [30, 0]];
+    var distance = Math.abs(errorPercent);
+    var hue = 0;
+    for (var i = 1; i < stops.length; i++) {
+      if (distance <= stops[i][0]) {
+        var start = stops[i - 1], end = stops[i];
+        var fraction = (distance - start[0]) / (end[0] - start[0]);
+        hue = start[1] + (end[1] - start[1]) * fraction;
+        break;
+      }
+    }
+    return "hsl(" + hue + ", 65%, 28%)";
+  }
+
   function renderAudienceResults() {
     var info = G.thccb;
-    var show = ONLINE && info && info.enabled && ["revealed", "over"].includes(G.phase);
-    $("audience-results").classList.toggle("hidden", !show);
-    if (!show) return;
-    var results = info.results;
-    $("audience-results-table").classList.toggle("hidden", !results || !results.top_five.length);
-    $("audience-results-note").textContent = info.results_error || (!results ? "正在同步竞猜结果…" :
-      !results.top_five.length ? "本轮没有观众参与竞猜。" : "目标 " + WL.formatPercent(WL.toSignedPercent(results.target_position)) + "，位置按本页刻度显示，到账单位为金圆券。");
+    var showResults = !!(ONLINE && info && info.enabled && ["revealed", "over"].includes(G.phase));
+    $("audience-results").classList.toggle("hidden", !ONLINE);
+    $("audience-results").dataset.view = showResults ? "results" : "qr";
+    $("audience-qr").hidden = showResults;
+    $("audience-results-board").hidden = !showResults;
+    var results = showResults ? info.results : null;
+    var entries = results ? results.top_five.slice(0, 5) : [];
+    $("audience-results-target").textContent = results ? "目标 " + WL.formatPercent(WL.toSignedPercent(results.target_position)) : "";
+    var note = showResults ? info.results_error || (!results ? "正在同步竞猜结果…" :
+      !entries.length ? "本轮没有观众参与竞猜。" : "") : "";
+    $("audience-results-note").textContent = note;
+    $("audience-results-note").hidden = !note;
     var rows = $("audience-results-rows");
+    // Keep scroll position through repeated state broadcasts; reset for a new result.
+    var key = JSON.stringify([results && results.round_key, results && results.target_position, entries]);
+    if (rows.dataset.entries === key) return;
+    rows.dataset.entries = key;
+    rows.scrollTop = 0;
     rows.replaceChildren();
-    if (results) results.top_five.forEach(function (entry, index) {
-      var row = document.createElement("tr");
-      [index + 1, entry.username, WL.formatPercent(WL.toSignedPercent(entry.position)),
-        (entry.distance / 5).toFixed(1) + "%", Number(entry.payout).toLocaleString("zh-CN")].forEach(function (value, column) {
-        var cell = document.createElement("td");
+    entries.forEach(function (entry, index) {
+      var row = document.createElement("li");
+      var errorPercent = (entry.position - results.target_position) / WL.UNIT * 200;
+      var values = [index + 1, entry.username, WL.formatPercent(WL.toSignedPercent(entry.position)),
+        errorPercent === 0 ? "正中" : "差 " + (errorPercent > 0 ? "+" : "") + errorPercent.toFixed(1) + "%", Number(entry.payout).toLocaleString("zh-CN")];
+      var classes = ["audience-rank", "audience-player", "audience-position", "audience-error", "audience-payout"];
+      var labels = ["名次", "玩家", "竞猜位置", "误差", "到账金圆券"];
+      values.forEach(function (value, column) {
+        var cell = document.createElement(column === 1 ? "strong" : "span");
+        cell.className = classes[column];
         cell.textContent = String(value);
-        if (column === 1) { cell.className = "audience-player"; cell.title = String(value); }
+        cell.title = labels[column] + "：" + value;
+        cell.setAttribute("aria-label", cell.title);
+        if (column === 3) {
+          cell.style.setProperty("--audience-error-color", audienceErrorColor(errorPercent));
+          if (errorPercent === 0) cell.classList.add("exact");
+        }
         row.appendChild(cell);
       });
       rows.appendChild(row);
@@ -513,7 +551,7 @@
     var trackCount = Math.max(scoreTrackCount(A.score), scoreTrackCount(B.score));
     var scoreDigits = Math.max(String(G.teams.A.score).length, String(G.teams.B.score).length);
     var trackColumns = Math.max(1, Math.floor((790 - scoreDigits * 140) / 44));
-    document.body.style.setProperty("--team-card-height", 344 + (Math.ceil(trackCount / trackColumns) - 1) * 44);
+    document.body.style.setProperty("--team-card-height", 320 + (Math.ceil(trackCount / trackColumns) - 1) * 44);
     $("nameA").textContent = A.name;
     $("nameB").textContent = B.name;
     [A, B].forEach(function (team, index) {
@@ -1077,7 +1115,23 @@
         title.appendChild(li.querySelector(".log-round"));
         title.appendChild(li.querySelector(".log-card"));
         li.prepend(title);
-        li.querySelector(".log-score").innerHTML = teamName(e.team, G.teams[e.team].name) + " · " + vals + " · " + points;
+        var hasGuess = e.guess === "L" || e.guess === "R";
+        var guessingTeam = WL.other(e.team);
+        li.querySelector(".log-score").innerHTML = teamName(e.team, G.teams[e.team].name) +
+          "<span class='log-positions'>" + vals + "</span>" +
+          "<span class='log-guess' style='color:" + teamColor(guessingTeam) + "'>" +
+          (hasGuess ? "<svg viewBox='0 0 48 32' aria-hidden='true' focusable='false'><path d='M3 16H42M30 4L42 16L30 28'/></svg>" : "") + "</span>" +
+          "<span class='log-gains'>" + points + "</span>";
+        var guessElement = li.querySelector(".log-guess");
+        if (hasGuess) {
+          guessElement.dataset.side = e.guess;
+          var guessLabel = G.teams[guessingTeam].name + "猜测" + T("target") + "在" + T("dial") + (e.guess === "L" ? "左侧" : "右侧");
+          guessElement.setAttribute("role", "img");
+          guessElement.setAttribute("aria-label", guessLabel);
+          guessElement.title = guessLabel;
+        } else {
+          guessElement.setAttribute("aria-hidden", "true");
+        }
       }
       ul.appendChild(li);
     });

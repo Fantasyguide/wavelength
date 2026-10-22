@@ -102,19 +102,25 @@
   <div class="display-footer" id="display-footer"></div>
 
 
-  <section class="audience-results hidden" id="audience-results" aria-live="polite">
-    <h3>观众竞猜前五名</h3>
-    <p id="audience-results-note"></p>
-    <div class="audience-results-scroll">
-      <table id="audience-results-table" class="hidden">
-        <thead><tr><th scope="col">名次</th><th scope="col">玩家</th><th scope="col">竞猜位置</th><th scope="col">误差</th><th scope="col">到账</th></tr></thead>
-        <tbody id="audience-results-rows"></tbody>
-      </table>
+  <section class="audience-results hidden" id="audience-results" aria-label="观众竞猜">
+    <div class="audience-qr" id="audience-qr">
+      <h3 class="audience-qr-title">观众竞猜</h3>
+      <img src="assets/thccb-qr.png" width="450" height="450" alt="扫码参与 THCCB 观众竞猜">
+      <span class="audience-qr-caption">扫码参与竞猜</span>
+    </div>
+    <div class="audience-results-board" id="audience-results-board" hidden>
+      <div class="audience-heading">
+        <h3>观众竞猜 · 前五名</h3>
+        <span class="audience-target" id="audience-results-target"></span>
+        <span class="audience-payout-label">到账 / 金圆券</span>
+      </div>
+      <p id="audience-results-note" role="status" hidden></p>
+      <ol class="audience-winners" id="audience-results-rows" aria-label="本轮观众竞猜前五名，按误差排名" data-auto-scroll></ol>
     </div>
   </section>
 
   <section class="log">
-    <h3>回合记录 <span class="section-subtitle" aria-hidden="true">ROUND CHRONICLE</span></h3>
+    <h3>轮次记录 <span class="section-subtitle" aria-hidden="true">ROUND CHRONICLE</span></h3>
     <ul id="log" data-auto-scroll></ul>
   </section>
 

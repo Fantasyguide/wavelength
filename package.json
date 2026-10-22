@@ -4,7 +4,7 @@
   "private": true,
   "description": "本地和局域网可玩的 Returned 逆转录者数字版",
   "engines": {
-    "node": ">=22.22.2"
+    "node": ">=22.23.4"
   },
   "scripts": {
     "test": "npm run test:logic && npm run test:dom && npm run test:server && npm run test:browser",
