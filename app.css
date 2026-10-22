@@ -345,18 +345,19 @@
     background: #fcece8; border-style: solid;
   }
 
-  #conn-badge {
+  :is(#conn-badge, #thccb-conn-badge) {
     display: inline-flex; align-items: center; gap: 5px;
     font-size: 11px; padding: 2px 9px; border-radius: 20px;
     border: 1px solid var(--line); color: var(--dim);
   }
-  #conn-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--dim); }
-  #conn-badge.ok { color: var(--success); border-color: #a6c6b0; }
-  #conn-badge.ok .dot { background: var(--success); }
-  #conn-badge.bad { color: var(--danger); border-color: #dcb0aa; }
-  #conn-badge.bad .dot { background: var(--danger); }
-  #conn-badge.retry { color: var(--gold); border-color: #d5bf99; }
-  #conn-badge.retry .dot { background: var(--gold); animation: wl-pulse 1s infinite; }
+  :is(#conn-badge, #thccb-conn-badge) .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--dim); }
+  :is(#conn-badge, #thccb-conn-badge).ok { color: var(--success); border-color: #a6c6b0; }
+  :is(#conn-badge, #thccb-conn-badge).ok .dot { background: var(--success); }
+  :is(#conn-badge, #thccb-conn-badge).bad { color: var(--danger); border-color: #dcb0aa; }
+  :is(#conn-badge, #thccb-conn-badge).bad .dot { background: var(--danger); }
+  :is(#conn-badge, #thccb-conn-badge).retry { color: var(--gold); border-color: #d5bf99; }
+  :is(#conn-badge, #thccb-conn-badge).retry .dot { background: var(--gold); animation: wl-pulse 1s infinite; }
+  #thccb-conn-badge[hidden] { display: none; }
   @keyframes wl-pulse { 50% { opacity: .25; } }
 
   .card-area { margin-bottom: 16px; }
@@ -636,12 +637,12 @@
   .header-end { display: flex; align-items: center; justify-content: flex-end; gap: 12px; min-width: 0; }
   header .sub { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 5px; margin: 0; min-width: 0; }
   #deck-badge { display: none; }
-  #conn-badge { flex-shrink: 0; white-space: nowrap; }
+  :is(#conn-badge, #thccb-conn-badge) { flex-shrink: 0; white-space: nowrap; }
   .header-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-shrink: 0; }
   .header-actions .timer-display { margin: 0; }
   .header-actions .btn { white-space: nowrap; }
   #sub-title { color: var(--ink); letter-spacing: .15em; text-indent: .15em; font-size: 32px; line-height: 1; text-align: center; white-space: nowrap; }
-  #conn-badge, .timer-display, .tick-number, .band-label { font-family: var(--sans); }
+  :is(#conn-badge, #thccb-conn-badge), .timer-display, .tick-number, .band-label { font-family: var(--sans); }
   .btn { min-height: 44px; }
   :is(button, summary, input, select):focus-visible {
     outline: 2px solid var(--cyan); outline-offset: 4px;
@@ -1062,7 +1063,7 @@
     body.monitor-mode header .header-end { display: flex; grid-column: 3; grid-row: 1; }
     body.monitor-mode header .header-actions { display: none; }
     body.monitor-mode header .sub { font-size: calc(28 * var(--display-unit)); line-height: 1.2; margin: 0; }
-    body.monitor-mode #conn-badge { font-size: calc(26 * var(--display-unit)); padding: 0 calc(10 * var(--display-unit)); }
+    body.monitor-mode :is(#conn-badge, #thccb-conn-badge) { font-size: calc(26 * var(--display-unit)); padding: 0 calc(10 * var(--display-unit)); }
     body.monitor-mode .timer-display {
       font-size: calc(64 * var(--display-unit)); min-width: calc(224 * var(--display-unit)); line-height: 1;
       padding: 0 calc(12 * var(--display-unit));
@@ -1372,6 +1373,7 @@
 #thccb-settings input[type="url"], #thccb-settings input[type="password"] { width: 100%; min-width: 0; box-sizing: border-box; }
 #thccb-settings label { margin-top: 10px; }
 #thccb-save { margin-top: 10px; }
+#btn-thccb-retry.hidden { display: none; }
 
 
 /* Reuse the former audience panel's frame, nickname face and large ranking type. */

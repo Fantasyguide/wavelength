@@ -59,6 +59,10 @@
   var audioContext = null;
   var thccbLoaded = false;
   var intentError = "";
+  var intentGeneration = 0;
+  var thccbRetryPending = false;
+  var thccbRetryFeedback = "";
+  var thccbRetryRound = null;
 
   function thccbRequest(options) {
     return fetch("/api/thccb", options).then(function (r) {
@@ -146,20 +150,44 @@
     });
   }
 
+  function renderThccbConnection() {
+    var badge = $("thccb-conn-badge");
+    badge.hidden = !ONLINE;
+    if (!ONLINE) return;
+    var health = G.thccb_connection;
+    var status = connState !== "ok" ? "unknown" : health ? health.status : "checking";
+    var labels = { disabled: "THCCB未启用", checking: "THCCB检测中…", connected: "THCCB已连接",
+      error: "THCCB联动异常", unknown: "THCCB状态未知" };
+    badge.className = status === "connected" ? "ok" : status === "error" ? "bad" : status === "checking" ? "retry" : "";
+    badge.innerHTML = "<span class='dot'></span>" + (labels[status] || labels.unknown);
+    badge.title = status === "connected" ? "THCCB 接口可达；开盘、封盘和结算以各操作的确认结果为准。" :
+      status === "error" ? "THCCB 连接检测或联动通知失败，请查看控制台提示。" :
+      status === "unknown" ? "恢复与 RETURNED 的连接后更新 THCCB 状态。" : labels[status] || labels.unknown;
+  }
+
   function renderThccb() {
+    renderThccbConnection();
     renderAudienceResults();
     var controller = ONLINE && ROLE === "controller";
     $("thccb-settings").hidden = !controller;
     if (controller && connState === "ok") loadThccbConfig();
     var info = G.thccb;
     var status = $("thccb-status");
-    var show = controller && (intentError || (info && (info.enabled || info.error)));
+    if (!thccbRetryPending && thccbRetryRound !== (info && info.round_key)) thccbRetryFeedback = "";
+    var show = controller && (thccbRetryPending || thccbRetryFeedback || intentError || (info && (info.enabled || info.error)));
     status.classList.toggle("hidden", !show);
     if (!show) return;
     var labels = { idle: "等待开盘", starting: "开盘待确认", open: "竞猜已开盘", closed: "已封盘", result: "结果已送达", cancelled: "竞猜已取消" };
-    $("thccb-status-message").textContent = intentError || (info.error || "THCCB：" + (labels[info.status] || info.status) + (info.round_key ? "，轮号 " + info.round_key : ""));
-    $("btn-thccb-retry").classList.toggle("hidden", !(info && info.timer_blocked));
-    status.classList.toggle("err", !!intentError || !!(info && info.error));
+    var message = intentError || (info && (info.error || "THCCB：" + (labels[info.status] || info.status))) || "";
+    $("thccb-status-message").textContent = thccbRetryPending ? "正在重试 THCCB 联动，请稍候…" :
+      (thccbRetryFeedback ? thccbRetryFeedback + " " : "") + message;
+    $("thccb-status-message").title = info && info.round_key ? "联动轮号：" + info.round_key : "";
+    var retry = $("btn-thccb-retry");
+    retry.classList.toggle("hidden", !thccbRetryPending && !(info && (info.retryable || info.timer_blocked)));
+    retry.disabled = thccbRetryPending || connState !== "ok";
+    retry.textContent = thccbRetryPending ? "重试中…" : "重试联动";
+    retry.setAttribute("aria-busy", String(thccbRetryPending));
+    status.classList.toggle("err", !thccbRetryPending && (!!intentError || !!(info && info.error)));
   }
 
   var $ = function (id) { return document.getElementById(id); };
@@ -370,18 +398,18 @@
     if (state === "local") {
       badge.innerHTML = "<span class='dot'></span>本地模式";
     } else if (state === "connecting") {
-      badge.innerHTML = "<span class='dot'></span>连接中…";
+      badge.innerHTML = "<span class='dot'></span>RETURNED连接中…";
       badge.className = "retry";
     } else if (state === "ok") {
-      badge.innerHTML = "<span class='dot'></span>已连接";
+      badge.innerHTML = "<span class='dot'></span>RETURNED已连接";
       badge.className = "ok";
     } else if (state === "retry") {
-      badge.innerHTML = "<span class='dot'></span>重连中…";
+      badge.innerHTML = "<span class='dot'></span>RETURNED重连中…";
       badge.className = "retry";
       warn.textContent = "与服务器连接中断，正在自动重连…";
       warn.classList.remove("hidden");
     } else {
-      badge.innerHTML = "<span class='dot'></span>连接断开";
+      badge.innerHTML = "<span class='dot'></span>RETURNED连接断开";
       badge.className = "bad";
       warn.textContent = "与服务器连接已断开，操作暂时无法送达。请检查网络或服务器后等待自动重连。";
       warn.classList.remove("hidden");
@@ -513,6 +541,7 @@
   function postIntent(intent) {
     if (!ONLINE || ROLE !== "controller") return;
     if (connState !== "ok") {
+      if (intent.type === "retryThccb") return;
       queueIntent(intent);
       scheduleFlush();
       return;
@@ -521,24 +550,48 @@
   }
 
   function sendIntent(intent) {
+    var retry = intent.type === "retryThccb";
+    var generation = intentGeneration;
+    if (retry) {
+      if (thccbRetryPending) return;
+      thccbRetryPending = true;
+      thccbRetryFeedback = "";
+      thccbRetryRound = G.thccb && G.thccb.round_key;
+      renderThccb();
+    } else {
+      thccbRetryFeedback = "";
+    }
     fetch("/api/intent", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(intent)
+      body: JSON.stringify(intent),
+      signal: AbortSignal.timeout(15000)
     }).then(function (r) {
+      if (generation !== intentGeneration) return;
       if (r.status === 401) {
         if (ONLINE && ROLE === "controller") promptControllerAuth({});
         return;
       }
       if (!r.ok) return r.json().then(function (j) { throw new Error(j.error || "http " + r.status); });
       intentError = "";
+      if (retry) {
+        thccbRetryFeedback = "重试成功。";
+        thccbRetryRound = G.thccb && G.thccb.round_key;
+      }
       renderThccb();
     }).catch(function (e) {
+      if (generation !== intentGeneration) return;
       intentError = e.message || "操作发送失败，请重试";
+      if (retry) thccbRetryFeedback = "重试失败，请确认连接后再次重试。";
       renderThccb();
-      if (ONLINE && ROLE === "controller" && connState !== "ok") {
+      if (!retry && ONLINE && ROLE === "controller" && connState !== "ok") {
         queueIntent(intent);
         scheduleFlush();
+      }
+    }).finally(function () {
+      if (retry && generation === intentGeneration) {
+        thccbRetryPending = false;
+        renderThccb();
       }
     });
   }
@@ -1347,6 +1400,10 @@
   }
 
   function stopOnline() {
+    intentGeneration++;
+    thccbRetryPending = false;
+    thccbRetryFeedback = "";
+    thccbRetryRound = null;
     if (sse) { sse.close(); sse = null; }
     clearTimeout(retryTimer);
     clearTimeout(flushTimer);

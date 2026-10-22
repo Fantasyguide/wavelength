@@ -15,6 +15,7 @@ const puppeteer = require("puppeteer-core");
   process.env.WL_AUTH_SESSIONS = path.join(dir, "sessions.json");
   fs.writeFileSync(process.env.WL_CONFIG, JSON.stringify({ password: "browser-test-password" }));
   let rejectClose = true;
+  let notificationDelay = 0;
   let resultMode = "ranked";
   let resultTarget = 500;
   const topFive = [
@@ -25,10 +26,16 @@ const puppeteer = require("puppeteer-core");
     { username: "东风谷早苗", position: 556, distance: 56, payout: "120" }
   ];
   const actions = [];
-  const source = http.createServer((req, res) => {
+  const source = http.createServer(async (req, res) => {
+    if (req.url === "/api/v1/returned/current") {
+      res.writeHead(200);
+      res.end('null');
+      return;
+    }
     actions.push(req.url);
     req.resume();
     const results = req.url.endsWith("/results");
+    if (notificationDelay) await new Promise(resolve => setTimeout(resolve, notificationDelay));
     res.writeHead((rejectClose && req.url.endsWith("/close")) || (results && resultMode === "error") ? 503 : 200);
     res.end(JSON.stringify(results ? {
       round_key: decodeURIComponent(req.url.split("/").at(-2)), target_position: resultTarget,
@@ -54,6 +61,8 @@ const puppeteer = require("puppeteer-core");
     await controller.type("#auth-password", "browser-test-password");
     await controller.click("#btn-auth");
     await controller.waitForFunction(() => document.getElementById("thccb-secret-state").textContent.includes("尚未"));
+    assert.equal(await controller.$eval("#conn-badge", el => el.textContent), "RETURNED已连接");
+    assert.equal(await controller.$eval("#thccb-conn-badge", el => el.textContent), "THCCB未启用");
     await controller.$eval("details.advanced", el => { el.open = true; });
     await controller.$eval("#thccb-enabled", el => { el.checked = true; });
     await controller.$eval("#thccb-url", (el, value) => { el.value = value; }, "http://127.0.0.1:" + source.address().port);
@@ -61,6 +70,7 @@ const puppeteer = require("puppeteer-core");
     await controller.$eval("#thccb-secret", (el, value) => { el.value = value; }, secret);
     await controller.click("#thccb-save");
     await controller.waitForFunction(() => document.getElementById("thccb-config-message").textContent.includes("已保存"));
+    await controller.waitForFunction(() => document.getElementById("thccb-conn-badge").textContent === "THCCB已连接");
     assert.equal(await controller.$eval("#thccb-secret", el => el.value), "", "saving clears the password field");
     assert.equal(JSON.parse(fs.readFileSync(process.env.WL_CONFIG)).thccb.secret, secret);
     assert.equal(await controller.$$("#audience-panel, #audience-final").then(els => els.length), 0);
@@ -80,12 +90,27 @@ const puppeteer = require("puppeteer-core");
     await controller.waitForSelector("#btn-thccb-retry:not(.hidden)");
     assert.equal(state.phase, "dial");
     assert.match(await controller.$eval("#thccb-status", el => el.textContent), /通知失败/);
+    assert.equal(await controller.$eval("#thccb-conn-badge", el => el.textContent), "THCCB联动异常");
     assert(await controller.evaluate(() => document.documentElement.scrollWidth <= innerWidth), "long round identifiers fit a phone");
+    notificationDelay = 600;
+    const failedAttempts = actions.filter(url => url.endsWith('/close')).length;
+    await controller.click("#btn-thccb-retry");
+    assert.deepEqual(await controller.$eval("#btn-thccb-retry", el => [el.textContent, el.disabled, el.getAttribute('aria-busy')]),
+      ["重试中…", true, 'true'], "retry immediately shows progress and prevents repeat clicks");
+    assert.match(await controller.$eval("#thccb-status-message", el => el.textContent), /正在重试/);
+    await controller.$eval("#btn-thccb-retry", el => el.click());
+    await controller.waitForFunction(() => !document.getElementById("btn-thccb-retry").disabled &&
+      document.getElementById("thccb-status-message").textContent.includes("重试失败"));
+    assert.equal(actions.filter(url => url.endsWith('/close')).length, failedAttempts + 1, "double-click cannot send another retry");
+    assert.equal(await controller.$eval("#btn-thccb-retry", el => el.textContent), "重试联动");
     rejectClose = false;
     await controller.click("#btn-thccb-retry");
     await controller.waitForFunction(() => document.body.dataset.phase === "guess" && document.getElementById("btn-thccb-retry").classList.contains("hidden"));
     assert.equal(state.dial, 750);
     assert.match(await controller.$eval("#thccb-status", el => el.textContent), /已封盘/);
+    assert.match(await controller.$eval("#thccb-status", el => el.textContent), /重试成功/);
+    assert.equal(await controller.$eval("#thccb-conn-badge", el => el.textContent), "THCCB已连接");
+    notificationDelay = 0;
     assert.equal(actions.filter(url => url.endsWith("/start")).length, 1, "retry does not reopen the question");
     assert(!JSON.stringify(state).includes(secret));
 
@@ -98,6 +123,12 @@ const puppeteer = require("puppeteer-core");
     assert(await monitor.$eval("#auth-modal", el => el.classList.contains("hidden")), "anonymous monitor chooses a role without a password");
     await monitor.click("#btn-role-monitor");
     await monitor.waitForFunction(() => document.body.dataset.phase === "guess");
+    assert.equal(await monitor.$eval("#thccb-conn-badge", el => el.textContent), "THCCB已连接");
+    assert(await monitor.evaluate(() => {
+      const thccb = document.getElementById('thccb-conn-badge').getBoundingClientRect();
+      const returned = document.getElementById('conn-badge').getBoundingClientRect();
+      return thccb.width > 0 && thccb.right <= returned.left && Math.abs(thccb.top - returned.top) < 1;
+    }), "THCCB badge sits visibly to the left of RETURNED on the monitor");
     assert.equal(await monitor.evaluate(() => fetch('/api/ping').then(r => r.json()).then(j => j.authed)), false);
     assert.equal(await monitor.evaluate(() => fetch('/api/thccb').then(r => r.status)), 401, "spectator has no bridge privileges");
     assert(await monitor.$eval("#thccb-settings", el => el.hidden), "monitor has no bridge configuration controls");

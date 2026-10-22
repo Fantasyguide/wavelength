@@ -196,6 +196,7 @@ async function stopServer() {
   click(gdoc, "btn-role-local");
   await waitFor(() => gdoc.getElementById("setup-modal").className.indexOf("hidden") === -1, "guest enters setup modal (local hot-seat)");
   assert(gdoc.getElementById("conn-badge").textContent.indexOf("本地模式") !== -1, "guest badge shows local mode");
+  assert(gdoc.getElementById("thccb-conn-badge").hidden, "local mode does not claim a THCCB connection");
   gdoc.getElementById("select-first").value = "A";
   click(gdoc, "btn-start");
   await waitFor(() => gdoc.querySelectorAll(".card-choice").length === 2, "guest receives default two-card choice");
