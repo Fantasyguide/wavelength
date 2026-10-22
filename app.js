@@ -659,14 +659,17 @@
     $("opt-winscore").disabled = G.phase !== "setup";
     $("opt-bandwidth").disabled = balanced;
     $("winscore-label").textContent = "获胜分数（0 = 不设分数门槛，仍最多 " + WL.rulesFor(G).maxRounds + " 轮）";
+    $("rule-cards").textContent = G.cardMode === "choice"
+      ? "选题：两题选一，每队每局可重新抽选一次。"
+      : "选题：直接使用抽到的题目，也可点击「" + T("skipBtn") + "」换题。";
     $("rule-turns").textContent = balanced
       ? "平衡快局：双方 0 分起步，两队轮流出题。"
       : "原版：先手 0 分，后手 1 分。本队拿 4 分且仍然落后，立刻再行动一轮。";
     $("rule-ending").textContent = balanced
-      ? "获胜：" + balancedEnding + "；领先者胜，平分加时。每轮揭示后，若分差大于落后方剩余可追回分数（本队出题每次 4 分、猜左右每次 1 分），立即提前结束；能追平则继续。"
-      : "获胜：" + (G.winScore > 0 ? "先达到 " + G.winScore + " 分，或" : "") + "第 10 轮结束时分数较高者获胜；届时平分则进入加时赛。";
-    $("rule-overtime").textContent = "平分加时赛：两队各出一次题，比较加时得分（含左右猜测的 1 分），谁高谁赢；" +
-      (balanced ? "仍平则和局，整局最多 8 轮。" : "仍平则重复，直到分出胜负。") + "加时分不计入主记分板。";
+      ? "获胜：" + balancedEnding + "；高分胜。无法追平时提前结束。"
+      : "获胜：" + (G.winScore > 0 ? "有队达到 " + G.winScore + " 分，或" : "") + "第 10 轮结束时结算，高分胜。";
+    $("rule-overtime").textContent = "加时：平分时两队各出一题，比较加时得分；" +
+      (balanced ? "仍平则和局。" : "仍平则继续加时。") + "加时分单独记录。";
     ["A", "B"].forEach(function (letter) {
       var el = $("overtime" + letter);
       el.classList.toggle("hidden", !G.sudden);

@@ -1449,3 +1449,125 @@
   }
   body.monitor-mode .audience-rank, body.monitor-mode .audience-player { font-size: calc(36 * var(--display-unit)); }
 }
+
+/* Controllers prioritize the current turn and touch controls, including on landscape tablets. */
+body:not(.monitor-mode) { padding: 14px 18px 30px; }
+body:not(.monitor-mode) header { gap: 8px 12px; padding-bottom: 10px; margin-bottom: 10px; }
+body:not(.monitor-mode) .brand { gap: 8px; }
+body:not(.monitor-mode) .brand-seal { font-size: 32px; }
+body:not(.monitor-mode) header h1 { font-size: 24px; letter-spacing: 1px; }
+body:not(.monitor-mode) #sub-title { font-size: 28px; }
+body:not(.monitor-mode) .header-actions { margin-top: 0; }
+body:not(.monitor-mode) .header-actions .btn { padding: 8px 12px; font-size: 16px; }
+body:not(.monitor-mode) .timer-display { min-width: 80px; padding: 6px 8px; font-size: 24px; }
+body:not(.monitor-mode) :is(#conn-badge, #thccb-conn-badge) { font-size: 13px; }
+body:not(.monitor-mode) .banner { padding: 6px 12px; margin-bottom: 10px; font-size: 16px; line-height: 1.4; }
+body:not(.monitor-mode) .scoreboard { padding: 14px 20px 10px; gap: 8px 16px; margin-bottom: 10px; }
+body:not(.monitor-mode) .scoreboard-caption { display: none; }
+body:not(.monitor-mode) .team {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 6px 14px; min-width: 0;
+}
+body:not(.monitor-mode) .team-heading { grid-column: 1; grid-row: 1; min-width: 0; }
+body:not(.monitor-mode) .team .tname { font-size: 24px; line-height: 1.2; overflow-wrap: anywhere; }
+body:not(.monitor-mode) .team .tscore { grid-column: 2; grid-row: 1 / 3; font-size: 48px; }
+body:not(.monitor-mode) .score-track { grid-column: 1; grid-row: 2; margin: 0; gap: 5px; }
+body:not(.monitor-mode) .team.b { grid-template-columns: auto minmax(0, 1fr); }
+body:not(.monitor-mode) .team.b .team-heading,
+body:not(.monitor-mode) .team.b .score-track { grid-column: 2; }
+body:not(.monitor-mode) .team.b .tscore { grid-column: 1; }
+body:not(.monitor-mode) .overtime-score { grid-column: 1 / -1; margin: 0; font-size: 16px; }
+body:not(.monitor-mode) .active-turn { padding: 6px 0 0; font-size: 18px; line-height: 1.3; }
+body:not(.monitor-mode) .card-area { margin-bottom: 10px; }
+body:not(.monitor-mode) .card-frame { padding: 14px 16px; margin: 0; }
+body:not(.monitor-mode) .card-label { font-size: 17px; line-height: 1.3; letter-spacing: 0; margin-bottom: 8px; }
+body:not(.monitor-mode) .side { min-width: 0; padding: 10px 12px; }
+body:not(.monitor-mode) .side.only > .side-tag { display: none; }
+body:not(.monitor-mode) .side .side-tag { font-size: 16px; margin-bottom: 4px; }
+body:not(.monitor-mode) .side .con { font-size: clamp(28px, 3.6vw, 40px); line-height: 1.2; overflow-wrap: anywhere; }
+body:not(.monitor-mode) .card-choice .con { font-size: clamp(26px, 3.2vw, 36px); }
+body:not(.monitor-mode) .side .con :is(.l, .r) { min-width: 0; width: fit-content; max-width: 100%; text-align: center; }
+body:not(.monitor-mode) .side .con .l { justify-self: end; }
+body:not(.monitor-mode) .side .con .r { justify-self: start; }
+body:not(.monitor-mode) .side .con i { font-size: 20px; padding-inline: 8px; }
+body:not(.monitor-mode) .choice-action { font-size: 17px; margin-top: 8px; }
+body:not(.monitor-mode) .phase-hint { font-size: 18px; line-height: 1.4; margin-bottom: 0; }
+body:not(.monitor-mode) .guess-choice { margin-top: 6px; padding: 6px 12px; font-size: 17px; }
+body:not(.monitor-mode) .spectrum-wrap { margin: 30px 10px 18px; }
+body:not(.monitor-mode) .axis { height: 44px; }
+body:not(.monitor-mode) .dial .needle { height: 56px; }
+body:not(.monitor-mode) .screen .screen-txt { font-size: 18px; }
+body:not(.monitor-mode) .tick-number { font-size: 14px; }
+body:not(.monitor-mode) .band-label { font-size: 16px; }
+body:not(.monitor-mode) .spectrum-labels { font-size: 18px; }
+body:not(.monitor-mode) .spectrum-labels:not(:has(> span:not(:empty))) { display: none; }
+body:not(.monitor-mode) .controls { min-height: 50px; gap: 10px; }
+body:not(.monitor-mode) .controls .btn { min-height: 50px; font-size: 20px; padding: 8px 20px; }
+body:not(.monitor-mode) .score-pop { min-height: 0; margin-top: 10px; font-size: 18px; }
+body:not(.monitor-mode) .score-pop:empty { display: none; }
+body:not(.monitor-mode) details.rules { margin-top: 16px; padding: 0 16px; font-size: 17px; }
+body:not(.monitor-mode) details.rules > summary { padding-block: 12px; font-size: 20px; }
+body:not(.monitor-mode) details.rules > ul { margin: 0 0 14px 22px; line-height: 1.6; }
+body:not(.monitor-mode) details.rules li + li { margin-top: 6px; }
+body:not(.monitor-mode) .log { margin-top: 12px; padding: 16px 20px; font-size: 17px; }
+body:not(.monitor-mode) .log h3 { font-size: 20px; }
+body:not(.monitor-mode) .log ul:empty::after { padding: 16px 0 4px; font-size: 17px; }
+body:not(.monitor-mode) .audience-results { margin-top: 12px; }
+body:not(.monitor-mode) .audience-results[data-view="qr"] { min-height: 250px; }
+body:not(.monitor-mode) .audience-qr { grid-template-columns: 1fr 218px 1fr; grid-template-rows: 1fr; gap: 12px; }
+body:not(.monitor-mode) .audience-qr-title { font-size: 26px; }
+body:not(.monitor-mode) .audience-qr-caption { font-size: 22px; }
+
+@media (min-width: 701px) {
+  body:not(.monitor-mode) header { grid-template-columns: auto minmax(0, 1fr) auto; }
+  body:not(.monitor-mode) header .header-end { display: flex; grid-column: 3; grid-row: 1; gap: 10px; }
+  body:not(.monitor-mode) header .header-actions { margin: 0; }
+}
+@media (min-width: 701px) and (max-width: 1000px) {
+  body:not(.monitor-mode) header .sub { flex-direction: column; flex-wrap: nowrap; align-items: flex-end; gap: 3px; }
+  body:not(.monitor-mode) :is(#conn-badge, #thccb-conn-badge) { font-size: 12px; line-height: 1.3; }
+}
+@media (min-width: 901px) and (max-height: 750px) {
+  body:not(.monitor-mode) .wrap {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2.2fr); column-gap: 12px; align-content: start;
+  }
+  body:not(.monitor-mode) .wrap > * { grid-column: 1 / -1; }
+  body:not(.monitor-mode) .wrap > .scoreboard { grid-column: 1; padding: 14px 18px 10px; gap: 8px; }
+  body:not(.monitor-mode) .wrap > .card-area { grid-column: 2; min-width: 0; }
+  body:not(.monitor-mode) .card-frame { height: 100%; display: grid; grid-template-rows: auto 1fr; }
+  body:not(.monitor-mode) .side { display: flex; flex-direction: column; justify-content: center; }
+  body:not(.monitor-mode) .side .con { width: 100%; }
+  body:not(.monitor-mode) .team { display: flex; flex-direction: column; gap: 8px; }
+  body:not(.monitor-mode) .team .tname { font-size: 24px; }
+  body:not(.monitor-mode) .team .tscore { font-size: 48px; }
+  body:not(.monitor-mode) .active-turn { font-size: 17px; }
+  body:not(.monitor-mode) .card-choice .con { font-size: 30px; }
+}
+@media (max-width: 700px) {
+  body:not(.monitor-mode) { padding: 10px 12px 24px; }
+  body:not(.monitor-mode) header { grid-template-columns: minmax(0, 1fr) auto; }
+  body:not(.monitor-mode) header .brand { grid-column: 1; grid-row: 1; gap: 6px; }
+  body:not(.monitor-mode) .brand-seal { font-size: 24px; }
+  body:not(.monitor-mode) header h1 { font-size: 20px; }
+  body:not(.monitor-mode) #sub-title { grid-column: 2; grid-row: 1; font-size: 24px; }
+  body:not(.monitor-mode) header .header-end { display: contents; }
+  body:not(.monitor-mode) header .sub { grid-column: 1; grid-row: 2; justify-self: start; }
+  body:not(.monitor-mode) :is(#conn-badge, #thccb-conn-badge) { font-size: 11px; padding-inline: 6px; }
+  body:not(.monitor-mode) header .header-actions { grid-column: 2; grid-row: 2; }
+  body:not(.monitor-mode) .header-actions .btn { padding-inline: 10px; font-size: 15px; }
+  body:not(.monitor-mode) .scoreboard { padding: 12px 14px 10px; gap: 8px; }
+  body:not(.monitor-mode) .team { column-gap: 6px; }
+  body:not(.monitor-mode) .team .tname { font-size: 18px; }
+  body:not(.monitor-mode) .team .tscore { font-size: 38px; }
+  body:not(.monitor-mode) .score-track { gap: 4px; }
+  body:not(.monitor-mode) .active-turn { font-size: 16px; }
+  body:not(.monitor-mode) .card-frame { padding: 14px; }
+  body:not(.monitor-mode) .card-label { font-size: 16px; }
+  body:not(.monitor-mode) .side { padding: 10px 8px; }
+  body:not(.monitor-mode) .side .con { font-size: 24px; }
+  body:not(.monitor-mode) .card-choice .con { font-size: 24px; }
+  body:not(.monitor-mode) .side .con i { font-size: 16px; padding-inline: 6px; }
+  body:not(.monitor-mode) .phase-hint { font-size: 17px; }
+  body:not(.monitor-mode) .controls .btn { font-size: 18px; padding-inline: 14px; }
+  body:not(.monitor-mode) .audience-qr { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr) auto; gap: 4px; }
+  body:not(.monitor-mode) .audience-results[data-view="qr"] { min-height: 310px; }
+}

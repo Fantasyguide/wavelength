@@ -101,6 +101,25 @@
   <div class="score-pop" id="score-pop"></div>
   <div class="display-footer" id="display-footer"></div>
 
+  <details class="rules">
+    <summary><span class="rules-summary-label">规则速查</span></summary>
+    <ul>
+      <li id="rule-cards">选题：两题选一，每队每局可重新抽选一次。</li>
+      <li>出题：转录员查看目标，用一个线索描述它在两个概念之间的位置。</li>
+      <li>讨论：隐藏目标后，本队讨论并拖动游标，再锁定位置。转录员须保持沉默；违规时使用「说话处罚」随机锁定。</li>
+      <li>猜左右：对方判断目标中心在游标左边还是右边。请按屏幕倒计时完成操作，超时由系统自动处理。</li>
+      <li>计分：本队命中色带得 2 / 3 / 4 分；对方猜对得 1 分，本队得 4 分时对方不得分。</li>
+      <li id="rule-turns">平衡快局：双方 0 分起步，两队轮流出题。</li>
+      <li id="rule-ending">获胜：第 4 轮有队达到 8 分则结算，否则第 6 轮结算；高分胜。无法追平时提前结束。</li>
+      <li id="rule-overtime">加时：平分时两队各出一题，比较加时得分；仍平则和局。加时分单独记录。</li>
+      <li>线索限制：不用题目中的词或同义词、数字、复合线索、自造事物。</li>
+    </ul>
+  </details>
+
+  <section class="log">
+    <h3>轮次记录 <span class="section-subtitle" aria-hidden="true">ROUND CHRONICLE</span></h3>
+    <ul id="log" data-auto-scroll></ul>
+  </section>
 
   <section class="audience-results hidden" id="audience-results" aria-label="观众竞猜">
     <div class="audience-qr" id="audience-qr">
@@ -118,28 +137,6 @@
       <ol class="audience-winners" id="audience-results-rows" aria-label="本轮观众竞猜前五名，按误差排名" data-auto-scroll></ol>
     </div>
   </section>
-
-  <section class="log">
-    <h3>轮次记录 <span class="section-subtitle" aria-hidden="true">ROUND CHRONICLE</span></h3>
-    <ul id="log" data-auto-scroll></ul>
-  </section>
-
-  <details class="rules">
-    <summary><span class="rules-summary-label">规则速查</span></summary>
-    <ul>
-      <li>位置刻度：最左 −100%，中央 0%，最右 +100%。</li>
-      <li>二选一：10 秒内选题；超时按标签 1 / 2 各 70% / 30% 代选，同标签各 50%。选定前可重新抽选，双方每局各一次，重新计时。经典单题：直接使用抽到的题目。</li>
-      <li>转录员（出题人）看目标位置后，给一个落在卡片两个概念之间的线索。从关闭蓝条到本队锁定游标期间必须保持沉默；若说话违规，点击「说话处罚」并确认，游标将在整条刻度上均匀随机放置并立即锁定。</li>
-      <li>本队讨论后把金色拨杆拖到猜测位置并锁定。查看目标后倒计时 60 秒，宽限结束时，拨杆不在 0% 就锁定当前位置，仍在 0% 才均匀随机选择。</li>
-      <li>对方猜：目标的中心楔形在拨杆左边还是右边。倒计时 15 秒，到时左右各 50% 随机选择。</li>
-      <li>所有倒计时归零后保留 1.5 秒宽限，期间仍可提交操作；宽限结束才自动处理。联网以服务器收到操作的时间为准。</li>
-      <li>揭示：本队拨杆落在目标色带内得 2/3/4 分；对方猜对左右得 1 分（本队 4 分时对方不得分）。</li>
-      <li id="rule-turns">平衡快局：双方 0 分起步，两队轮流出题。</li>
-      <li id="rule-ending">获胜：第 4 轮有队达到 8 分则结算，否则第 6 轮结算；领先者胜，平分加时。每轮揭示后，若分差大于落后方剩余可追回分数（本队出题每次 4 分、猜左右每次 1 分），立即提前结束；能追平则继续。</li>
-      <li id="rule-overtime">平分加时赛：两队各出一次题，比较加时得分（含左右猜测的 1 分），谁高谁赢；仍平则和局，整局最多 8 轮。加时分不计入主记分板。</li>
-      <li>出题禁忌：禁用卡片上的词/同义词、数字、复合线索、自造事物。</li>
-    </ul>
-  </details>
 
 </div>
 
