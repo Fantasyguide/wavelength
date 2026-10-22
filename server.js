@@ -54,6 +54,11 @@ var gameKey = crypto.randomUUID();
 var intentSerial = Promise.resolve();
 var timerBlocked = false;
 var timerPending = false;
+var bridgeRetryIntent = null;
+var bridgeHealth = { status: "checking", checked_at: null };
+var bridgeNotificationFailed = false;
+var bridgeHealthRevision = 0;
+var bridgeHealthRequest = null;
 
 // Intent and configuration writes share this serial section, including external confirmation.
 function serial(res, action) {
@@ -68,17 +73,56 @@ function activeBridgeRound() {
 }
 
 function bridgeSnapshot(error) {
+  state.thccb_connection = {
+    status: !bridge.enabled ? "disabled" : bridgeNotificationFailed ? "error" : bridgeHealth.status,
+    checked_at: bridgeHealth.checked_at
+  };
   state.thccb = {
     enabled: !!bridge.enabled,
     round_key: bridgeRound ? bridgeRound.key : null,
     status: bridgeRound ? bridgeRound.status : "idle",
     timer_blocked: timerBlocked,
+    retryable: timerBlocked || !!bridgeRetryIntent,
     results: bridgeRound ? bridgeRound.results || null : null,
     results_error: bridgeRound ? bridgeRound.results_error || "" : "",
     error: error || ""
   };
 }
 bridgeSnapshot();
+
+// A read-only reachability check never creates, closes or settles a round.
+async function checkBridgeConnection() {
+  if (!bridge.enabled || bridgeHealthRequest) return;
+  var revision = bridgeHealthRevision;
+  var request = new AbortController();
+  bridgeHealthRequest = request;
+  var timeout = setTimeout(function () { request.abort(); }, 4000);
+  var status = "error";
+  try {
+    var response = await fetch(bridge.base_url + "/api/v1/returned/current", {
+      redirect: "error", signal: request.signal
+    });
+    if (!response.ok) throw new Error("Connection check failed");
+    await response.json();
+    status = "connected";
+  } catch (e) {
+    // Only the generic status is public; keep URLs and response details private.
+  } finally {
+    clearTimeout(timeout);
+    if (bridgeHealthRequest === request) bridgeHealthRequest = null;
+  }
+  if (revision !== bridgeHealthRevision) return;
+  bridgeHealth = { status: status, checked_at: Date.now() };
+  bridgeSnapshot(state.thccb.error);
+  broadcast();
+}
+
+function recordBridgeConnection(success) {
+  // A newer notification is more authoritative than an older in-flight probe.
+  bridgeHealthRevision++;
+  bridgeNotificationFailed = !success;
+  bridgeHealth = { status: success ? "connected" : "error", checked_at: Date.now() };
+}
 
 function requireBridgeAuth(req, res, cb) {
   if (!config.password) return sendJson(res, 403, { ok: false, error: "请先在服务器 config.json 设置共享密码并重启，再登录配置资金联动" });
@@ -115,8 +159,11 @@ async function notifyBridge(action, payload) {
       signal: AbortSignal.timeout(4000)
     });
     if (!response.ok) throw new Error("THCCB 返回 HTTP " + response.status);
+    recordBridgeConnection(true);
+    bridgeRetryIntent = null;
     state.thccb.error = "";
   } catch (e) {
+    recordBridgeConnection(false);
     // Do not include URLs, response bodies, or fetch internals that might contain credentials.
     if (timerDue(Date.now())) timerBlocked = true;
     var message = "THCCB 通知失败（" + action + "）：" + (e.message.startsWith("THCCB 返回") ? e.message : "连接失败或超时") + "。本次操作未推进，请重试；轮号 " + bridgeRound.key;
@@ -202,6 +249,7 @@ async function advanceOnlineTimers(now) {
     }
     var changed = WL.advanceTimers(state, now);
     timerBlocked = false;
+    if (changed) bridgeRetryIntent = null;
     bridgeSnapshot(state.thccb.error);
     if (changed) broadcast();
     return changed;
@@ -216,6 +264,14 @@ async function advanceOnlineTimers(now) {
 async function applyOnlineIntent(req, intent, receivedAt) {
   var type = intent && intent.type;
   if (bridge.enabled && (!config.password || !isAuthed(req))) throw new Error("资金联动需要共享密码及已登录的设备会话");
+  if (type === "retryThccb") {
+    if (bridgeRetryIntent) {
+      intent = bridgeRetryIntent;
+      type = intent.type;
+    } else if (!timerBlocked) {
+      throw new Error("当前没有待重试的联动操作");
+    }
+  }
   if (activeBridgeRound() && ["setup", "skipCard", "redrawCards", "loadDeck", "resetDeck", "selectSide", "selectCard"].includes(type)) {
     throw new Error("当前联动竞猜尚未结束，请先揭晓或通过重新开局取消，再更换题目");
   }
@@ -228,20 +284,29 @@ async function applyOnlineIntent(req, intent, receivedAt) {
     if (type === "retryThccb" || (advanced && ["selectCard", "selectSide", "donePsychic", "startDialTimer",
       "setDial", "lock", "penaltyLock", "guess", "reveal", "skipCard", "redrawCards"].includes(type))) return;
   }
-  if (bridge.enabled) {
-    if (type === "donePsychic" && state.phase === "psychic") {
-      await openBridgeRound();
-    } else if ((type === "lock" || type === "penaltyLock") && state.phase === "dial") {
-      await closeBridgeRound();
-    } else if (type === "reveal" && state.phase === "reveal" && activeBridgeRound()) {
-      if (bridgeRound.status !== "closed") throw new Error("请先锁定并封盘，再揭晓结果");
-      await notifyBridge("result", { target_position: state.target.center });
-      bridgeRound.status = "result";
-      scheduleBridgeResults(bridgeRound);
-    } else if (type === "newGame" && activeBridgeRound()) {
-      await notifyBridge("cancel");
-      bridgeRound.status = "cancelled";
+  try {
+    if (bridge.enabled) {
+      if (type === "donePsychic" && state.phase === "psychic") {
+        await openBridgeRound();
+      } else if ((type === "lock" || type === "penaltyLock") && state.phase === "dial") {
+        await closeBridgeRound();
+      } else if (type === "reveal" && state.phase === "reveal" && activeBridgeRound()) {
+        if (bridgeRound.status !== "closed") throw new Error("请先锁定并封盘，再揭晓结果");
+        await notifyBridge("result", { target_position: state.target.center });
+        bridgeRound.status = "result";
+        scheduleBridgeResults(bridgeRound);
+      } else if (type === "newGame" && activeBridgeRound()) {
+        await notifyBridge("cancel");
+        bridgeRound.status = "cancelled";
+      }
     }
+  } catch (e) {
+    if (e.status === 502) {
+      bridgeRetryIntent = Object.assign({}, intent);
+      bridgeSnapshot(e.message);
+      broadcast();
+    }
+    throw e;
   }
   WL.applyIntent(state, type === "resetDeck" ? {
     type: "loadDeck", name: defaultDeck.name,
@@ -251,6 +316,7 @@ async function applyOnlineIntent(req, intent, receivedAt) {
     gameKey = crypto.randomUUID();
     timerBlocked = false;
     bridgeRound = null;
+    bridgeRetryIntent = null;
     state.thccb.error = "";
   }
   bridgeSnapshot(state.thccb.error);
@@ -420,6 +486,9 @@ var keepalive = setInterval(function () {
 }, 15000);
 keepalive.unref();
 
+var bridgeHealthTimer = setInterval(checkBridgeConnection, 30000);
+bridgeHealthTimer.unref();
+
 // The server owns online deadlines, even when every controller disconnects.
 var gameTimer = setInterval(function () {
   if (timerPending || timerBlocked || !timerDue(Date.now())) return;
@@ -494,16 +563,25 @@ var server = http.createServer(function (req, res) {
       readJsonBody(req, res, function (body) {
         serial(res, function () {
           var candidate = checkedBridge(body);
-          if (activeBridgeRound() && JSON.stringify(candidate) !== JSON.stringify(bridge)) throw new Error("当前联动竞猜尚未结束，请先完成或取消后再修改配置");
-          if (state.phase !== "setup" && JSON.stringify(candidate) !== JSON.stringify(bridge)) throw new Error("请在开局前修改联动配置");
+          var changed = JSON.stringify(candidate) !== JSON.stringify(bridge);
+          if (activeBridgeRound() && changed) throw new Error("当前联动竞猜尚未结束，请先完成或取消后再修改配置");
+          if (state.phase !== "setup" && changed) throw new Error("请在开局前修改联动配置");
           var next = Object.assign({}, config, { thccb: candidate });
           try { fs.writeFileSync(CONFIG_PATH, JSON.stringify(next, null, 2)); }
           catch (e) { throw new Error("配置写入失败，请检查服务器文件权限后重试"); }
           config = next;
           bridge = candidate;
-          bridgeSnapshot();
+          if (changed) {
+            bridgeHealthRevision++;
+            if (bridgeHealthRequest) bridgeHealthRequest.abort();
+            bridgeHealthRequest = null;
+            bridgeHealth = { status: "checking", checked_at: null };
+            bridgeNotificationFailed = false;
+          }
+          bridgeSnapshot(changed ? "" : state.thccb.error);
           broadcast();
           sendJson(res, 200, { ok: true, config: publicBridge() });
+          checkBridgeConnection();
         });
       });
     });
@@ -665,6 +743,9 @@ var server = http.createServer(function (req, res) {
 server.on("close", function () {
   clearInterval(keepalive);
   clearInterval(gameTimer);
+  clearInterval(bridgeHealthTimer);
+  bridgeHealthRevision++;
+  if (bridgeHealthRequest) bridgeHealthRequest.abort();
 });
 
 function lanAddresses() {
@@ -679,6 +760,7 @@ function lanAddresses() {
 }
 
 server.listen(PORT, function () {
+  checkBridgeConnection();
   console.log("Returned 逆转录者 服务器已启动");
   console.log("本机访问：   http://localhost:" + PORT);
   lanAddresses().forEach(function (ip) {

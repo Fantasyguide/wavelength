@@ -13,6 +13,9 @@ fs.writeFileSync(process.env.WL_CONFIG, JSON.stringify({ password: 'shared-passw
   qq: { enabled: true, groupId: 'legacy', url: 'ws://127.0.0.1:1/v1/events' } }));
 const { server, state } = require('../server.js');
 const calls = [];
+const checks = [];
+let healthStatus = 200;
+let healthDelay = 15;
 let rejectAction = '';
 let responseDelay = 15;
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -22,6 +25,14 @@ async function waitFor(predicate, message) {
   assert(predicate(), message);
 }
 const source = http.createServer(async (req, res) => {
+  if (req.url === '/api/v1/returned/current') {
+    checks.push({ method: req.method, auth: req.headers.authorization });
+    const status = healthStatus;
+    await sleep(healthDelay);
+    res.writeHead(status);
+    res.end('null');
+    return;
+  }
   let text = '';
   for await (const chunk of req) text += chunk;
   calls.push({ method: req.method, url: req.url, auth: req.headers.authorization, body: text ? JSON.parse(text) : null });
@@ -51,6 +62,11 @@ async function monitorSnapshot() {
   } finally { await reader.cancel(); }
 }
 async function intent(type, extra = {}) { return request('/api/intent', { type, ...extra }); }
+async function concurrentRetries() {
+  const replies = await Promise.all([intent('retryThccb'), intent('retryThccb')]);
+  assert.deepEqual(replies.map(reply => reply.status).sort(), [200, 400], 'only one concurrent retry applies the pending action');
+  assert.match(replies.find(reply => reply.status === 400).json.error, /没有待重试/);
+}
 (async () => {
   await once(server, 'listening');
   source.listen(0, '127.0.0.1');
@@ -66,6 +82,8 @@ async function intent(type, extra = {}) { return request('/api/intent', { type, 
   await intent('setup', { cardMode: 'single' });
   await intent('donePsychic');
   assert.equal(calls.length, 0, 'disabled mode does not contact THCCB');
+  assert.equal(checks.length, 0, 'disabled mode does not probe THCCB');
+  assert.equal((await monitorSnapshot()).thccb_connection.status, 'disabled');
   await intent('newGame');
   const secret = 'test-secret-that-is-at-least-32-characters';
   const settings = { enabled: true, base_url: origin, secret };
@@ -76,6 +94,37 @@ async function intent(type, extra = {}) { return request('/api/intent', { type, 
   const saved = await request('/api/thccb', settings);
   assert.equal(saved.status, 200);
   assert.equal(saved.json.config.secret_configured, true);
+  await waitFor(() => state.thccb_connection.status === 'connected', 'enabled bridge checks reachability');
+  assert.deepEqual(checks[0], { method: 'GET', auth: undefined }, 'health check only reads the public endpoint');
+  assert.equal((await monitorSnapshot()).thccb_connection.status, 'connected');
+  assert.equal(calls.length, 0, 'health check never opens a round');
+  healthStatus = 503;
+  await request('/api/thccb', { ...settings, secret: '' });
+  await waitFor(() => state.thccb_connection.status === 'error', 'unavailable endpoint marks the connection down');
+  healthStatus = 200;
+  await request('/api/thccb', { ...settings, secret: '' });
+  await waitFor(() => state.thccb_connection.status === 'connected', 'connection recovers without game operations');
+  healthDelay = 4500;
+  await request('/api/thccb', { ...settings, secret: '' });
+  await waitFor(() => state.thccb_connection.status === 'error', 'a stalled health request times out');
+  assert.equal(state.phase, 'setup', 'failed health checks do not advance the game');
+  assert.equal(state.thccb.error, '', 'health failure does not invent a failed game action');
+  healthDelay = 150;
+  healthStatus = 503;
+  const previousChecks = checks.length;
+  await request('/api/thccb', { ...settings, secret: '' });
+  await waitFor(() => checks.length > previousChecks, 'the stale probe is in flight before disabling');
+  const checkCount = checks.length;
+  await request('/api/thccb', { ...settings, enabled: false });
+  await sleep(200);
+  assert.equal(state.thccb_connection.status, 'disabled', 'a stale probe cannot overwrite disabled configuration');
+  assert.equal(checks.length, checkCount, 'disabling never starts another probe');
+  healthDelay = 15;
+  healthStatus = 200;
+  await request('/api/thccb', settings);
+  await waitFor(() => state.thccb_connection.status === 'connected', 're-enabling starts a fresh check');
+  assert.deepEqual(Object.keys((await monitorSnapshot()).thccb_connection).sort(), ['checked_at', 'status'],
+    'public connection metadata contains no configuration or controller diagnostics');
   assert.ok(!saved.text.includes(secret));
   const disk = JSON.parse(fs.readFileSync(process.env.WL_CONFIG));
   assert.equal(disk.password, 'shared-password');
@@ -95,6 +144,13 @@ async function intent(type, extra = {}) { return request('/api/intent', { type, 
   rejectAction = 'start';
   assert.equal((await intent('donePsychic')).status, 502);
   assert.equal(state.phase, 'psychic');
+  assert.equal(state.thccb.retryable, true, 'manual start failure is retryable before any deadline');
+  assert.equal(state.thccb.timer_blocked, false);
+  assert.equal(state.thccb_connection.status, 'error');
+  await request('/api/thccb', { ...settings, secret: '' });
+  await sleep(60);
+  assert.equal(state.thccb_connection.status, 'error', 'a successful public probe does not hide a failed notification');
+  assert.match(state.thccb.error, /通知失败/, 'saving unchanged configuration preserves the actionable failure');
   const firstKey = calls[0].body.round_key;
   assert.equal((await intent('selectSide', { side: 1 })).status, 400, 'failed start freezes the selected question');
   assert.equal((await intent('skipCard')).status, 400);
@@ -102,28 +158,30 @@ async function intent(type, extra = {}) { return request('/api/intent', { type, 
   assert.equal((await request('/api/deck', { text: '- [new, old]' })).status, 400);
   assert.equal((await request('/api/thccb', { ...settings, enabled: false, secret: '' })).status, 400);
   rejectAction = '';
-  const starts = await Promise.all([intent('donePsychic'), intent('donePsychic')]);
-  assert.ok(starts.every(r => r.status === 200));
+  await concurrentRetries();
   assert.equal(calls.length, 2, 'duplicate device intent only sends one successful start');
   assert.deepEqual(calls[0].body, calls[1].body, 'retry keeps identical round and stable labels');
   assert.equal(calls[1].auth, 'Bearer ' + secret);
   assert.deepEqual(Object.keys(calls[1].body).sort(), ['game_key', 'left_label', 'right_label', 'round_key', 'round_number', 'team_name']);
   assert.equal(calls[1].body.team_name, '测试队');
   assert.equal(state.phase, 'dial');
+  assert.equal(state.thccb.retryable, false);
+  assert.equal(state.thccb_connection.status, 'connected');
+  assert.equal((await intent('retryThccb')).status, 400, 'an idle retry is explicitly rejected instead of silently succeeding');
   rejectAction = 'close';
   assert.equal((await intent('lock')).status, 502);
   assert.equal(state.phase, 'dial');
   await intent('setDial', { value: 500 });
   assert.match(state.thccb.error, /通知失败/, 'unrelated dial updates keep the notification failure visible');
   rejectAction = '';
-  await Promise.all([intent('lock'), intent('lock')]);
+  await concurrentRetries();
   assert.equal(calls.filter(c => c.url.endsWith('/close')).length, 2);
   await intent('guess', { guess: 'L' });
   rejectAction = 'result';
   assert.equal((await intent('reveal')).status, 502);
   assert.equal(state.phase, 'reveal');
   rejectAction = '';
-  await Promise.all([intent('reveal'), intent('reveal')]);
+  await concurrentRetries();
   assert.equal(state.phase, 'revealed');
   assert.deepEqual(calls.at(-1).body, { target_position: target });
   assert.ok(decodeURIComponent(calls.at(-1).url).includes(firstKey));
@@ -146,7 +204,7 @@ async function intent(type, extra = {}) { return request('/api/intent', { type, 
   assert.equal((await intent('newGame')).status, 502);
   assert.equal(state.phase, 'dial');
   rejectAction = '';
-  await intent('newGame');
+  assert.equal((await intent('retryThccb')).status, 200, 'retry repeats the failed cancellation');
   assert.equal(state.phase, 'setup');
   assert.ok(decodeURIComponent(calls.at(-1).url).includes(secondKey));
   assert.equal(calls.at(-1).body, null);
@@ -266,13 +324,12 @@ async function intent(type, extra = {}) { return request('/api/intent', { type, 
   const penaltyCalls = calls.length;
   assert.equal((await request('/api/intent', { type: 'penaltyLock' }, false)).status, 401);
   rejectAction = 'close';
-  assert.equal((await intent('penaltyLock')).status, 502);
+  assert.equal((await intent('penaltyLock', { timerSeconds: 7 })).status, 502);
   assert.equal(state.phase, 'dial', 'failed closure leaves the speaking penalty retryable');
   assert.equal(state.dial, 800, 'failed closure does not partially randomize the dial');
   assert.equal(state.thccb.round_key, penaltyKey);
   rejectAction = '';
-  const penalties = await Promise.all([intent('penaltyLock', { timerSeconds: 7 }), intent('penaltyLock', { timerSeconds: 7 })]);
-  assert(penalties.every(result => result.status === 200));
+  await concurrentRetries();
   assert.equal(state.phase, 'guess');
   assert.equal(state.thccb.status, 'closed', 'speaking penalty confirms THCCB closure before guessing');
   assert.equal(state.thccb.round_key, penaltyKey);
