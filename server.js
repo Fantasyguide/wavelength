@@ -34,6 +34,25 @@ var MIME = {
 
 var state = WL.createGame();
 var clients = new Map();
+var ControllerTimer = require("./controller-timer.js");
+var controllerTimer = new ControllerTimer(state, { graceMs: WL.TIMER_GRACE_MS });
+
+function controllerId(req, id) {
+  if (typeof id !== "string" || id.length > 100) return null;
+  for (var client of clients.values()) {
+    if (client.controller && client.id === id && safeEqual(authToken(client.req), authToken(req)) && isAuthed(client.req)) return id;
+  }
+  return null;
+}
+
+function timerOwner(preferred) {
+  var available = Array.from(clients.values()).filter(function (c) { return c.controller && c.id && isAuthed(c.req); });
+  var chosen = available.find(function (c) { return c.id === preferred; }) ||
+    available.find(function (c) { return c.id === controllerTimer.lastOwner; }) || available[0];
+  return chosen ? chosen.id : null;
+}
+
+function syncControllerTimer(preferred) { controllerTimer.sync(timerOwner(preferred)); }
 var DECKS_DIR = path.join(ROOT, "decks");
 
 function loadConfig() {
@@ -235,7 +254,7 @@ async function closeBridgeRound() {
 }
 
 function timerDue(now) {
-  return state.timerEnd !== null && state.timerEnd + WL.TIMER_GRACE_MS <= now;
+  return controllerTimer.due(now);
 }
 
 async function advanceOnlineTimers(now) {
@@ -247,7 +266,8 @@ async function advanceOnlineTimers(now) {
       now = Date.now();
       state.timerEnd = now - WL.TIMER_GRACE_MS;
     }
-    var changed = WL.advanceTimers(state, now);
+    var changed = WL.advanceTimers(state, now, { singleStep: !!timerOwner() });
+    syncControllerTimer();
     timerBlocked = false;
     if (changed) bridgeRetryIntent = null;
     bridgeSnapshot(state.thccb.error);
@@ -263,6 +283,7 @@ async function advanceOnlineTimers(now) {
 
 async function applyOnlineIntent(req, intent, receivedAt) {
   var type = intent && intent.type;
+  if (intent) intent._timerOwner = controllerId(req, intent.client_id);
   if (bridge.enabled && (!config.password || !isAuthed(req))) throw new Error("资金联动需要共享密码及已登录的设备会话");
   if (type === "retryThccb") {
     if (bridgeRetryIntent) {
@@ -270,6 +291,14 @@ async function applyOnlineIntent(req, intent, receivedAt) {
       type = intent.type;
     } else if (!timerBlocked) {
       throw new Error("当前没有待重试的联动操作");
+    }
+  }
+  if (type !== "newGame" && type !== "retryThccb" && intent) {
+    if (intent.timer_id && (!state.timerSync || intent.timer_id !== state.timerSync.id)) return;
+    if (state.timerSync && state.timerSync.ownerId === intent._timerOwner &&
+        Number.isFinite(intent.timer_elapsed_ms) && intent.timer_elapsed_ms >= state.timerSync.durationMs + WL.TIMER_GRACE_MS) {
+      controllerTimer.report({ type: "expired", timerId: state.timerSync.id, elapsedMs: intent.timer_elapsed_ms }, intent._timerOwner);
+      return advanceOnlineTimers(Date.now());
     }
   }
   if (activeBridgeRound() && ["setup", "skipCard", "redrawCards", "loadDeck", "resetDeck", "selectSide", "selectCard"].includes(type)) {
@@ -312,6 +341,12 @@ async function applyOnlineIntent(req, intent, receivedAt) {
     type: "loadDeck", name: defaultDeck.name,
     cards: JSON.parse(JSON.stringify(defaultDeck.cards))
   } : intent, { deferTimers: true });
+  syncControllerTimer(intent && intent._timerOwner);
+  // Viewing starts locally; publish its first sample with this same operation.
+  if (type === "startDialTimer" && state.timerSync && state.timerSync.status === "waiting") {
+    controllerTimer.report({ type: "started", timerId: state.timerSync.id,
+      elapsedMs: intent.timer_start_elapsed_ms }, intent._timerOwner);
+  }
   if (type === "newGame" || type === "setup") {
     gameKey = crypto.randomUUID();
     timerBlocked = false;
@@ -442,8 +477,9 @@ var defaultDeck = {
 };
 
 function publicState(controller) {
-  if (controller) return state;
+  if (controller) return Object.assign({}, state, { serverNow: Date.now() });
   var snapshot = Object.assign({}, state, {
+    serverNow: Date.now(),
     target: ["revealed", "over"].includes(state.phase) ? state.target : null
   });
   // Monitors receive only the revealed audience result, never controller diagnostics.
@@ -489,8 +525,9 @@ keepalive.unref();
 var bridgeHealthTimer = setInterval(checkBridgeConnection, 30000);
 bridgeHealthTimer.unref();
 
-// The server owns online deadlines, even when every controller disconnects.
+// A live controller reports expiry; the server takes over only after progress stops.
 var gameTimer = setInterval(function () {
+  if (controllerTimer.fallback()) broadcast();
   if (timerPending || timerBlocked || !timerDue(Date.now())) return;
   timerPending = true;
   serial(null, async function () {
@@ -590,6 +627,7 @@ var server = http.createServer(function (req, res) {
   if (req.method === "GET" && url === "/api/ping") {
     return sendJson(res, 200, {
       ok: true,
+      serverNow: Date.now(),
       authRequired: true,
       controllerAvailable: !!config.password,
       authed: isAuthed(req),
@@ -663,6 +701,7 @@ var server = http.createServer(function (req, res) {
 
   if (req.method === "GET" && url === "/api/stream") {
     var controller = new URL(req.url, "http://localhost").searchParams.get("role") === "controller";
+    var clientId = new URL(req.url, "http://localhost").searchParams.get("client_id");
     var openStream = function () {
       res.writeHead(200, {
         "Content-Type": "text/event-stream; charset=utf-8",
@@ -671,10 +710,25 @@ var server = http.createServer(function (req, res) {
       });
       res.write("retry: 2000\n\n");
       res.write("data: " + JSON.stringify(publicState(controller)) + "\n\n");
-      clients.set(res, { req: req, controller: controller });
+      clients.set(res, { req: req, controller: controller, id: clientId && clientId.length <= 100 ? clientId : null });
       req.on("close", function () { clients.delete(res); });
     };
     return controller ? requireAuth(req, res, openStream) : openStream();
+  }
+
+  if (req.method === "POST" && url === "/api/timer") {
+    return requireAuth(req, res, function () {
+      readJsonBody(req, res, function (body) {
+        serial(res, async function () {
+          var changed = controllerTimer.report(body, controllerId(req, body.client_id));
+          if (changed) {
+            await advanceOnlineTimers(Date.now());
+            bridgeSnapshot(state.thccb.error); broadcast();
+          }
+          sendJson(res, 200, { ok: true });
+        });
+      });
+    });
   }
 
   if (req.method === "POST" && url === "/api/intent") {

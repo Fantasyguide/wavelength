@@ -86,7 +86,14 @@ const puppeteer = require("puppeteer-core");
     await intent("startDialTimer", { timerSeconds: 60, guessTimerSeconds: 7 });
     await intent("donePsychic");
     await intent("setDial", { value: 750 });
-    state.timerEnd = Date.now() - 1501;
+    // Force expiry only after the visible controller has acknowledged its clock;
+    // otherwise that initial acknowledgement legitimately sets a fresh deadline.
+    for (let tries = 0; state.timerSync.status !== "running" && tries < 100; tries++) {
+      await new Promise(resolve => setTimeout(resolve, 50));
+    }
+    assert.equal(state.timerSync.status, "running", "controller has started the dial clock");
+    await controller.evaluate(timer => fetch("/api/timer", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "expired", client_id: timer.ownerId, timerId: timer.id, elapsedMs: timer.durationMs + 1500 }) }), state.timerSync);
     await controller.waitForSelector("#btn-thccb-retry:not(.hidden)");
     assert.equal(state.phase, "dial");
     assert.match(await controller.$eval("#thccb-status", el => el.textContent), /通知失败/);

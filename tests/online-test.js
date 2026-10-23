@@ -7,7 +7,7 @@ const fs = require("fs");
 const path = require("path");
 const { JSDOM } = require("jsdom");
 const WL = require("../game.js");
-const { server } = require(path.join(__dirname, "..", "server.js"));
+const { server, state } = require(path.join(__dirname, "..", "server.js"));
 
 const ROOT = path.join(__dirname, "..");
 const html = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
@@ -16,7 +16,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let BASE = "";
 
 class FakeES {
-  constructor(url) {
+  constructor(url, delay = 0) {
     this.onmessage = null;
     this.onopen = null;
     this._buf = "";
@@ -29,7 +29,10 @@ class FakeES {
           const frame = this._buf.slice(0, idx);
           this._buf = this._buf.slice(idx + 2);
           const data = frame.split("\n").filter((l) => l.startsWith("data: ")).map((l) => l.slice(6)).join("\n");
-          if (data && this.onmessage) this.onmessage({ data });
+          if (data) setTimeout(() => {
+            this.lastState = JSON.parse(data);
+            if (this.onmessage) this.onmessage({ data });
+          }, delay);
         }
       });
     });
@@ -38,16 +41,21 @@ class FakeES {
   }
 }
 
-function makePage() {
+function makePage(clockOffset = 0, streamDelay = 0) {
   return new JSDOM(html, {
     url: BASE + "/index.html",
     runScripts: "dangerously",
     resources: "usable",
     pretendToBeVisual: true,
     beforeParse(window) {
+      window.Date.now = () => Date.now() + clockOffset;
+      window.AbortSignal = global.AbortSignal;
+      window.AbortController = global.AbortController;
       window.fetch = (u, opts) => global.fetch(new URL(u, BASE + "/").href,
         { ...opts, headers: { ...opts?.headers, Cookie: cookie } });
-      window.EventSource = FakeES;
+      window.EventSource = class extends FakeES {
+        constructor(url) { super(url, streamDelay); window.testStream = this; }
+      };
     }
   });
 }
@@ -77,8 +85,8 @@ function click(doc, id) {
   BASE = `http://127.0.0.1:${server.address().port}`;
   cookie = await fixture.login(BASE);
 
-  const controller = makePage();
-  const monitor = makePage();
+  const controller = makePage(2000);
+  const monitor = makePage(-3000);
   const cdoc = controller.window.document;
   const mdoc = monitor.window.document;
 
@@ -132,6 +140,29 @@ function click(doc, id) {
   click(cdoc, "btn-start");
 
   await waitFor(() => mdoc.querySelectorAll(".card-choice").length === 2 && cdoc.querySelectorAll(".card-choice").length === 2, "both devices receive two candidates");
+  assert(cdoc.getElementById("timer-display").textContent === "00:10",
+    "a controller clock two seconds ahead still starts selection at 10 seconds (got " + cdoc.getElementById("timer-display").textContent + ")");
+  await waitFor(() => mdoc.getElementById("timer-display").textContent === "00:10",
+    "a monitor clock three seconds behind still starts selection at 10 seconds");
+  await waitFor(() => [cdoc, mdoc].every(doc => doc.getElementById("timer-display").textContent === "00:09"),
+    "both calibrated clocks count down as real time passes");
+  click(cdoc, "btn-redraw");
+  await waitFor(() => cdoc.getElementById("btn-redraw").disabled, "redraw acknowledged");
+  assert(cdoc.getElementById("timer-display").textContent === "00:10", "redraw restores all ten seconds despite clock skew");
+  controller.window.Date.now = () => Date.now() + 120000;
+  monitor.window.Date.now = () => Date.now() - 120000;
+  await sleep(250);
+  assert([cdoc, mdoc].every(doc => doc.getElementById("timer-display").textContent === "00:10"),
+    "changing either device's wall clock cannot change the running countdown");
+  const delayedMonitor = makePage(-60000, 2200);
+  const delayedDoc = delayedMonitor.window.document;
+  await waitFor(() => delayedDoc.querySelectorAll(".card-choice").length === 2, "late monitor receives delayed candidates");
+  await waitFor(() => delayedDoc.getElementById("timer-display").textContent < "00:10", "late monitor receives elapsed owner progress");
+  const delayedTimer = delayedMonitor.window.testStream.lastState.timerSync;
+  const expectedRemaining = Math.ceil((delayedTimer.durationMs - delayedTimer.elapsedMs) / 1000);
+  const displayedRemaining = Number(delayedDoc.getElementById("timer-display").textContent.slice(3));
+  assert(delayedTimer.id === state.timerSync.id && displayedRemaining === expectedRemaining && displayedRemaining < 10,
+    "a late monitor mirrors received owner progress without creating or extrapolating another clock");
   assert(cdoc.getElementById("hint").textContent.includes("蓝队") && cdoc.getElementById("turn-indicator").textContent.includes("选题"), "controller identifies the team selecting a topic");
   assert(mdoc.getElementById("sides").textContent === cdoc.getElementById("sides").textContent.replaceAll("选择这道题 →", "等待控制器选择"), "candidate topics match across devices");
   click(mdoc, mdoc.querySelector(".card-choice"));
@@ -197,6 +228,7 @@ function click(doc, id) {
   await waitFor(() => cdoc.body.dataset.phase === "psychic", "controller enters next clue phase");
   assert(!cdoc.getElementById("btn-penalty-lock"), "penalty is unavailable while giving the clue");
   click(cdoc, cdoc.getElementById("controls").children[0]);
+  await waitFor(() => state.timerSync && state.timerSync.status === "running", "target viewing timer acknowledged");
   click(cdoc, cdoc.getElementById("controls").children[0]);
   await waitFor(() => cdoc.body.dataset.phase === "dial" && mdoc.body.dataset.phase === "dial", "both devices enter discussion");
   assert(!mdoc.getElementById("btn-penalty-lock"), "monitor cannot apply a speaking penalty");

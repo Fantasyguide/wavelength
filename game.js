@@ -272,6 +272,8 @@
       reveal: null,
       timerKind: null,
       timerEnd: null,
+      timerSerial: 0,
+      timerDurationMs: 0,
       guessTimerSeconds: 15,
       log: []
     };
@@ -496,11 +498,13 @@
 
   function startTimer(s, kind, value, fallback, now) {
     var seconds = timerSeconds(value, fallback);
+    if (seconds > 0) s.timerSerial = (s.timerSerial || 0) + 1;
+    s.timerDurationMs = seconds * 1000;
     s.timerKind = seconds > 0 ? kind : null;
     s.timerEnd = seconds > 0 ? (now === undefined ? Date.now() : now) + seconds * 1000 : null;
   }
 
-  function advanceTimers(s, now) {
+  function advanceTimers(s, now, options) {
     if (now === undefined) now = Date.now();
     var changed = false;
     while (s.timerEnd !== null && s.timerEnd + TIMER_GRACE_MS <= now) {
@@ -524,6 +528,7 @@
         s.timerEnd = null;
       }
       changed = true;
+      if (options && options.singleStep) break;
     }
     return changed;
   }
@@ -558,7 +563,7 @@
         if (s.phase === "psychic") s.phase = "dial";
         break;
       case "startDialTimer":
-        if (s.phase === "psychic" && !s.timerEnd) {
+        if (s.phase === "psychic" && !s.timerKind) {
           s.guessTimerSeconds = timerSeconds(intent.guessTimerSeconds, 15);
           startTimer(s, "dial", intent.timerSeconds, 60);
         }

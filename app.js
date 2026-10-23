@@ -54,6 +54,14 @@
   var flushTimer = null;
   var heartbeatTimer = null;
   var retryDelay = 1000;
+  var serverClock = null;
+  var serverTimeFloor = null;
+  var latestClockRequest = -1;
+  var onlineTimer = null;
+  var clientId = "c-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2);
+  var controllerClock = null;
+  var scheduledTimer = null;
+  var pendingDialStart = null;
   var warnedTimerEnd = null;
   var expiredTimerEnd = null;
   var audioContext = null;
@@ -63,6 +71,115 @@
   var thccbRetryPending = false;
   var thccbRetryFeedback = "";
   var thccbRetryRound = null;
+
+  function syncServerClock(serverNow, requestStarted) {
+    if (!Number.isFinite(serverNow)) return;
+    var received = performance.now();
+    var roundTrip = received - requestStarted;
+    // Slow probes have too much timing uncertainty. This also excludes responses
+    // arriving after the heartbeat's four-second timeout and older requests.
+    if (roundTrip >= 1000 || requestStarted < latestClockRequest) return;
+    latestClockRequest = requestStarted;
+    // Prefer a recent fast sample: an asymmetric delay makes half-RTT estimates
+    // wrong by seconds. Refresh the sample after a minute to track clock drift.
+    if (serverClock && roundTrip > serverClock.roundTrip && received - serverClock.measuredAt < 60000) return;
+    serverClock = { time: serverNow + roundTrip / 2, measuredAt: received, roundTrip: roundTrip };
+  }
+
+  function observeServerTime(serverNow) {
+    if (!Number.isFinite(serverNow)) return;
+    var received = performance.now();
+    // A received snapshot proves that the server has already reached this time.
+    // Keep that lower bound advancing, including between state messages.
+    if (!serverTimeFloor || serverNow > serverTimeFloor.time + received - serverTimeFloor.measuredAt) {
+      serverTimeFloor = { time: serverNow, measuredAt: received };
+    }
+  }
+
+  function gameNow() {
+    // Online deadlines belong to the server. A device's wall clock can differ
+    // by seconds (or change mid-round); advance a calibrated monotonic clock.
+    if (!ONLINE || (!serverClock && !serverTimeFloor)) return Date.now();
+    var now = performance.now();
+    return Math.max(serverClock ? serverClock.time + now - serverClock.measuredAt : -Infinity,
+      serverTimeFloor ? serverTimeFloor.time + now - serverTimeFloor.measuredAt : -Infinity);
+  }
+
+  function timerRemaining() {
+    if (ONLINE && G.timerSync && controllerClock && controllerClock.id === G.timerSync.id) {
+      return controllerClock.durationMs - (performance.now() - controllerClock.startedAt);
+    }
+    if (ONLINE && G.timerSync && G.timerSync.source === "controller" && Number.isFinite(G.timerSync.elapsedMs)) {
+      // Followers mirror the owner's published second, including zero and its
+      // sound. Extrapolating a server deadline would create a competing clock.
+      return G.timerSync.durationMs - G.timerSync.elapsedMs;
+    }
+    var remaining = G.timerEnd - gameNow();
+    if (!ONLINE) return remaining;
+    var now = performance.now();
+    var deadline = now + remaining;
+    if (!onlineTimer || onlineTimer.end !== G.timerEnd || onlineTimer.kind !== G.timerKind) {
+      onlineTimer = { end: G.timerEnd, kind: G.timerKind, deadline: deadline };
+    } else {
+      // Recalibration may correct an overdue display, but cannot extend a
+      // running timer. Only a new server deadline (e.g. redraw) starts it again.
+      onlineTimer.deadline = Math.min(onlineTimer.deadline, deadline);
+    }
+    return onlineTimer.deadline - now;
+  }
+
+  function reportControllerTimer() {
+    var clock = controllerClock, timer = G.timerSync;
+    if (!ONLINE || ROLE !== "controller" || !clock || !timer || clock.id !== timer.id || clock.sending) return;
+    var elapsed = performance.now() - clock.startedAt;
+    var expired = elapsed >= clock.durationMs + WL.TIMER_GRACE_MS;
+    var reportKey = expired ? "expired" : Math.floor(elapsed / 1000);
+    if (!expired && clock.acknowledgedKey === reportKey) return;
+    if (clock.lastReportKey === reportKey && performance.now() - clock.lastReport < 1000) return;
+    clock.sending = true;
+    clock.lastReport = performance.now();
+    clock.lastReportKey = reportKey;
+    fetch("/api/timer", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: expired ? "expired" : timer.status === "waiting" ? "started" : "progress",
+        client_id: clientId, timerId: clock.id, elapsedMs: elapsed }),
+      signal: AbortSignal.timeout(4000)
+    }).then(function (response) { if (response.ok) clock.acknowledgedKey = reportKey; })
+      .catch(function () {}).finally(function () { clock.sending = false; });
+  }
+
+  function prepareControllerTimer() {
+    var timer = G.timerSync;
+    if (!ONLINE || ROLE !== "controller" || !timer || timer.ownerId !== clientId || timer.source === "server" ||
+        document.hidden || (controllerClock && controllerClock.id === timer.id)) return;
+    if (pendingDialStart && G.timerKind === "dial") {
+      // The target is already visible. Bind its existing clock immediately so
+      // a quick "done" click cannot discard it while waiting for another frame.
+      controllerClock = { id: timer.id, durationMs: timer.durationMs, startedAt: pendingDialStart.startedAt };
+      pendingDialStart = null;
+      return;
+    }
+    if (timer.status !== "waiting" || scheduledTimer === timer.id) return;
+    scheduledTimer = timer.id;
+    // Let the new phase paint before starting its playable duration.
+    requestAnimationFrame(function () { requestAnimationFrame(function () {
+      scheduledTimer = null;
+      if (!ONLINE || ROLE !== "controller" || document.hidden || !G.timerSync || G.timerSync.id !== timer.id ||
+          G.timerSync.status !== "waiting" || (controllerClock && controllerClock.id === timer.id)) return;
+      controllerClock = { id: timer.id, durationMs: timer.durationMs, startedAt: performance.now() };
+      renderTimer();
+    }); });
+  }
+
+  function pingServer() {
+    var started = performance.now();
+    return fetch("/api/ping", { cache: "no-store" }).then(function (response) {
+      return response.json().then(function (info) {
+        if (response.ok) syncServerClock(info.serverNow, started);
+        return { ok: response.ok, info: info };
+      });
+    });
+  }
 
   function thccbRequest(options) {
     return fetch("/api/thccb", options).then(function (r) {
@@ -240,25 +357,39 @@
     var footer = $("display-footer");
     var host = wideMonitor() ? footer : document.querySelector(".header-actions");
     if (el.parentElement !== host) host.insertBefore(el, wideMonitor() ? null : $("btn-restart"));
-    if (!G.timerEnd || !G.timerKind) {
+    prepareControllerTimer();
+    reportControllerTimer();
+    var provisional = ONLINE && pendingDialStart && G.phase === "psychic";
+    var waiting = ONLINE && G.timerSync && G.timerSync.status === "waiting";
+    if ((!G.timerKind || !G.timerEnd) && !waiting && !provisional) {
+      onlineTimer = null;
       el.className = "timer-display hidden";
       el.textContent = "00:00";
       warnedTimerEnd = null;
       expiredTimerEnd = null;
       return;
     }
-    var remaining = Math.max(0, Math.ceil((G.timerEnd - Date.now()) / 1000));
+    var remainingMs = provisional ? pendingDialStart.durationMs - (performance.now() - pendingDialStart.startedAt) :
+      controllerClock && G.timerSync && controllerClock.id === G.timerSync.id ? timerRemaining() :
+      waiting ? G.timerSync.durationMs : timerRemaining();
+    if (waiting && (ROLE !== "controller" || G.timerSync.ownerId !== clientId) && !provisional) {
+      el.className = "timer-display";
+      el.textContent = "--:--";
+      return;
+    }
+    var remaining = Math.max(0, Math.ceil(remainingMs / 1000));
     var minutes = Math.floor(remaining / 60);
     var seconds = remaining % 60;
-    var warningSeconds = G.timerKind === "dial" ? 10 : 5;
+    var warningSeconds = G.timerKind === "dial" || provisional ? 10 : 5;
+    var timerKey = G.timerSync ? G.timerSync.id : provisional ? pendingDialStart : G.timerEnd;
     el.textContent = String(minutes).padStart(2, "0") + ":" + String(seconds).padStart(2, "0");
     el.className = "timer-display" + (remaining === 0 ? " expired" : remaining <= warningSeconds ? " warning" : "");
-    if (remaining > 0 && remaining <= warningSeconds && warnedTimerEnd !== G.timerEnd) {
-      warnedTimerEnd = G.timerEnd;
+    if (remaining > 0 && remaining <= warningSeconds && warnedTimerEnd !== timerKey) {
+      warnedTimerEnd = timerKey;
       playTimerTone(0.25);
     }
-    if (remaining === 0 && expiredTimerEnd !== G.timerEnd) {
-      expiredTimerEnd = G.timerEnd;
+    if (remaining === 0 && expiredTimerEnd !== timerKey) {
+      expiredTimerEnd = timerKey;
       playTimerTone(0.75);
     }
   }
@@ -422,8 +553,11 @@
     heartbeatTimer = setInterval(heartbeat, 8000);
   }
 
-  function heartbeat() {
+  function heartbeat(resyncClock) {
     if (!ONLINE) return;
+    // performance.now() can pause while a device sleeps. On resume/reconnect,
+    // allow a fresh fast probe even if the old sample had a smaller RTT.
+    if (resyncClock && serverClock) serverClock.roundTrip = Infinity;
     var done = false;
     var timer = setTimeout(function () {
       if (!done) {
@@ -431,15 +565,13 @@
         failPing();
       }
     }, 4000);
-    fetch("api/ping").then(function (r) {
+    pingServer().then(function (r) {
       if (done) return;
       done = true;
       clearTimeout(timer);
       if (r.ok) {
         pingFail = 0;
-        return r.json().then(function (info) {
-          if (ONLINE && ROLE === "controller" && !info.authed) promptControllerAuth(info);
-        });
+        if (ONLINE && ROLE === "controller" && !r.info.authed) promptControllerAuth(r.info);
       } else {
         failPing();
       }
@@ -456,12 +588,23 @@
     if (pingFail >= 2) forceReconnect();
   }
 
+  function samePhaseContent(before, after) {
+    function content(state) {
+      var copy = Object.assign({}, state);
+      delete copy.serverNow;
+      delete copy.timerEnd;
+      delete copy.timerSync;
+      return JSON.stringify(copy);
+    }
+    return content(before) === content(after);
+  }
+
   function connectSSE() {
     if (!ONLINE) return;
     if (sse) {
       try { sse.close(); } catch (e) {}
     }
-    var connection = new EventSource("/api/stream?role=" + ROLE);
+    var connection = new EventSource("/api/stream?role=" + ROLE + "&client_id=" + encodeURIComponent(clientId));
     sse = connection;
     connection.onopen = function () {
       if (!ONLINE || sse !== connection) return;
@@ -469,14 +612,23 @@
       pingFail = 0;
       setConn("ok");
       flushQueue();
+      heartbeat(true);
     };
     connection.onmessage = function (ev) {
       if (!ONLINE || sse !== connection) return;
       try {
         var previousPhase = G.phase;
-        G = JSON.parse(ev.data);
+        var incoming = JSON.parse(ev.data);
+        var timerOnly = samePhaseContent(G, incoming);
+        G = incoming;
+        if (G.phase !== "psychic" || (G.timerSync && (G.timerSync.ownerId !== clientId || G.timerSync.source === "server"))) pendingDialStart = null;
+        if (!G.timerSync || G.timerSync.source === "server" || (controllerClock && controllerClock.id !== G.timerSync.id)) controllerClock = null;
+        observeServerTime(G.serverNow);
         if (G.phase !== "psychic" || previousPhase !== G.phase) psychicViewing = false;
-        render();
+        // A timer acknowledgement must not replace a card/button underneath a
+        // pointer that is already pressing it.
+        if (timerOnly) renderTimer();
+        else render();
       } catch (e) {}
     };
     connection.onerror = function () {
@@ -540,6 +692,14 @@
 
   function postIntent(intent) {
     if (!ONLINE || ROLE !== "controller") return;
+    var elapsed = G.timerSync && controllerClock && controllerClock.id === G.timerSync.id ? performance.now() - controllerClock.startedAt : null;
+    if (elapsed !== null && elapsed >= controllerClock.durationMs + WL.TIMER_GRACE_MS &&
+        ["selectCard", "redrawCards", "startDialTimer", "donePsychic", "setDial", "lock", "penaltyLock", "guess"].includes(intent.type)) {
+      reportControllerTimer(); return;
+    }
+    intent = Object.assign({}, intent, { client_id: clientId, timer_id: G.timerSync && G.timerSync.id,
+      timer_elapsed_ms: elapsed,
+      timer_start_elapsed_ms: intent.type === "startDialTimer" && pendingDialStart ? performance.now() - pendingDialStart.startedAt : null });
     if (connState !== "ok") {
       if (intent.type === "retryThccb") return;
       queueIntent(intent);
@@ -581,6 +741,7 @@
       renderThccb();
     }).catch(function (e) {
       if (generation !== intentGeneration) return;
+      if (intent.type === "startDialTimer" && pendingDialStart) { pendingDialStart = null; psychicViewing = false; render(); }
       intentError = e.message || "操作发送失败，请重试";
       if (retry) thccbRetryFeedback = "重试失败，请确认连接后再次重试。";
       renderThccb();
@@ -597,7 +758,7 @@
   }
 
   function render() {
-    if (G.phase !== "psychic") psychicViewing = false;
+    if (G.phase !== "psychic") { psychicViewing = false; pendingDialStart = null; }
     if (G.phase !== "dial") dragging = false;
     var A = G.teams.A, B = G.teams.B;
     // Keep progress in the name column, leaving room for larger score digits.
@@ -952,7 +1113,8 @@
       render();
       return;
     }
-    if (G.phase !== "dial" || (G.timerEnd && Date.now() >= G.timerEnd + WL.TIMER_GRACE_MS)) return;
+    if (G.phase !== "dial" || (!ONLINE && G.timerEnd && timerRemaining() <= -WL.TIMER_GRACE_MS) ||
+        (ONLINE && controllerClock && G.timerSync && controllerClock.id === G.timerSync.id && timerRemaining() <= -WL.TIMER_GRACE_MS)) return;
     var rect = $("axis").getBoundingClientRect();
     var pct = (e.clientX - rect.left) / rect.width;
     G.dial = WL.clampDial(pct * WL.UNIT);
@@ -996,6 +1158,7 @@
       if (control) {
         if (psychicViewing) {
           box.appendChild(mk("出题完成，隐藏" + T("target"), "magenta", function () {
+            if (ONLINE && pendingDialStart && !G.timerKind) return;
             psychicViewing = false;
             dispatch({ type: "donePsychic" });
           }));
@@ -1003,6 +1166,9 @@
           box.appendChild(mk("查看" + T("target") + "（仅 " + T("psychic") + "）", "primary", function () {
             psychicViewing = true;
             ensureAudio();
+            if (ONLINE && !G.timerKind && configuredTimerSeconds("data-dial-timer-seconds", 60) > 0) {
+              pendingDialStart = { startedAt: performance.now(), durationMs: configuredTimerSeconds("data-dial-timer-seconds", 60) * 1000 };
+            }
             dispatch({
               type: "startDialTimer",
               timerSeconds: configuredTimerSeconds("data-dial-timer-seconds", 60),
@@ -1378,10 +1544,8 @@
       done = true;
       afterOnlineCheck(info);
     };
-    fetch("api/ping").then(function (r) {
-      return r.json().then(function (j) {
-        finish({ ok: r.ok, authRequired: !!j.authRequired, authed: !!j.authed });
-      });
+    pingServer().then(function (r) {
+      finish({ ok: r.ok, authRequired: !!r.info.authRequired, authed: !!r.info.authed });
     }).catch(function () {
       finish({ ok: false });
     });
@@ -1403,6 +1567,7 @@
   }
 
   function stopOnline() {
+    controllerClock = null; pendingDialStart = null; scheduledTimer = null;
     intentGeneration++;
     thccbRetryPending = false;
     thccbRetryFeedback = "";
@@ -1471,9 +1636,9 @@
   }
 
   function chooseController() {
-    fetch("/api/ping").then(function (r) {
+    pingServer().then(function (r) {
       if (!r.ok) throw new Error("暂时无法连接服务器，请稍后重试");
-      return r.json();
+      return r.info;
     }).then(function (info) {
       if (!ONLINE) return;
       if (info.authed) enterController();
@@ -1508,8 +1673,8 @@
 
   document.addEventListener("visibilitychange", function () {
     if (!ONLINE || document.hidden) return;
-    heartbeat();
-    if (!sse) scheduleReconnect();
+    heartbeat(true);
+    connectSSE();
   });
 
   var interact = $("interact");

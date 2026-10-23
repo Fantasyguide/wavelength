@@ -18,6 +18,10 @@ function assert(cond, msg) {
   await new Promise((r) => server.once("listening", r));
   const browser = await puppeteer.launch({ executablePath: CHROME, headless: "new", args: ["--no-sandbox"] });
   const page = await browser.newPage();
+  await page.evaluateOnNewDocument(() => {
+    const actualNow = Date.now;
+    Date.now = () => actualNow() + 2000;
+  });
   const consoleErrors = [];
   page.on("pageerror", (e) => consoleErrors.push(e.message));
 
@@ -30,9 +34,36 @@ function assert(cond, msg) {
   await fixture.loginController(page);
   await sleep(300);
   assert(await page.$eval("#setup-modal", (el) => el.className.indexOf("hidden") === -1), "setup modal shown for controller");
+  async function delayHeartbeat() {
+    await page.evaluate(async () => {
+      const originalFetch = window.fetch;
+      let hold = true, finished;
+      const delivered = new Promise(resolve => { finished = resolve; });
+      window.fetch = function (url, options) {
+        const response = originalFetch.call(this, url, options);
+        if (!hold || !String(url).endsWith("api/ping")) return response;
+        hold = false;
+        return response.then(async response => {
+          const body = await response.text();
+          await new Promise(resolve => setTimeout(resolve, 3900));
+          return new Response(body, { status: response.status, headers: response.headers });
+        }).finally(finished);
+      };
+      try {
+        document.dispatchEvent(new Event("visibilitychange"));
+        await delivered;
+      } finally { window.fetch = originalFetch; }
+    });
+  }
+  await delayHeartbeat();
   await page.$eval("#select-first", (el) => { el.value = "A"; });
   await page.click("#btn-start");
   await page.waitForSelector(".card-choice");
+  assert(await page.$eval("#timer-display", el => el.textContent) === "00:10", "selection starts at ten despite clock skew and a heartbeat delayed by 3.9 seconds");
+  await delayHeartbeat();
+  await page.click("#btn-redraw");
+  await page.waitForFunction(() => document.getElementById("btn-redraw").disabled);
+  assert(await page.$eval("#timer-display", el => el.textContent) === "00:10", "redraw restores ten seconds after another delayed heartbeat");
   await page.click(".card-choice");
   await sleep(500);
 
