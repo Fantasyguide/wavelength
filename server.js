@@ -70,88 +70,61 @@ var config = loadConfig();
 var bridge = Object.assign({ enabled: false, base_url: "", secret: "" }, config.thccb);
 var bridgeRound = null;
 var gameKey = crypto.randomUUID();
-var intentSerial = Promise.resolve();
+var attemptKey = crypto.randomUUID();
+var adminRevision = 0;
+var completedOperations = new Set();
+var pendingTransition = null;
+var bridgeError = "";
 var timerBlocked = false;
 var timerPending = false;
-var bridgeRetryIntent = null;
-var bridgeHealth = { status: "checking", checked_at: null };
-var bridgeNotificationFailed = false;
-var bridgeHealthRevision = 0;
 var bridgeHealthRequest = null;
+var ThccbBridge = require("./thccb-bridge.js");
+var bridgeManager = new ThccbBridge({
+  file: process.env.WL_BRIDGE_STORE || path.join(path.dirname(CONFIG_PATH), "data", "thccb-journal.json"),
+  config: function () { return bridge; },
+  changed: function () { bridgeSnapshot(); broadcast(); }
+});
 
-// Intent and configuration writes share this serial section, including external confirmation.
+// Each callback mutates local state synchronously before returning a remote promise.
+// Independent requests never wait behind a THCCB network operation.
 function serial(res, action) {
-  intentSerial = intentSerial.then(action).catch(function (e) {
-    if (res) sendJson(res, e.status || 400, { ok: false, error: String(e.message || e) });
+  return Promise.resolve().then(action).catch(function (e) {
+    if (res && !res.writableEnded) sendJson(res, e.status || 400, { ok: false, error: String(e.message || e) });
   });
-  return intentSerial;
 }
-
 function activeBridgeRound() {
-  return bridgeRound && !["result", "cancelled"].includes(bridgeRound.status);
+  return bridgeRound && !["result", "cancelled", "rewards_retained"].includes(bridgeRound.status);
 }
-
-function bridgeSnapshot(error) {
-  state.thccb_connection = {
-    status: !bridge.enabled ? "disabled" : bridgeNotificationFailed ? "error" : bridgeHealth.status,
-    checked_at: bridgeHealth.checked_at
-  };
+function bridgeSnapshot() {
+  state.control = { game_key: gameKey, attempt_key: attemptKey, revision: adminRevision };
+  state.audience_linked = !!(bridge.enabled && bridgeRound && ["open", "closed", "result"].includes(bridgeRound.status));
+  state.thccb_connection = Object.assign({}, bridgeManager.health, { status: bridge.enabled ? bridgeManager.health.status : "disabled" });
   state.thccb = {
-    enabled: !!bridge.enabled,
-    round_key: bridgeRound ? bridgeRound.key : null,
-    status: bridgeRound ? bridgeRound.status : "idle",
-    timer_blocked: timerBlocked,
-    retryable: timerBlocked || !!bridgeRetryIntent,
+    enabled: !!bridge.enabled, round_key: bridgeRound ? bridgeRound.key : null,
+    status: bridgeRound ? bridgeRound.status : !bridge.enabled ? "disabled" :
+      ["setup", "chooseCard", "psychic"].includes(state.phase) ? "armed" : "unlinked",
+    timer_blocked: timerBlocked, waiting: !!pendingTransition, pending: !!(pendingTransition && pendingTransition.running),
+    retryable: !!pendingTransition || !!bridgeManager.pending().length || !!bridgeManager.conflict,
     results: bridgeRound ? bridgeRound.results || null : null,
     results_error: bridgeRound ? bridgeRound.results_error || "" : "",
-    error: error || ""
+    error: bridgeManager.storageError || bridgeError,
+    jobs: bridgeManager.diagnostics(), conflict: bridgeManager.conflict
   };
 }
 bridgeSnapshot();
-
-// A read-only reachability check never creates, closes or settles a round.
 async function checkBridgeConnection() {
-  if (!bridge.enabled || bridgeHealthRequest) return;
-  var revision = bridgeHealthRevision;
-  var request = new AbortController();
-  bridgeHealthRequest = request;
-  var timeout = setTimeout(function () { request.abort(); }, 4000);
-  var status = "error";
-  try {
-    var response = await fetch(bridge.base_url + "/api/v1/returned/current", {
-      redirect: "error", signal: request.signal
-    });
-    if (!response.ok) throw new Error("Connection check failed");
-    await response.json();
-    status = "connected";
-  } catch (e) {
-    // Only the generic status is public; keep URLs and response details private.
-  } finally {
-    clearTimeout(timeout);
-    if (bridgeHealthRequest === request) bridgeHealthRequest = null;
-  }
-  if (revision !== bridgeHealthRevision) return;
-  bridgeHealth = { status: status, checked_at: Date.now() };
-  bridgeSnapshot(state.thccb.error);
-  broadcast();
+  if ((!bridge.enabled && !bridgeManager.pending().length) || bridgeHealthRequest) return;
+  bridgeHealthRequest = bridgeManager.inspect();
+  try { await bridgeHealthRequest; } catch (e) {}
+  finally { bridgeHealthRequest = null; bridgeSnapshot(); broadcast(); }
 }
-
-function recordBridgeConnection(success) {
-  // A newer notification is more authoritative than an older in-flight probe.
-  bridgeHealthRevision++;
-  bridgeNotificationFailed = !success;
-  bridgeHealth = { status: success ? "connected" : "error", checked_at: Date.now() };
-}
-
 function requireBridgeAuth(req, res, cb) {
   if (!config.password) return sendJson(res, 403, { ok: false, error: "请先在服务器 config.json 设置共享密码并重启，再登录配置资金联动" });
   return requireAuth(req, res, cb);
 }
-
 function publicBridge() {
   return { enabled: !!bridge.enabled, base_url: bridge.base_url, secret_configured: !!bridge.secret };
 }
-
 function checkedBridge(body) {
   if (!body || typeof body.enabled !== "boolean" || typeof body.base_url !== "string" ||
       (body.secret !== undefined && typeof body.secret !== "string")) throw new Error("联动配置格式错误");
@@ -167,196 +140,185 @@ function checkedBridge(body) {
   if (candidate.enabled && (!candidate.base_url || !candidate.secret)) throw new Error("开启联动前请填写地址和密钥");
   return candidate;
 }
-
-async function notifyBridge(action, payload) {
-  var suffix = action === "start" ? "/rounds/start" : "/rounds/" + encodeURIComponent(bridgeRound.key) + "/" + action;
-  try {
-    var response = await fetch(bridge.base_url + "/api/v1/returned" + suffix, {
-      method: "POST", redirect: "error",
-      headers: { Authorization: "Bearer " + bridge.secret, "Content-Type": "application/json" },
-      body: payload === undefined ? undefined : JSON.stringify(payload),
-      signal: AbortSignal.timeout(4000)
-    });
-    if (!response.ok) throw new Error("THCCB 返回 HTTP " + response.status);
-    recordBridgeConnection(true);
-    bridgeRetryIntent = null;
-    state.thccb.error = "";
-  } catch (e) {
-    recordBridgeConnection(false);
-    // Do not include URLs, response bodies, or fetch internals that might contain credentials.
-    if (timerDue(Date.now())) timerBlocked = true;
-    var message = "THCCB 通知失败（" + action + "）：" + (e.message.startsWith("THCCB 返回") ? e.message : "连接失败或超时") + "。本次操作未推进，请重试；轮号 " + bridgeRound.key;
-    bridgeSnapshot(message);
-    broadcast();
-    var error = new Error(message);
-    error.status = 502;
-    throw error;
-  }
+function saveBridgeConfig(candidate) {
+  var next = Object.assign({}, config, { thccb: candidate });
+  try { fs.writeFileSync(CONFIG_PATH, JSON.stringify(next, null, 2), { mode: 0o600 }); }
+  catch (e) { throw new Error("配置写入失败，请检查服务器文件权限后重试"); }
+  config = next; bridge = candidate;
 }
-
-// Read after the settlement POST, without delaying or retrying the completed game action.
 function scheduleBridgeResults(round) {
-  var baseUrl = bridge.base_url, secret = bridge.secret;
   setTimeout(async function () {
-    function current() {
-      return bridge.enabled && bridgeRound === round && round.status === "result" &&
-        state.round === round.payload.round_number;
-    }
+    function current() { return bridge.enabled && bridgeRound === round && round.status === "result"; }
     if (!current()) return;
     try {
-      var response = await fetch(baseUrl + "/api/v1/returned/rounds/" + encodeURIComponent(round.key) + "/results", {
-        headers: { Authorization: "Bearer " + secret }, redirect: "error", signal: AbortSignal.timeout(4000)
-      });
-      if (!response.ok) throw new Error("Result lookup failed");
-      var data = await response.json();
-      if (data.round_key !== round.key || !Array.isArray(data.top_five) || !Number.isInteger(data.target_position)) {
-        throw new Error("Invalid result response");
-      }
+      var data = await bridgeManager.request("/rounds/" + encodeURIComponent(round.key) + "/results");
+      if (data.round_key !== round.key || !Array.isArray(data.top_five) || !Number.isInteger(data.target_position)) throw new Error("Invalid results");
       if (!current()) return;
-      round.results = {
-        round_key: data.round_key, target_position: data.target_position,
-        top_five: data.top_five.slice(0, 5).map(function (entry) {
-          return { username: String(entry.username), position: entry.position, distance: entry.distance, payout: entry.payout };
-        })
-      };
-      round.results_error = "";
+      round.results = { round_key: data.round_key, target_position: data.target_position,
+        top_five: data.top_five.slice(0, 5).map(function (e) { return { username: String(e.username), position: e.position, distance: e.distance, payout: e.payout }; }) };
     } catch (e) {
       if (!current()) return;
       round.results_error = "前五名暂时未能加载，竞猜已结算，可在 THCCB 竞猜页查看。";
     }
-    bridgeSnapshot(state.thccb.error);
-    broadcast();
+    bridgeSnapshot(); broadcast();
   }, 500).unref();
 }
-
-async function openBridgeRound() {
-  if (!config.password) throw new Error("资金联动需要配置共享密码");
-  if (!activeBridgeRound()) {
-    var pair = WL.cardSides(state.card)[state.side];
-    bridgeRound = {
-      key: gameKey + ":" + state.round + ":" + crypto.randomUUID(), status: "starting",
-      payload: { game_key: gameKey, round_number: state.round, left_label: pair[0], right_label: pair[1], team_name: state.teams[state.active].name }
-    };
-    bridgeRound.payload.round_key = bridgeRound.key;
-  }
-  if (bridgeRound.status === "starting") {
-    await notifyBridge("start", bridgeRound.payload);
-    bridgeRound.status = "open";
-  }
+function newAttempt(newGame) {
+  attemptKey = crypto.randomUUID();
+  if (newGame) gameKey = crypto.randomUUID();
+  bridgeRound = null; bridgeError = ""; timerBlocked = false;
 }
-
-async function closeBridgeRound() {
-  await openBridgeRound();
-  if (bridgeRound.status === "open") {
-    await notifyBridge("close");
-    bridgeRound.status = "closed";
+function applyLocal(intent) {
+  var previousRound = state.round;
+  WL.applyIntent(state, intent.type === "resetDeck" ? { type: "loadDeck", name: defaultDeck.name,
+    cards: JSON.parse(JSON.stringify(defaultDeck.cards)) } : intent, { deferTimers: true });
+  if (["setup", "newGame", "voidRound"].includes(intent.type) || previousRound !== state.round) {
+    newAttempt(intent.type === "setup" || intent.type === "newGame");
   }
-}
-
-function timerDue(now) {
-  return controllerTimer.due(now);
-}
-
-async function advanceOnlineTimers(now) {
-  if (!timerDue(now)) return false;
-  try {
-    if (bridge.enabled && state.timerKind === "dial" && ["psychic", "dial"].includes(state.phase)) {
-      await closeBridgeRound();
-      // Give the other team its full guessing time after confirmation or a retry.
-      now = Date.now();
-      state.timerEnd = now - WL.TIMER_GRACE_MS;
-    }
-    var changed = WL.advanceTimers(state, now, { singleStep: !!timerOwner() });
-    syncControllerTimer();
-    timerBlocked = false;
-    if (changed) bridgeRetryIntent = null;
-    bridgeSnapshot(state.thccb.error);
-    if (changed) broadcast();
-    return changed;
-  } catch (e) {
-    timerBlocked = true;
-    bridgeSnapshot(e.message);
-    broadcast();
-    throw e;
-  }
-}
-
-async function applyOnlineIntent(req, intent, receivedAt) {
-  var type = intent && intent.type;
-  if (intent) intent._timerOwner = controllerId(req, intent.client_id);
-  if (bridge.enabled && (!config.password || !isAuthed(req))) throw new Error("资金联动需要共享密码及已登录的设备会话");
-  if (type === "retryThccb") {
-    if (bridgeRetryIntent) {
-      intent = bridgeRetryIntent;
-      type = intent.type;
-    } else if (!timerBlocked) {
-      throw new Error("当前没有待重试的联动操作");
-    }
-  }
-  if (type !== "newGame" && type !== "retryThccb" && intent) {
-    if (intent.timer_id && (!state.timerSync || intent.timer_id !== state.timerSync.id)) return;
-    if (state.timerSync && state.timerSync.ownerId === intent._timerOwner &&
-        Number.isFinite(intent.timer_elapsed_ms) && intent.timer_elapsed_ms >= state.timerSync.durationMs + WL.TIMER_GRACE_MS) {
-      controllerTimer.report({ type: "expired", timerId: state.timerSync.id, elapsedMs: intent.timer_elapsed_ms }, intent._timerOwner);
-      return advanceOnlineTimers(Date.now());
-    }
-  }
-  if (activeBridgeRound() && ["setup", "skipCard", "redrawCards", "loadDeck", "resetDeck", "selectSide", "selectCard"].includes(type)) {
-    throw new Error("当前联动竞猜尚未结束，请先揭晓或通过重新开局取消，再更换题目");
-  }
-  // Cancellation must remain possible even when an overdue bridge notification fails.
-  if (type !== "newGame") {
-    if (timerBlocked && !["retryThccb", "donePsychic", "lock", "penaltyLock"].includes(type)) {
-      throw new Error("计时已结束，THCCB 通知待重试；请重试联动或重新开局取消竞猜");
-    }
-    var advanced = await advanceOnlineTimers(receivedAt === undefined ? Date.now() : receivedAt);
-    if (type === "retryThccb" || (advanced && ["selectCard", "selectSide", "donePsychic", "startDialTimer",
-      "setDial", "lock", "penaltyLock", "guess", "reveal", "skipCard", "redrawCards"].includes(type))) return;
-  }
-  try {
-    if (bridge.enabled) {
-      if (type === "donePsychic" && state.phase === "psychic") {
-        await openBridgeRound();
-      } else if ((type === "lock" || type === "penaltyLock") && state.phase === "dial") {
-        await closeBridgeRound();
-      } else if (type === "reveal" && state.phase === "reveal" && activeBridgeRound()) {
-        if (bridgeRound.status !== "closed") throw new Error("请先锁定并封盘，再揭晓结果");
-        await notifyBridge("result", { target_position: state.target.center });
-        bridgeRound.status = "result";
-        scheduleBridgeResults(bridgeRound);
-      } else if (type === "newGame" && activeBridgeRound()) {
-        await notifyBridge("cancel");
-        bridgeRound.status = "cancelled";
-      }
-    }
-  } catch (e) {
-    if (e.status === 502) {
-      bridgeRetryIntent = Object.assign({}, intent);
-      bridgeSnapshot(e.message);
-      broadcast();
-    }
-    throw e;
-  }
-  WL.applyIntent(state, type === "resetDeck" ? {
-    type: "loadDeck", name: defaultDeck.name,
-    cards: JSON.parse(JSON.stringify(defaultDeck.cards))
-  } : intent, { deferTimers: true });
-  syncControllerTimer(intent && intent._timerOwner);
-  // Viewing starts locally; publish its first sample with this same operation.
-  if (type === "startDialTimer" && state.timerSync && state.timerSync.status === "waiting") {
+  syncControllerTimer(intent._timerOwner);
+  // Viewing already starts the controller clock at the click. Include that
+  // first sample in the same intent instead of waiting for another round trip.
+  if (intent.type === "startDialTimer" && state.timerSync && state.timerSync.status === "waiting") {
     controllerTimer.report({ type: "started", timerId: state.timerSync.id,
       elapsedMs: intent.timer_start_elapsed_ms }, intent._timerOwner);
   }
-  if (type === "newGame" || type === "setup") {
-    gameKey = crypto.randomUUID();
-    timerBlocked = false;
-    bridgeRound = null;
-    bridgeRetryIntent = null;
-    state.thccb.error = "";
-  }
-  bridgeSnapshot(state.thccb.error);
 }
-
+function timerDue(now) { return controllerTimer.due(now); }
+function finishLocalTransition(transition) {
+  if (transition.intent.type === "timer") {
+    // Do not consume the guessing period while waiting for the close acknowledgement.
+    state.timerEnd = Date.now() - WL.TIMER_GRACE_MS;
+    WL.advanceTimers(state, Date.now(), { singleStep: !!timerOwner() });
+    syncControllerTimer();
+  } else applyLocal(transition.intent);
+  timerBlocked = false;
+}
+function detachTransition(resume) {
+  var transition = pendingTransition;
+  pendingTransition = null; timerBlocked = false; bridgeError = "";
+  if (transition) {
+    if (resume) finishLocalTransition(transition);
+    if (transition.release) transition.release();
+  }
+}
+function beginTransition(intent, action, payload, retry) {
+  var transition = pendingTransition || { intent: Object.assign({}, intent), action, payload, round: bridgeRound, attempt: attemptKey };
+  if (transition.running) return transition.promise;
+  pendingTransition = transition;
+  transition.running = true;
+  bridgeError = "";
+  var released = new Promise(function (resolve) { transition.release = resolve; });
+  var remote = bridgeManager.confirm(transition.round, transition.action, transition.payload, retry).then(function () {
+    if (pendingTransition !== transition || transition.attempt !== attemptKey) return;
+    pendingTransition = null;
+    finishLocalTransition(transition);
+    bridgeError = "";
+    if (transition.action === "result") scheduleBridgeResults(transition.round);
+  }).catch(function (e) {
+    if (pendingTransition !== transition || transition.attempt !== attemptKey) return;
+    timerBlocked = timerDue(Date.now());
+    bridgeError = e.message;
+    var error = new Error(e.message); error.status = 502; throw error;
+  }).finally(function () {
+    transition.running = false;
+    bridgeSnapshot(); broadcast();
+  });
+  transition.promise = Promise.race([remote, released]);
+  bridgeSnapshot(); broadcast();
+  return transition.promise;
+}
+function advanceOnlineTimers(now) {
+  if (pendingTransition || !timerDue(now)) return false;
+  if (bridge.enabled && bridgeRound && bridgeRound.status === "open" && state.timerKind === "dial" && state.phase === "dial") {
+    return beginTransition({ type: "timer" }, "close");
+  }
+  // Psychic timeout has no audience betting window; don't create a closed round.
+  var changed = WL.advanceTimers(state, now, { singleStep: !!timerOwner() });
+  syncControllerTimer();
+  if (changed) { bridgeSnapshot(); broadcast(); }
+  return changed;
+}
+function validateIntentFence(intent) {
+  var admin = ["setThccbEnabled", "voidRound", "resetGame", "cancelOldThccb"].includes(intent.type);
+  if (admin && (!intent.control || !intent.operation_id)) throw new Error("管理员操作缺少轮次信息，请刷新操控端");
+  if (intent.control && (intent.control.game_key !== gameKey || intent.control.attempt_key !== attemptKey ||
+      (admin && intent.control.revision !== adminRevision))) throw new Error("对局状态已变化，本次旧操作未执行，请确认当前画面后重试");
+}
+function applyOnlineIntent(req, intent, receivedAt) {
+  if (!intent || typeof intent.type !== "string") throw new Error("操作格式错误");
+  var type = intent.type;
+  if (intent.operation_id && completedOperations.has(intent.operation_id)) return;
+  validateIntentFence(intent);
+  intent._timerOwner = controllerId(req, intent.client_id);
+  var admin = ["setThccbEnabled", "voidRound", "resetGame", "cancelOldThccb"].includes(type);
+  if (admin || type === "newGame") {
+    if (type === "setThccbEnabled") {
+      if (typeof intent.value !== "boolean") throw new Error("联动开关格式错误");
+      var candidate = checkedBridge(Object.assign({}, bridge, { enabled: intent.value }));
+      // Switch locally even if persistence fails; report it without re-locking play.
+      var saveError = "";
+      try { saveBridgeConfig(candidate); } catch (e) { bridge = candidate; saveError = e.message; }
+      if (!intent.value) {
+        var old = bridgeRound;
+        detachTransition(true);
+        bridgeRound = null;
+        bridgeManager.cancel(old);
+      }
+      bridgeError = saveError;
+    } else if (type === "cancelOldThccb") {
+      bridgeManager.cancelKnown(intent.round_key);
+    } else {
+      if (type === "voidRound" && state.phase === "setup") throw new Error("当前没有可作废的轮次");
+      if (type === "resetGame" && ["setup", "over"].includes(state.phase)) throw new Error("当前无需强制重置；正常终局请使用再来一局");
+      var abandoned = bridgeRound;
+      var audit = { action: type, round: state.round, team: state.active, at: Date.now(), round_key: abandoned && abandoned.key };
+      detachTransition(false);
+      applyLocal({ type: type === "voidRound" ? "voidRound" : "newGame", _timerOwner: intent._timerOwner });
+      state.admin_log = (state.admin_log || []).concat(audit).slice(-50);
+      bridgeManager.cancel(abandoned);
+    }
+    adminRevision++;
+    if (intent.operation_id) {
+      completedOperations.add(intent.operation_id);
+      if (completedOperations.size > 256) completedOperations.delete(completedOperations.values().next().value);
+    }
+    bridgeSnapshot(); return;
+  }
+  if (type === "retryThccb") {
+    var retryAttempt = attemptKey, retryRevision = adminRevision;
+    bridgeManager.retry().catch(function (e) {
+      if (retryAttempt !== attemptKey || retryRevision !== adminRevision) return;
+      bridgeError = e.message; bridgeSnapshot(); broadcast();
+    });
+    if (pendingTransition) return beginTransition(null, null, null, true);
+    if (bridgeRound && bridgeRound.status === "result") scheduleBridgeResults(bridgeRound);
+    return;
+  }
+  if (type === "setRulesOpen") { applyLocal(intent); bridgeSnapshot(); return; }
+  if (intent.timer_id && (!state.timerSync || intent.timer_id !== state.timerSync.id)) return;
+  if (state.timerSync && state.timerSync.ownerId === intent._timerOwner &&
+      Number.isFinite(intent.timer_elapsed_ms) && intent.timer_elapsed_ms >= state.timerSync.durationMs + WL.TIMER_GRACE_MS) {
+    controllerTimer.report({ type: "expired", timerId: state.timerSync.id, elapsedMs: intent.timer_elapsed_ms }, intent._timerOwner);
+    return advanceOnlineTimers(Date.now());
+  }
+  if (pendingTransition) throw new Error("THCCB 正在等待确认；可重试，或在管理员菜单关闭联动、作废、重置");
+  if (timerDue(receivedAt === undefined ? Date.now() : receivedAt)) return advanceOnlineTimers(Date.now());
+  if (activeBridgeRound() && ["setup", "skipCard", "redrawCards", "loadDeck", "resetDeck", "selectSide", "selectCard"].includes(type)) throw new Error("请先完成或作废当前竞猜，再更换题目");
+  if (bridge.enabled && type === "donePsychic" && state.phase === "psychic" && !bridgeManager.blocked()) {
+    if (!bridgeRound) {
+      var pair = WL.cardSides(state.card)[state.side];
+      bridgeRound = bridgeManager.create({ round_key: gameKey + ":" + state.round + ":" + attemptKey,
+        game_key: gameKey, round_number: state.round, left_label: pair[0], right_label: pair[1], team_name: state.teams[state.active].name });
+    }
+    return beginTransition(intent, "start", bridgeRound.payload);
+  }
+  if (bridge.enabled && bridgeRound) {
+    if (["lock", "penaltyLock"].includes(type) && state.phase === "dial") return beginTransition(intent, "close");
+    if (type === "reveal" && state.phase === "reveal") return beginTransition(intent, "result", { target_position: state.target.center });
+  }
+  applyLocal(intent);
+  bridgeSnapshot();
+}
 var passwordHash = crypto.createHash("sha256").update(config.password).digest("hex");
 var authStore = { version: 1, passwordHash: passwordHash, sessions: [] };
 
@@ -477,11 +439,11 @@ var defaultDeck = {
 };
 
 function publicState(controller) {
-  if (controller) return Object.assign({}, state, { serverNow: Date.now() });
-  var snapshot = Object.assign({}, state, {
-    serverNow: Date.now(),
-    target: ["revealed", "over"].includes(state.phase) ? state.target : null
-  });
+  var snapshot = Object.assign({}, state, { serverNow: Date.now() });
+  if (controller) return snapshot;
+  snapshot.target = ["revealed", "over"].includes(state.phase) ? state.target : null;
+  delete snapshot.control;
+  delete snapshot.admin_log;
   // Monitors receive only the revealed audience result, never controller diagnostics.
   if (bridge.enabled && ["revealed", "over"].includes(state.phase) && bridgeRound &&
       bridgeRound.status === "result" && state.round === bridgeRound.payload.round_number) {
@@ -525,10 +487,11 @@ keepalive.unref();
 var bridgeHealthTimer = setInterval(checkBridgeConnection, 30000);
 bridgeHealthTimer.unref();
 
-// A live controller reports expiry; the server takes over only after progress stops.
+// A live owner reports expiry. Only an unresponsive owner's server fallback can
+// advance independently; spectator clocks never trigger automatic actions.
 var gameTimer = setInterval(function () {
   if (controllerTimer.fallback()) broadcast();
-  if (timerPending || timerBlocked || !timerDue(Date.now())) return;
+  if (timerPending || timerBlocked || pendingTransition || !timerDue(Date.now())) return;
   timerPending = true;
   serial(null, async function () {
     try { await advanceOnlineTimers(Date.now()); }
@@ -601,21 +564,11 @@ var server = http.createServer(function (req, res) {
         serial(res, function () {
           var candidate = checkedBridge(body);
           var changed = JSON.stringify(candidate) !== JSON.stringify(bridge);
-          if (activeBridgeRound() && changed) throw new Error("当前联动竞猜尚未结束，请先完成或取消后再修改配置");
+          if ((activeBridgeRound() || bridgeManager.pending().length || bridgeManager.storageError) && changed) throw new Error("当前联动竞猜尚未结束，请先完成或取消后再修改配置");
           if (state.phase !== "setup" && changed) throw new Error("请在开局前修改联动配置");
-          var next = Object.assign({}, config, { thccb: candidate });
-          try { fs.writeFileSync(CONFIG_PATH, JSON.stringify(next, null, 2)); }
-          catch (e) { throw new Error("配置写入失败，请检查服务器文件权限后重试"); }
-          config = next;
-          bridge = candidate;
-          if (changed) {
-            bridgeHealthRevision++;
-            if (bridgeHealthRequest) bridgeHealthRequest.abort();
-            bridgeHealthRequest = null;
-            bridgeHealth = { status: "checking", checked_at: null };
-            bridgeNotificationFailed = false;
-          }
-          bridgeSnapshot(changed ? "" : state.thccb.error);
+          saveBridgeConfig(candidate);
+          if (changed) bridgeManager.capability = undefined;
+          bridgeSnapshot();
           broadcast();
           sendJson(res, 200, { ok: true, config: publicBridge() });
           checkBridgeConnection();
@@ -723,7 +676,7 @@ var server = http.createServer(function (req, res) {
           var changed = controllerTimer.report(body, controllerId(req, body.client_id));
           if (changed) {
             await advanceOnlineTimers(Date.now());
-            bridgeSnapshot(state.thccb.error); broadcast();
+            bridgeSnapshot(); broadcast();
           }
           sendJson(res, 200, { ok: true });
         });
@@ -798,8 +751,7 @@ server.on("close", function () {
   clearInterval(keepalive);
   clearInterval(gameTimer);
   clearInterval(bridgeHealthTimer);
-  bridgeHealthRevision++;
-  if (bridgeHealthRequest) bridgeHealthRequest.abort();
+  bridgeManager.stop();
 });
 
 function lanAddresses() {

@@ -13,6 +13,7 @@ const dom = new JSDOM(html, {
 });
 const { window } = dom;
 const doc = window.document;
+window.confirm = () => true;
 const realDateNow = window.Date.now;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let warningBeeps = 0;
@@ -245,7 +246,7 @@ async function pickFile(name, content, inputId) {
   assert(!guessRegion.hidden && guessRegion.dataset.side === "L" && axis.style.getPropertyValue("--guess-color") === "var(--cA)", "left choice follows the choosing red team after the turn changes");
   assert(guessRegion.style.left === "0%" && axis.style.getPropertyValue("--guess-clip-left") === "0%", "left highlight starts at the left endpoint");
 
-  click("btn-restart");
+  click(doc.body.dataset.phase === "over" ? "btn-playagain" : "btn-reset-game");
   assert(guessRegion.hidden && directionFrame.hidden, "restart clears direction arrows and frame");
   click("btn-reset-deck");
   assert(doc.getElementById("deck-info").textContent.indexOf("内置题库") !== -1, "reset restores builtin deck");
@@ -273,7 +274,7 @@ async function pickFile(name, content, inputId) {
   assert(doc.getElementById("log").children.length >= 1, "board keeps log after 返回复盘");
   assert(doc.getElementById("scoreA").textContent === "4", "final score visible on board");
 
-  click("btn-restart");
+  click(doc.body.dataset.phase === "over" ? "btn-playagain" : "btn-reset-game");
   const ws3 = doc.getElementById("opt-winscore");
   ws3.value = "2";
   ws3.dispatchEvent(new window.Event("change", { bubbles: true }));
@@ -330,7 +331,7 @@ async function pickFile(name, content, inputId) {
   assert(doc.getElementById("over-modal").className.indexOf("hidden") === -1, "sudden death decided after both teams' turns");
   assert(doc.getElementById("winner-text").textContent.indexOf("蓝队") !== -1, "higher sudden-death round score wins");
 
-  click("btn-restart");
+  click(doc.body.dataset.phase === "over" ? "btn-playagain" : "btn-reset-game");
   doc.getElementById("opt-card-mode").value = "choice";
   doc.getElementById("opt-card-mode").dispatchEvent(new window.Event("change", { bubbles: true }));
   doc.body.setAttribute("data-guess-timer-seconds", "7");
@@ -349,7 +350,7 @@ async function pickFile(name, content, inputId) {
   window.Date.now = realDateNow;
   window.Math.random = realRandom;
 
-  click("btn-restart");
+  click(doc.body.dataset.phase === "over" ? "btn-playagain" : "btn-reset-game");
   click("btn-start");
   click(doc.querySelector(".card-choice"));
   click(doc.getElementById("controls").children[0]);
@@ -367,7 +368,7 @@ async function pickFile(name, content, inputId) {
   window.Date.now = realDateNow;
   window.Math.random = realRandom;
 
-  click("btn-restart");
+  click(doc.body.dataset.phase === "over" ? "btn-playagain" : "btn-reset-game");
   click("btn-start");
   const selectionExpiry = realDateNow() + 11600;
   const beepsBeforeExpiry = warningBeeps;
@@ -388,10 +389,10 @@ async function pickFile(name, content, inputId) {
   window.Date.now = realDateNow;
   window.Math.random = realRandom;
 
-  assert(!doc.getElementById("btn-penalty-lock"), "speaking penalty is unavailable before closing the target");
+  assert(doc.getElementById("btn-penalty-lock").disabled, "speaking penalty is unavailable before closing the target");
   psychicPass();
-  assert(doc.getElementById("btn-lock").nextElementSibling.id === "btn-penalty-lock",
-    "speaking penalty appears beside the regular lock during discussion");
+  assert(!doc.getElementById("btn-penalty-lock").disabled && doc.getElementById("btn-penalty-lock").closest("#admin-menu"),
+    "speaking penalty is available in the admin menu during discussion");
   dragTo(800);
   const originalConfirm = window.confirm;
   let confirmation = "";
@@ -409,7 +410,7 @@ async function pickFile(name, content, inputId) {
   assert(doc.body.dataset.phase === "guess" && doc.getElementById("dial").style.left === "25%",
     "confirming the penalty replaces a moved dial and locks immediately");
   assert(doc.getElementById("timer-display").textContent === "00:07", "penalty uses the configured guess timer");
-  assert(!doc.getElementById("btn-lock") && !doc.getElementById("btn-penalty-lock") &&
+  assert(!doc.getElementById("btn-lock") && doc.getElementById("btn-penalty-lock").disabled &&
     !doc.getElementById("screen").classList.contains("open"), "penalty removes lock actions and keeps the target hidden");
   dragTo(600);
   assert(doc.getElementById("dial").style.left === "25%", "penalized dial cannot be dragged after locking");

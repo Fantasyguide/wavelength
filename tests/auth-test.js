@@ -76,6 +76,8 @@ function makePage() {
     resources: "usable",
     pretendToBeVisual: true,
     beforeParse(window) {
+      window.AbortSignal = global.AbortSignal;
+      window.AbortController = global.AbortController;
       window.fetch = async (u, opts) => {
         opts = opts || {};
         opts.headers = Object.assign({}, opts.headers || {});

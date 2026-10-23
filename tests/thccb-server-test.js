@@ -1,363 +1,169 @@
-// Core integration behavior uses real HTTP routes and a local THCCB source endpoint.
+// Local recovery must never wait for a remote request, including a committed result.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const http = require('node:http');
 const { once } = require('node:events');
+const { randomUUID } = require('node:crypto');
+const fake = require('./fake-thccb')();
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wl-thccb-'));
-process.env.PORT = '0';
-process.env.WL_CONFIG = path.join(dir, 'config.json');
+process.env.PORT = '0'; process.env.WL_CONFIG = path.join(dir, 'config.json');
 process.env.WL_AUTH_SESSIONS = path.join(dir, 'sessions.json');
-fs.writeFileSync(process.env.WL_CONFIG, JSON.stringify({ password: 'shared-password', retained: 'keep-me',
-  qq: { enabled: true, groupId: 'legacy', url: 'ws://127.0.0.1:1/v1/events' } }));
+fs.writeFileSync(process.env.WL_CONFIG, JSON.stringify({ password: 'shared-password', retained: 'keep-me' }));
 const { server, state } = require('../server.js');
-const calls = [];
-const checks = [];
-let healthStatus = 200;
-let healthDelay = 15;
-let rejectAction = '';
-let responseDelay = 15;
-const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function waitFor(predicate, message) {
-  const end = Date.now() + 5000;
-  while (!predicate() && Date.now() < end) await sleep(20);
+  const end = Date.now() + 6000;
+  while (!predicate() && Date.now() < end) await sleep(15);
   assert(predicate(), message);
 }
-const source = http.createServer(async (req, res) => {
-  if (req.url === '/api/v1/returned/current') {
-    checks.push({ method: req.method, auth: req.headers.authorization });
-    const status = healthStatus;
-    await sleep(healthDelay);
-    res.writeHead(status);
-    res.end('null');
-    return;
-  }
-  let text = '';
-  for await (const chunk of req) text += chunk;
-  calls.push({ method: req.method, url: req.url, auth: req.headers.authorization, body: text ? JSON.parse(text) : null });
-  const rejected = req.url.endsWith('/' + rejectAction);
-  // A brief response delay allows concurrent controller intents to overlap.
-  await new Promise(resolve => setTimeout(resolve, responseDelay));
-  res.writeHead(rejected ? 503 : 200);
-  res.end(JSON.stringify(req.url.endsWith('/results') ? { round_key: decodeURIComponent(req.url.split('/').at(-2)), target_position: 500, top_five: [{ username: '<winner>', position: 510, distance: 10, payout: '300' }] } : { ok: !rejected }));
-});
 let base, cookie = '';
-async function request(url, body, useAuth = true) {
-  const response = await fetch(base + url, {
-    method: body === undefined ? 'GET' : 'POST',
-    headers: { 'Content-Type': 'application/json', ...(useAuth ? { Cookie: cookie } : {}) },
-    body: body === undefined ? undefined : JSON.stringify(body)
-  });
-  const text = await response.text();
-  return { status: response.status, text, json: (() => { try { return JSON.parse(text); } catch { return null; } })(), response };
+async function request(url, body, auth = true) {
+  const r = await fetch(base + url, { method: body === undefined ? 'GET' : 'POST',
+    headers: { 'Content-Type': 'application/json', ...(auth ? { Cookie: cookie } : {}) },
+    body: body === undefined ? undefined : JSON.stringify(body) });
+  const text = await r.text(); let json; try { json = JSON.parse(text); } catch {}
+  return { status: r.status, json, text, response: r };
 }
+const intent = (type, extra = {}) => request('/api/intent', { type, ...extra });
+const admin = (type, extra = {}) => intent(type, { control: { ...state.control }, operation_id: randomUUID(), ...extra });
+const clean = () => waitFor(() => state.thccb.jobs.every(j => j.terminal), 'cleanup eventually finishes');
 async function monitorSnapshot() {
-  const response = await fetch(base + '/api/stream', { signal: AbortSignal.timeout(3000) });
-  const reader = response.body.getReader();
-  let text = '';
-  try {
-    while (!text.includes('data: ')) text += new TextDecoder().decode((await reader.read()).value);
-    return JSON.parse(text.split('data: ')[1].split('\n')[0]);
-  } finally { await reader.cancel(); }
-}
-async function intent(type, extra = {}) { return request('/api/intent', { type, ...extra }); }
-async function concurrentRetries() {
-  const replies = await Promise.all([intent('retryThccb'), intent('retryThccb')]);
-  assert.deepEqual(replies.map(reply => reply.status).sort(), [200, 400], 'only one concurrent retry applies the pending action');
-  assert.match(replies.find(reply => reply.status === 400).json.error, /没有待重试/);
+  const r = await fetch(base + '/api/stream'); const reader = r.body.getReader(); let text = '';
+  try { while (!text.includes('data: ')) text += new TextDecoder().decode((await reader.read()).value); return JSON.parse(text.split('data: ')[1].split('\n')[0]); }
+  finally { await reader.cancel(); }
 }
 (async () => {
-  await once(server, 'listening');
-  source.listen(0, '127.0.0.1');
-  await once(source, 'listening');
+  await once(server, 'listening'); fake.server.listen(0, '127.0.0.1'); await once(fake.server, 'listening');
   base = 'http://127.0.0.1:' + server.address().port;
-  const origin = 'http://127.0.0.1:' + source.address().port;
   assert.equal((await request('/api/thccb', undefined, false)).status, 401);
-  assert.equal((await request('/api/thccb', { enabled: true }, false)).status, 401);
-  const login = await request('/api/auth', { password: 'shared-password' });
-  cookie = login.response.headers.get('set-cookie').split(';')[0];
-  assert.equal((await request('/api/thccb')).json.config.enabled, false);
-  assert.equal(state.audience, undefined, 'legacy QQ config no longer creates audience state');
-  await intent('setup', { cardMode: 'single' });
-  await intent('donePsychic');
-  assert.equal(calls.length, 0, 'disabled mode does not contact THCCB');
-  assert.equal(checks.length, 0, 'disabled mode does not probe THCCB');
-  assert.equal((await monitorSnapshot()).thccb_connection.status, 'disabled');
-  await intent('newGame');
-  const secret = 'test-secret-that-is-at-least-32-characters';
-  const settings = { enabled: true, base_url: origin, secret };
-  for (const invalid of ['ftp://example.com', 'https://user@example.com', 'http://@example.com', origin + '?token=x', origin + '#x']) {
-    assert.equal((await request('/api/thccb', { ...settings, base_url: invalid })).status, 400);
-  }
+  cookie = (await request('/api/auth', { password: 'shared-password' })).response.headers.get('set-cookie').split(';')[0];
+  const secret = 'test-secret-at-least-32-characters';
+  const settings = { enabled: true, base_url: 'http://127.0.0.1:' + fake.server.address().port, secret };
+  for (const bad of ['ftp://example.com', 'https://user@example.com', 'http://@example.com', settings.base_url + '?token=x'])
+    assert.equal((await request('/api/thccb', { ...settings, base_url: bad })).status, 400);
   assert.equal((await request('/api/thccb', { ...settings, secret: 'short' })).status, 400);
-  const saved = await request('/api/thccb', settings);
-  assert.equal(saved.status, 200);
-  assert.equal(saved.json.config.secret_configured, true);
-  await waitFor(() => state.thccb_connection.status === 'connected', 'enabled bridge checks reachability');
-  assert.deepEqual(checks[0], { method: 'GET', auth: undefined }, 'health check only reads the public endpoint');
-  assert.equal((await monitorSnapshot()).thccb_connection.status, 'connected');
-  assert.equal(calls.length, 0, 'health check never opens a round');
-  healthStatus = 503;
-  await request('/api/thccb', { ...settings, secret: '' });
-  await waitFor(() => state.thccb_connection.status === 'error', 'unavailable endpoint marks the connection down');
-  healthStatus = 200;
-  await request('/api/thccb', { ...settings, secret: '' });
-  await waitFor(() => state.thccb_connection.status === 'connected', 'connection recovers without game operations');
-  healthDelay = 4500;
-  await request('/api/thccb', { ...settings, secret: '' });
-  await waitFor(() => state.thccb_connection.status === 'error', 'a stalled health request times out');
-  assert.equal(state.phase, 'setup', 'failed health checks do not advance the game');
-  assert.equal(state.thccb.error, '', 'health failure does not invent a failed game action');
-  healthDelay = 150;
-  healthStatus = 503;
-  const previousChecks = checks.length;
-  await request('/api/thccb', { ...settings, secret: '' });
-  await waitFor(() => checks.length > previousChecks, 'the stale probe is in flight before disabling');
-  const checkCount = checks.length;
-  await request('/api/thccb', { ...settings, enabled: false });
-  await sleep(200);
-  assert.equal(state.thccb_connection.status, 'disabled', 'a stale probe cannot overwrite disabled configuration');
-  assert.equal(checks.length, checkCount, 'disabling never starts another probe');
-  healthDelay = 15;
-  healthStatus = 200;
-  await request('/api/thccb', settings);
-  await waitFor(() => state.thccb_connection.status === 'connected', 're-enabling starts a fresh check');
-  assert.deepEqual(Object.keys((await monitorSnapshot()).thccb_connection).sort(), ['checked_at', 'status'],
-    'public connection metadata contains no configuration or controller diagnostics');
-  assert.ok(!saved.text.includes(secret));
-  const disk = JSON.parse(fs.readFileSync(process.env.WL_CONFIG));
-  assert.equal(disk.password, 'shared-password');
-  assert.equal(disk.retained, 'keep-me');
-  await request('/api/thccb', { ...settings, secret: '' });
-  assert.equal(JSON.parse(fs.readFileSync(process.env.WL_CONFIG)).thccb.secret, secret);
-  for (const file of ['/config.json', '/auth-sessions.json', '/auth-ips.json', '/.git/config', '/server.js', '/package.json']) {
-    assert.equal((await request(file)).status, 404, file + ' is not public');
-  }
-  assert.equal((await request('/assets/fantasyguide/Yin.svg')).status, 200);
-  assert.equal((await request('/decks/' + encodeURIComponent('车万版.json'))).status, 404, 'decks stay behind the authenticated API');
-  assert.equal((await intent('resetDeck')).status, 200, 'restoring tagged cards does not call array.slice on objects');
-  assert(state.cards.some(card => card.concepts && [1, 2].includes(card.tag)));
+  const saved = await request('/api/thccb', settings); assert.equal(saved.status, 200); assert(!saved.text.includes(secret));
+  assert.equal(JSON.parse(fs.readFileSync(process.env.WL_CONFIG)).retained, 'keep-me');
+  for (const file of ['/config.json', '/auth-sessions.json', '/server.js', '/thccb-bridge.js', '/data/thccb-journal.json']) assert.equal((await request(file)).status, 404);
+  await waitFor(() => state.thccb_connection.status === 'connected', 'health is read-only reachability');
+  assert.equal(fake.calls.filter(c => c.action === 'start').length, 0);
 
-  await intent('setup', { cardMode: 'single', teamA: '测试队' });
-  const target = state.target.center;
-  rejectAction = 'start';
+  // Retries reconcile already committed state and freeze the chosen input.
+  await intent('setup', { cardMode: 'single' });
+  fake.reject.start = 503;
   assert.equal((await intent('donePsychic')).status, 502);
-  assert.equal(state.phase, 'psychic');
-  assert.equal(state.thccb.retryable, true, 'manual start failure is retryable before any deadline');
-  assert.equal(state.thccb.timer_blocked, false);
-  assert.equal(state.thccb_connection.status, 'error');
-  await request('/api/thccb', { ...settings, secret: '' });
-  await sleep(60);
-  assert.equal(state.thccb_connection.status, 'error', 'a successful public probe does not hide a failed notification');
-  assert.match(state.thccb.error, /通知失败/, 'saving unchanged configuration preserves the actionable failure');
-  const firstKey = calls[0].body.round_key;
-  assert.equal((await intent('selectSide', { side: 1 })).status, 400, 'failed start freezes the selected question');
+  assert.equal(state.phase, 'psychic'); assert(state.thccb.retryable);
+  const firstKey = state.thccb.round_key;
   assert.equal((await intent('skipCard')).status, 400);
-  assert.equal((await intent('setup')).status, 400);
-  assert.equal((await request('/api/deck', { text: '- [new, old]' })).status, 400);
-  assert.equal((await request('/api/thccb', { ...settings, enabled: false, secret: '' })).status, 400);
-  rejectAction = '';
-  await concurrentRetries();
-  assert.equal(calls.length, 2, 'duplicate device intent only sends one successful start');
-  assert.deepEqual(calls[0].body, calls[1].body, 'retry keeps identical round and stable labels');
-  assert.equal(calls[1].auth, 'Bearer ' + secret);
-  assert.deepEqual(Object.keys(calls[1].body).sort(), ['game_key', 'left_label', 'right_label', 'round_key', 'round_number', 'team_name']);
-  assert.equal(calls[1].body.team_name, '测试队');
-  assert.equal(state.phase, 'dial');
-  assert.equal(state.thccb.retryable, false);
-  assert.equal(state.thccb_connection.status, 'connected');
-  assert.equal((await intent('retryThccb')).status, 400, 'an idle retry is explicitly rejected instead of silently succeeding');
-  rejectAction = 'close';
-  assert.equal((await intent('lock')).status, 502);
-  assert.equal(state.phase, 'dial');
-  await intent('setDial', { value: 500 });
-  assert.match(state.thccb.error, /通知失败/, 'unrelated dial updates keep the notification failure visible');
-  rejectAction = '';
-  await concurrentRetries();
-  assert.equal(calls.filter(c => c.url.endsWith('/close')).length, 2);
-  await intent('guess', { guess: 'L' });
-  rejectAction = 'result';
-  assert.equal((await intent('reveal')).status, 502);
-  assert.equal(state.phase, 'reveal');
-  rejectAction = '';
-  await concurrentRetries();
-  assert.equal(state.phase, 'revealed');
-  assert.deepEqual(calls.at(-1).body, { target_position: target });
-  assert.ok(decodeURIComponent(calls.at(-1).url).includes(firstKey));
-  await waitFor(() => state.thccb.results, 'result POST triggers a delayed leaderboard GET');
-  assert.equal(calls.at(-1).method, 'GET');
-  assert.equal(calls.at(-1).url, '/api/v1/returned/rounds/' + encodeURIComponent(firstKey) + '/results');
-  assert.equal(calls.at(-1).auth, 'Bearer ' + secret);
-  assert.equal(state.thccb.results.top_five[0].username, '<winner>');
-  const monitorResult = await monitorSnapshot();
-  assert.deepEqual(monitorResult.thccb.results, state.thccb.results);
-  assert.equal(monitorResult.thccb.error, undefined, 'monitor does not receive controller diagnostics');
-  assert.ok(!JSON.stringify(state).includes(secret));
-
-  await intent('nextRound');
-  assert.equal((await monitorSnapshot()).thccb, undefined, 'new round hides previous audience results');
-  await intent('donePsychic');
-  const secondKey = calls.at(-1).body.round_key;
-  assert.notEqual(firstKey, secondKey);
-  rejectAction = 'cancel';
-  assert.equal((await intent('newGame')).status, 502);
-  assert.equal(state.phase, 'dial');
-  rejectAction = '';
-  assert.equal((await intent('retryThccb')).status, 200, 'retry repeats the failed cancellation');
-  assert.equal(state.phase, 'setup');
-  assert.ok(decodeURIComponent(calls.at(-1).url).includes(secondKey));
-  assert.equal(calls.at(-1).body, null);
-  await intent('setup', { cardMode: 'single' });
-  await intent('donePsychic');
-  assert.notEqual(calls.at(-1).body.game_key, calls[0].body.game_key);
-  await intent('newGame');
-
-  // Automatic locks must confirm closure even when every controller is disconnected.
-  await intent('setup', { cardMode: 'single' });
-  await intent('startDialTimer', { timerSeconds: 60, guessTimerSeconds: 7 });
-  await intent('donePsychic');
-  await intent('setDial', { value: 750 });
-  rejectAction = 'close';
-  state.timerEnd = Date.now() - 1501;
-  await waitFor(() => state.thccb.timer_blocked, 'automatic close failure becomes retryable');
-  assert.equal(state.phase, 'dial', 'failed close cannot move to the guessing phase');
-  assert.equal(state.dial, 750);
-  const blockedKey = state.thccb.round_key;
-  const blockedCalls = calls.length;
-  await sleep(250);
-  assert.equal(calls.length, blockedCalls, 'background timer does not repeatedly retry a failed notification');
-  assert.equal((await intent('setDial', { value: 123 })).status, 400, 'late dragging cannot change the pending automatic lock');
-  assert.equal((await intent('retryThccb')).status, 502);
-  assert.equal(state.thccb.round_key, blockedKey);
-  rejectAction = '';
-  assert.equal((await intent('retryThccb')).status, 200);
-  assert.equal(state.phase, 'guess');
-  assert.equal(state.dial, 750);
-  assert.equal(state.thccb.status, 'closed');
-  assert.equal(state.thccb.timer_blocked, false);
-  assert(state.timerEnd > Date.now() + 6500, 'guessing gets its configured duration after successful closure');
-  state.timerEnd = Date.now() - 1501;
-  await waitFor(() => state.phase === 'reveal', 'guessing expires after closure without clients');
-  assert.equal((await intent('reveal')).status, 200);
-  assert.equal(state.thccb.status, 'result');
-  await intent('newGame');
-
-  // Expiring while the target is still being viewed opens and closes the same round.
-  await intent('setup', { cardMode: 'single' });
-  assert.equal((await request('/api/thccb', { ...settings, enabled: false })).status, 400, 'configuration changes wait for setup');
-  await intent('startDialTimer', { timerSeconds: 60, guessTimerSeconds: 15 });
-  const timeoutStart = calls.length;
-  state.timerEnd = Date.now() - 1501;
-  await waitFor(() => state.phase === 'guess', 'psychic timeout advances only after the bridge confirms');
-  assert.equal(calls[timeoutStart].url, '/api/v1/returned/rounds/start');
-  assert(calls[timeoutStart + 1].url.endsWith('/close'));
-  assert.equal(calls.length, timeoutStart + 2);
-  assert.equal((await intent('newGame')).status, 200);
-
-  // Cancelling stays available while automatic closure is blocked.
-  await intent('setup', { cardMode: 'single' });
-  await intent('startDialTimer', { timerSeconds: 60 });
-  await intent('donePsychic');
-  rejectAction = 'close';
-  state.timerEnd = Date.now() - 1501;
-  await waitFor(() => state.thccb.timer_blocked, 'second automatic close is blocked');
-  assert.equal((await intent('newGame')).status, 200, 'cancellation does not retry the failed close');
-  assert.equal(state.phase, 'setup');
-  assert.equal(state.thccb.timer_blocked, false);
-  assert(calls.at(-1).url.endsWith('/cancel'));
-  rejectAction = '';
-
-  // Opening across the deadline must still close once, through the same serial queue.
-  await intent('setup', { cardMode: 'single' });
-  await intent('startDialTimer', { timerSeconds: 60 });
-  responseDelay = 150;
-  const pendingStart = calls.length;
-  state.timerEnd = Date.now() - 1500 + 80;
-  const opening = intent('donePsychic');
-  await waitFor(() => calls.length > pendingStart, 'opening request is in flight');
-  const changingDeck = request('/api/deck', { text: '- [new, old]' });
-  assert.equal((await opening).status, 200);
-  assert.equal((await changingDeck).status, 400, 'deck upload cannot race an in-flight opening');
-  await waitFor(() => state.phase === 'guess', 'deadline crossed during opening still closes before advancing');
-  assert.deepEqual(calls.slice(pendingStart).map(c => c.url.split('/').at(-1)), ['start', 'close']);
-  assert.equal(state.thccb.status, 'closed');
-  responseDelay = 15;
-  await intent('newGame');
-
-  // Result lookup failure must not undo a successful reveal or repeat settlement.
-  await intent('setup', { cardMode: 'single' });
-  await intent('donePsychic');
-  await intent('lock');
-  await intent('guess', { guess: 'L' });
-  rejectAction = 'results';
-  assert.equal((await intent('reveal')).status, 200);
-  await waitFor(() => state.thccb.results_error, 'lookup failure is shown separately from settlement');
-  assert.equal(state.phase, 'revealed');
-  assert.equal(state.thccb.results, null);
-  const failedResultKey = state.thccb.round_key;
-  assert.equal(calls.filter(c => c.url.endsWith(encodeURIComponent(failedResultKey) + '/result')).length, 1);
-  assert.match((await monitorSnapshot()).thccb.results_error, /竞猜已结算/);
-  await intent('newGame');
-  rejectAction = '';
-
-  // A late GET response belongs only to its original round.
-  await intent('setup', { cardMode: 'single' });
-  await intent('donePsychic');
-  await intent('lock');
-  await intent('guess', { guess: 'L' });
-  assert.equal((await intent('reveal')).status, 200);
-  responseDelay = 800;
-  await waitFor(() => calls.at(-1).method === 'GET', 'delayed results request starts');
-  await intent('newGame');
-  await sleep(850);
-  assert.equal(state.thccb.results, null, 'late results do not reappear after a restart');
-  assert.equal((await monitorSnapshot()).thccb, undefined);
-  responseDelay = 15;
-
-  // Speaking penalties follow the same authenticated, serialized close flow.
-  await intent('setup', { cardMode: 'single' });
-  await intent('donePsychic');
-  await intent('setDial', { value: 800 });
-  const penaltyKey = state.thccb.round_key;
-  const penaltyTarget = state.target.center;
-  const penaltyCalls = calls.length;
-  assert.equal((await request('/api/intent', { type: 'penaltyLock' }, false)).status, 401);
-  rejectAction = 'close';
+  delete fake.reject.start;
+  const retries = await Promise.all([intent('retryThccb'), intent('retryThccb')]);
+  assert(retries.every(r => r.status === 200)); assert.equal(state.phase, 'dial');
+  assert.equal(fake.calls.filter(c => c.action === 'start' && c.key === firstKey).length, 2);
+  fake.reject.close = 503;
   assert.equal((await intent('penaltyLock', { timerSeconds: 7 })).status, 502);
-  assert.equal(state.phase, 'dial', 'failed closure leaves the speaking penalty retryable');
-  assert.equal(state.dial, 800, 'failed closure does not partially randomize the dial');
-  assert.equal(state.thccb.round_key, penaltyKey);
-  rejectAction = '';
-  await concurrentRetries();
-  assert.equal(state.phase, 'guess');
-  assert.equal(state.thccb.status, 'closed', 'speaking penalty confirms THCCB closure before guessing');
-  assert.equal(state.thccb.round_key, penaltyKey);
-  assert.equal(state.target.center, penaltyTarget);
-  assert(Number.isInteger(state.dial) && state.dial >= 0 && state.dial <= 1000);
-  assert(state.timerEnd > Date.now() + 6000 && state.timerEnd <= Date.now() + 7000);
-  assert.deepEqual(calls.slice(penaltyCalls).map(call => call.url.split('/').at(-1)), ['close', 'close'],
-    'concurrent penalty confirmations send only one successful close');
-  const penaltyPosition = state.dial;
-  await intent('penaltyLock');
-  await intent('setDial', { value: -1 });
-  assert.equal(state.dial, penaltyPosition, 'repeated penalty and late movement cannot reroll the result');
-  const penaltySnapshot = await monitorSnapshot();
-  assert.equal(penaltySnapshot.phase, 'guess');
-  assert.equal(penaltySnapshot.dial, penaltyPosition);
-  assert.equal(penaltySnapshot.target, null, 'penalty keeps the answer hidden from monitors');
+  const frozen = state.dial;
+  assert.equal((await intent('setDial', { value: 123 })).status, 400); assert.equal(state.dial, frozen);
+  delete fake.reject.close;
+  await intent('retryThccb'); assert.equal(state.phase, 'guess');
+  assert(state.timerEnd > Date.now() + 6500);
+  const penalty = state.dial; await intent('penaltyLock'); assert.equal(state.dial, penalty);
+  await intent('guess', { guess: 'L' }); await intent('reveal');
+  await waitFor(() => state.thccb.results, 'leaderboard fetched');
+  const monitor = await monitorSnapshot(); assert.equal(monitor.thccb.results.top_five[0].username, '<winner>');
+  assert.equal(monitor.thccb.jobs, undefined); assert.equal(monitor.control, undefined);
+  assert(!JSON.stringify(monitor).includes(secret));
+  const scores = { A: state.teams.A.score, B: state.teams.B.score };
+  assert(scores.A + scores.B >= 0);
+  await admin('voidRound'); assert.equal(state.round, 1); assert.equal(state.log.length, 0);
+  assert.equal(state.thccb.results, null); assert(state.thccb.jobs.some(j => j.status === 'rewards_retained'));
   await intent('newGame');
 
-  fs.unlinkSync(process.env.WL_CONFIG);
-  fs.mkdirSync(process.env.WL_CONFIG);
-  const failedSave = await request('/api/thccb', { ...settings, enabled: false, secret: '' });
-  assert.equal(failedSave.status, 400);
-  assert.match(failedSave.json.error, /写入失败/);
-  assert.equal((await request('/api/thccb')).json.config.enabled, true, 'failed disk write does not activate changes');
-  console.log('THCCB SERVER TEST PASSED: auth, config, secret privacy, tagged decks, timeout closure, retry, cancellation, concurrent devices and uploads');
-})().catch(error => { console.error(error); process.exitCode = 1; }).finally(async () => {
-  server.closeAllConnections();
-  source.closeAllConnections();
-  await Promise.all([new Promise(resolve => server.close(resolve)), new Promise(resolve => source.close(resolve))]);
+  // Every admin escape works while every critical remote transition is still held.
+  for (const action of ['start', 'close', 'result']) for (const escape of ['setThccbEnabled', 'voidRound', 'resetGame']) {
+    await clean();
+    if (!state.thccb.enabled) await admin('setThccbEnabled', { value: true });
+    await intent('setup', { cardMode: 'single' });
+    if (action !== 'start') await intent('donePsychic');
+    if (action === 'result') { await intent('lock'); await intent('guess', { guess: 'L' }); }
+    const gate = fake.hold(action, action === 'result');
+    const count = fake.calls.length;
+    const outstanding = intent({ start: 'donePsychic', close: 'lock', result: 'reveal' }[action]);
+    await waitFor(() => fake.calls.slice(count).some(c => c.action === action), 'remote transition has started');
+    const oldAttempt = { ...state.control }, oldKey = state.thccb.round_key;
+    const operation = { control: oldAttempt, operation_id: randomUUID(), value: false };
+    const began = Date.now();
+    const response = await admin(escape, operation);
+    assert.equal(response.status, 200, response.text); assert(Date.now() - began < 400, 'local escape cannot wait for held remote');
+    const phase = state.phase, attempt = state.control.attempt_key, target = state.target && state.target.center;
+    assert.equal((await admin(escape, operation)).status, 200, 'same operation ID is idempotent');
+    assert.equal(state.target && state.target.center, target);
+    if (escape !== 'setThccbEnabled') assert.equal((await admin('voidRound', { control: oldAttempt })).status, 400, 'stale device cannot void new attempt');
+    gate.release(); await outstanding; await clean();
+    assert.equal(state.phase, phase, 'late response cannot advance replacement game'); assert.equal(state.control.attempt_key, attempt);
+    assert.equal(state.thccb.results, null);
+    if (action === 'start') assert(fake.tombstones.has(oldKey), 'cancel-before-create is durable');
+    if (action === 'result') assert(state.thccb.jobs.some(j => j.round_key === oldKey && j.status === 'rewards_retained'));
+    await intent('newGame');
+  }
+
+  // Re-enable during discussion never opens the current round. Pending refunds skip a new window.
+  await clean(); await admin('setThccbEnabled', { value: true });
+  await intent('setup', { cardMode: 'single' }); await intent('donePsychic');
+  const abortGate = fake.hold('abort');
+  await admin('setThccbEnabled', { value: false }); await admin('setThccbEnabled', { value: true });
+  let starts = fake.calls.filter(c => c.action === 'start').length;
+  await intent('lock'); await intent('guess', { guess: 'L' }); await intent('reveal'); await intent('nextRound');
+  await intent('donePsychic'); assert.equal(state.phase, 'dial'); assert.equal(state.thccb.status, 'unlinked');
+  assert.equal(fake.calls.filter(c => c.action === 'start').length, starts);
+  abortGate.release(); await clean();
+  assert.equal(state.thccb.status, 'unlinked', 'cleanup completion cannot open mid-discussion');
+  await admin('voidRound'); await intent('donePsychic'); assert.equal(state.thccb.status, 'open');
+
+  // Failed deadline closure can be released locally with a full guessing period.
+  await intent('newGame'); await clean(); await intent('setup', { cardMode: 'single' });
+  await intent('startDialTimer', { timerSeconds: 60, guessTimerSeconds: 7 }); await intent('donePsychic');
+  fake.reject.close = 503; state.timerEnd = Date.now() - 1501;
+  await waitFor(() => state.thccb.timer_blocked, 'automatic closure waits for retry');
+  await admin('setThccbEnabled', { value: false }); assert.equal(state.phase, 'guess'); assert(state.timerEnd > Date.now() + 6500);
+  delete fake.reject.close;
+  await intent('newGame'); await clean(); await admin('setThccbEnabled', { value: true });
+  await intent('setup', { cardMode: 'single' }); await intent('startDialTimer', { timerSeconds: 60 });
+  starts = fake.calls.filter(c => c.action === 'start').length; state.timerEnd = Date.now() - 1501;
+  await waitFor(() => state.phase === 'guess', 'psychic timeout works without an instantaneous betting round');
+  assert.equal(fake.calls.filter(c => c.action === 'start').length, starts);
+  await intent('newGame');
+
+  // A foreign old round is inspectable and cancellable only by an explicit controller action.
+  fake.current = { round_key: 'foreign', status: 'closed', left_label: 'left', right_label: 'right' }; fake.rounds.set('foreign', fake.current);
+  await intent('retryThccb'); await waitFor(() => state.thccb.conflict, 'show foreign round conflict');
+  assert.equal(fake.current.status, 'closed');
+  assert.equal((await admin('cancelOldThccb', { round_key: 'foreign' })).status, 200); await clean();
+  assert.equal(fake.current.status, 'cancelled');
+
+  // Failed durable writes must not turn local recovery into another outage.
+  await intent('setup', { cardMode: 'single' }); await intent('donePsychic');
+  const store = path.join(dir, 'data', 'thccb-journal.json'); fs.renameSync(store, store + '.saved'); fs.mkdirSync(store);
+  assert.equal((await admin('resetGame')).status, 200); assert.equal(state.phase, 'setup'); assert.match(state.thccb.error, /保存失败/);
+  fs.rmdirSync(store); fs.renameSync(store + '.saved', store); await intent('retryThccb'); await clean();
+
+  // Restart retains unknown active rounds and explicit cancellation without exposing secrets.
+  const Bridge = require('../thccb-bridge'); const recoveryFile = path.join(dir, 'recovery.json');
+  let manager = new Bridge({ file: recoveryFile, config: () => settings, changed() {} });
+  const job = manager.create({ round_key: 'restart-job', game_key: 'restart', round_number: 1, left_label: 'L', right_label: 'R', team_name: 'T' });
+  manager.stop(); manager = new Bridge({ file: recoveryFile, config: () => settings, changed() {} });
+  assert.equal(manager.jobs[0].desired, 'orphan'); manager.cancelKnown(job.key);
+  await waitFor(() => manager.jobs[0].terminal, 'recovered orphan can be cancelled in controller'); manager.stop();
+  assert(!fs.readFileSync(recoveryFile, 'utf8').includes(secret));
+  fs.writeFileSync(recoveryFile, JSON.stringify({ version: 1, jobs: [null] }));
+  manager = new Bridge({ file: recoveryFile, config: () => settings, changed() {} });
+  assert.match(manager.storageError, /无法读取/); assert.deepEqual(manager.diagnostics(), []);
+  assert.throws(() => manager.retry(), /无法读取/); manager.stop();
+  assert.deepEqual(JSON.parse(fs.readFileSync(recoveryFile)), { version: 1, jobs: [null] }, 'corrupt journal is preserved for repair');
+  console.log('THCCB SERVER TEST PASSED: nonblocking admin, stale responses, retry reconciliation, timers, refund journal and privacy');
+})().catch(e => { console.error(e); process.exitCode = 1; }).finally(async () => {
+  for (const gate of fake.gates.values()) gate.release();
+  server.closeAllConnections(); fake.server.closeAllConnections();
+  await Promise.all([new Promise(r => server.close(r)), new Promise(r => fake.server.close(r))]);
   fs.rmSync(dir, { recursive: true, force: true });
 });

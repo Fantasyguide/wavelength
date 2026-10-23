@@ -6,6 +6,47 @@ const replay = require("./fixtures/balanced-replay.json");
 const apply = (g, type, extra = {}) => WL.applyIntent(g, { type, ...extra });
 const scores = g => [g.teams.A.score, g.teams.B.score];
 
+// Voiding after reveal must restore rule state, including a just-decided final
+// and overtime counters, not merely subtract the displayed points.
+for (const ruleSet of ['original', 'balanced']) for (const cardMode of ['single', 'choice']) {
+  const g = WL.createGame();
+  apply(g, 'setup', { ruleSet, cardMode, winScore: 0 });
+  const fields = ['teams', 'active', 'catchup', 'sudden', 'sdPts', 'sdTurns', 'result', 'log', 'redrawUsed'];
+  const checkpoint = () => JSON.parse(JSON.stringify(Object.fromEntries(fields.map(k => [k, g[k]]))));
+  const play = points => {
+    if (g.phase === 'chooseCard') apply(g, 'selectCard', { index: 0 });
+    g.target.center = 500;
+    apply(g, 'donePsychic'); apply(g, 'setDial', { value: points ? 500 : 1000 });
+    apply(g, 'lock', { timerSeconds: 0 }); apply(g, 'guess', { guess: 'R' }); apply(g, 'reveal');
+  };
+  for (let turn = 0; turn < 14 && g.phase !== 'over'; turn++) {
+    const before = checkpoint(), round = g.round;
+    if (cardMode === 'choice' && !g.redrawUsed[g.active]) apply(g, 'redrawCards');
+    play(0); const previous = g.card;
+    apply(g, 'voidRound');
+    assert.deepEqual(checkpoint(), before, 'void restores all scoring, overtime, redraw and history state');
+    assert.equal(g.round, round);
+    assert.equal(g.phase, cardMode === 'choice' ? 'chooseCard' : 'psychic');
+    assert(!JSON.stringify(g).includes('checkpoint'), 'private rollback state is never serialized');
+    if (cardMode === 'single') assert.notDeepEqual(g.card, previous, 'a sufficient deck avoids the voided topic');
+    if (g.sudden) {
+      play(4);
+      apply(g, 'voidRound'); assert.deepEqual(checkpoint(), before, 'also undo a winning overtime score');
+    }
+    play(0);
+    if (g.phase === 'revealed') apply(g, 'nextRound');
+  }
+}
+
+{
+  const g = WL.createGame(); apply(g, 'setup', { ruleSet: 'original', cardMode: 'single', winScore: 1 });
+  const initial = JSON.parse(JSON.stringify(g.teams));
+  g.target.center = 500; apply(g, 'donePsychic'); apply(g, 'lock', { timerSeconds: 0 });
+  apply(g, 'guess', { guess: 'L' }); apply(g, 'reveal'); assert.equal(g.phase, 'over');
+  apply(g, 'voidRound'); assert.equal(g.phase, 'psychic'); assert.equal(g.result, null);
+  assert.deepEqual(g.teams, initial); assert.deepEqual(g.log, []);
+}
+
 function game(ruleSet = "balanced", first = "A", winScore) {
   const g = WL.createGame();
   apply(g, "setup", { ruleSet, first, winScore });

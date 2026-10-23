@@ -40,17 +40,23 @@
       <div class="sub"><span id="deck-badge"></span><span id="thccb-conn-badge" role="status" hidden><span class="dot"></span></span><span id="conn-badge" role="status"><span class="dot"></span></span></div>
       <div class="header-actions">
         <div class="timer-display hidden" id="timer-display" aria-live="polite">00:00</div>
-        <button class="btn" id="btn-restart">重新开始</button>
+        <button class="btn" id="btn-restart" aria-haspopup="dialog" aria-expanded="false" aria-controls="admin-menu">管理员</button>
       </div>
     </div>
   </header>
 
   <div class="banner hidden" id="banner"></div>
   <div class="banner err hidden" id="conn-warn"></div>
-  <div class="banner hidden" id="thccb-status" role="status" aria-live="polite">
-    <span id="thccb-status-message"></span>
-    <button type="button" class="btn hidden" id="btn-thccb-retry">重试联动</button>
-  </div>
+  <section id="admin-menu" role="dialog" aria-label="管理员菜单" hidden>
+    <div class="admin-heading"><strong>管理员</strong><button class="btn" id="admin-close" aria-label="关闭管理员菜单">关闭</button></div>
+    <button type="button" class="btn magenta" id="btn-penalty-lock">说话处罚</button>
+    <label class="check-row" id="admin-thccb-switch"><input type="checkbox" id="thccb-enabled"> THCCB 联动</label>
+    <button type="button" class="btn" id="btn-thccb-retry">重试联动</button>
+    <button type="button" class="btn" id="btn-void-round">作废本轮并重抽</button>
+    <button type="button" class="btn" id="btn-reset-game">重置本局</button>
+    <p class="setting-note" id="admin-thccb-detail" role="status"></p>
+    <div id="admin-thccb-jobs"></div>
+  </section>
 
   <section class="scoreboard" aria-label="两队比分">
     <div class="scoreboard-caption" aria-hidden="true">两队对局 <span>TEAM SCORE</span></div>
@@ -98,6 +104,9 @@
   </section>
 
   <section class="controls" id="controls"></section>
+  <div class="banner hidden" id="thccb-status" role="status" aria-live="polite">
+    <span id="thccb-status-message"></span>
+  </div>
   <div class="score-pop" id="score-pop"></div>
   <div class="display-footer" id="display-footer"></div>
 
@@ -122,6 +131,7 @@
   </section>
 
   <section class="audience-results hidden" id="audience-results" aria-label="观众竞猜">
+    <p id="audience-paused" role="status" hidden>本轮观众竞猜暂停</p>
     <div class="audience-qr" id="audience-qr">
       <h3 class="audience-qr-title">观众竞猜</h3>
       <img src="assets/thccb-qr.png" width="450" height="450" alt="扫码参与 THCCB 观众竞猜">
@@ -212,8 +222,7 @@
     <details class="advanced">
       <summary>⚙ 高级选项</summary>
       <div id="thccb-settings" class="field" hidden>
-        <label class="check-row"><input type="checkbox" id="thccb-enabled"> 开启 THCCB 资金联动</label>
-        <div class="setting-note">需要服务器共享密码和已登录设备。请在开局前配置；未结束的竞猜须先揭晓或取消。</div>
+        <div class="setting-note">开局前配置地址和密钥。联动开关在右上角管理员菜单中；存在待处理竞猜时不能更改连接配置。</div>
         <label for="thccb-url">THCCB 站点地址</label>
         <input id="thccb-url" type="url" placeholder="https://thccb.example.com" autocomplete="off">
         <label for="thccb-secret">联动密钥</label>

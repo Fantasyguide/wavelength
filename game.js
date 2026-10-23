@@ -14,6 +14,9 @@
   samplingConfig = Object.freeze(Object.assign({}, samplingConfig));
   // Runtime-only history: neither settings nor sampling history enter shared game snapshots.
   var targetHistories = new WeakMap();
+  var roundCheckpoints = new WeakMap();
+  function copy(value) { return value === undefined ? undefined : JSON.parse(JSON.stringify(value)); }
+  var rollbackFields = ["teams", "active", "catchup", "sudden", "sdPts", "sdTurns", "result", "log", "redrawUsed"];
 
   var BUILTIN_DECK = [
     ["热的", "冷的"], ["吸引人的", "不吸引人的"],
@@ -281,7 +284,20 @@
 
   function startRound(s) {
     s.round++;
+    var checkpoint = { history: copy(targetHistories.get(s)) };
+    rollbackFields.forEach(function (key) { checkpoint[key] = copy(s[key]); });
+    roundCheckpoints.set(s, checkpoint);
     drawRoundCards(s);
+  }
+
+  function voidRound(s) {
+    var checkpoint = roundCheckpoints.get(s);
+    if (s.phase === "setup" || !checkpoint) return;
+    var previous = s.card ? [s.card] : s.cardChoices.slice();
+    rollbackFields.forEach(function (key) { s[key] = copy(checkpoint[key]); });
+    if (checkpoint.history) targetHistories.set(s, copy(checkpoint.history));
+    else targetHistories.delete(s);
+    drawRoundCards(s, previous);
   }
 
   function drawRoundCards(s, previousChoices) {
@@ -300,7 +316,7 @@
       if (secondCard) s.cardChoices.push(secondCard);
     } else {
       s.phase = "psychic";
-      s.card = drawFromDeck(s);
+      s.card = drawFromDeck(s, null, null, previousChoices);
       s.target = newTarget(s);
     }
     s.side = 0;
@@ -360,6 +376,7 @@
 
   function doNewGame(s) {
     targetHistories.delete(s);
+    roundCheckpoints.delete(s);
     s.rulesOpen = false;
     s.redrawUsed = { A: false, B: false };
     resetStartingScores(s);
@@ -548,6 +565,9 @@
         break;
       case "newGame":
         doNewGame(s);
+        break;
+      case "voidRound":
+        voidRound(s);
         break;
       case "selectCard":
         if (s.phase === "chooseCard" && Number.isInteger(intent.index) &&

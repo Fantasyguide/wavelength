@@ -226,12 +226,12 @@ function click(doc, id) {
   await waitFor(() => cdoc.querySelectorAll(".card-choice").length === 2, "controller receives next-round candidates");
   click(cdoc, cdoc.querySelector(".card-choice"));
   await waitFor(() => cdoc.body.dataset.phase === "psychic", "controller enters next clue phase");
-  assert(!cdoc.getElementById("btn-penalty-lock"), "penalty is unavailable while giving the clue");
+  assert(cdoc.getElementById("btn-penalty-lock").disabled, "penalty is unavailable while giving the clue");
   click(cdoc, cdoc.getElementById("controls").children[0]);
   await waitFor(() => state.timerSync && state.timerSync.status === "running", "target viewing timer acknowledged");
   click(cdoc, cdoc.getElementById("controls").children[0]);
   await waitFor(() => cdoc.body.dataset.phase === "dial" && mdoc.body.dataset.phase === "dial", "both devices enter discussion");
-  assert(!mdoc.getElementById("btn-penalty-lock"), "monitor cannot apply a speaking penalty");
+  assert(mdoc.getElementById("btn-penalty-lock").disabled, "monitor cannot apply a speaking penalty");
   controller.window.confirm = () => true;
   click(cdoc, "btn-penalty-lock");
   await waitFor(() => cdoc.body.dataset.phase === "guess" && mdoc.body.dataset.phase === "guess", "penalty locks on both devices");
@@ -239,7 +239,7 @@ function click(doc, id) {
     "controller and monitor receive the same server-selected penalty position");
   assert(!mdoc.getElementById("screen").classList.contains("open"), "penalty does not reveal the secret target");
 
-  click(cdoc, cdoc.getElementById("btn-restart"));
+  click(cdoc, cdoc.getElementById("btn-reset-game"));
   await waitFor(() => mdoc.getElementById("hint").textContent.indexOf("等待控制器开始游戏") !== -1, "monitor sees waiting hint after restart");
 
   server.close();

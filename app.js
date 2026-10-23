@@ -191,7 +191,7 @@
   }
 
   function showThccbConfig(c) {
-    $("thccb-enabled").checked = c.enabled;
+
     $("thccb-url").value = c.base_url;
     $("thccb-secret").value = "";
     $("thccb-secret-state").textContent = c.secret_configured ? "已配置密钥；保存时留空即可保留。" : "尚未配置密钥。";
@@ -225,10 +225,11 @@
 
   function renderAudienceResults() {
     var info = G.thccb;
-    var showResults = !!(ONLINE && info && info.enabled && ["revealed", "over"].includes(G.phase));
+    var showResults = !!(ONLINE && info && info.enabled && G.audience_linked !== false && ["revealed", "over"].includes(G.phase));
     $("audience-results").classList.toggle("hidden", !ONLINE);
-    $("audience-results").dataset.view = showResults ? "results" : "qr";
-    $("audience-qr").hidden = showResults;
+    $("audience-results").dataset.view = showResults ? "results" : G.audience_linked === false ? "paused" : "qr";
+    $("audience-qr").hidden = showResults || G.audience_linked === false;
+    $("audience-paused").hidden = !ONLINE || G.audience_linked !== false;
     $("audience-results-board").hidden = !showResults;
     var results = showResults ? info.results : null;
     var entries = results ? results.top_five.slice(0, 5) : [];
@@ -288,25 +289,72 @@
     var controller = ONLINE && ROLE === "controller";
     $("thccb-settings").hidden = !controller;
     if (controller && connState === "ok") loadThccbConfig();
-    var info = G.thccb;
+    var info = G.thccb || {};
     var status = $("thccb-status");
-    if (!thccbRetryPending && thccbRetryRound !== (info && info.round_key)) thccbRetryFeedback = "";
-    var show = controller && (thccbRetryPending || thccbRetryFeedback || intentError || (info && (info.enabled || info.error)));
-    status.classList.toggle("hidden", !show);
-    if (!show) return;
-    var labels = { idle: "等待开盘", starting: "开盘待确认", open: "竞猜已开盘", closed: "已封盘", result: "结果已送达", cancelled: "竞猜已取消" };
-    var message = intentError || (info && (info.error || "THCCB：" + (labels[info.status] || info.status))) || "";
-    $("thccb-status-message").textContent = thccbRetryPending ? "正在重试 THCCB 联动，请稍候…" :
-      (thccbRetryFeedback ? thccbRetryFeedback + " " : "") + message;
-    $("thccb-status-message").title = info && info.round_key ? "联动轮号：" + info.round_key : "";
-    var retry = $("btn-thccb-retry");
-    retry.classList.toggle("hidden", !thccbRetryPending && !(info && (info.retryable || info.timer_blocked)));
-    retry.disabled = thccbRetryPending || connState !== "ok";
-    retry.textContent = thccbRetryPending ? "重试中…" : "重试联动";
-    retry.setAttribute("aria-busy", String(thccbRetryPending));
-    status.classList.toggle("err", !thccbRetryPending && (!!intentError || !!(info && info.error)));
+    status.classList.toggle("hidden", !controller);
+    var labels = { disabled: "联动已关闭", idle: "等待开盘", armed: "等待转录员关上遮挡条", unlinked: "本轮不联动，等待下一次关上遮挡条", starting: "开盘待确认", open: "竞猜已开盘", closed: "已封盘", result: "结果已送达", cancelled: "竞猜已取消" };
+    var jobs = info.jobs || [];
+    var pendingJobs = jobs.filter(function (job) { return !job.terminal; });
+    var message = "THCCB：" + (labels[info.status] || "等待同步");
+    if (pendingJobs.length) message += " · " + pendingJobs.length + " 笔旧竞猜待处理";
+    if (info.conflict) message += " · 发现未结束的旧竞猜";
+    if (info.error || intentError) message += " · 操作待处理，请打开管理员菜单";
+    $("thccb-status-message").textContent = message;
+    status.classList.toggle("err", !!(info.error || intentError || pendingJobs.length || info.conflict));
+    $("admin-thccb-detail").textContent = intentError || info.error || (thccbRetryPending ? "正在核对联动状态…" :
+      info.pending ? "正在等待 THCCB 确认；关闭联动、作废和重置仍可立即操作。" :
+      "关闭联动后本地继续，退款在后台同步。重新开启将在下一次关上遮挡条时尝试开盘。");
+    $("admin-thccb-detail").hidden = !controller;
+    $("admin-thccb-switch").hidden = !controller;
+    $("thccb-enabled").checked = !!info.enabled;
+    $("thccb-enabled").disabled = !canControl();
+    $("btn-thccb-retry").hidden = !controller;
+    $("btn-thccb-retry").disabled = !canControl() || thccbRetryPending || !!info.pending;
+    $("btn-thccb-retry").textContent = thccbRetryPending ? "重试中…" : "重试联动";
+    $("btn-thccb-retry").setAttribute("aria-busy", String(thccbRetryPending));
+    $("btn-penalty-lock").disabled = !canControl() || G.phase !== "dial" || !!info.waiting;
+    $("btn-void-round").disabled = !canControl() || G.phase === "setup";
+    $("btn-reset-game").disabled = !canControl() || ["setup", "over"].includes(G.phase);
+    if (ROLE === "monitor") closeAdminMenu();
+    renderAdminJobs(controller ? jobs : [], controller ? info.conflict : null);
   }
 
+  function renderAdminJobs(jobs, conflict) {
+    var host = $("admin-thccb-jobs");
+    var entries = jobs.slice();
+    if (conflict) entries.push(Object.assign({}, conflict, { desired: "orphan", terminal: false, conflict: true }));
+    var keep = new Set();
+    entries.forEach(function (job) {
+      keep.add(job.round_key);
+      var row = Array.from(host.children).find(function (node) { return node.dataset.key === job.round_key; });
+      if (!row) {
+        row = document.createElement("div"); row.className = "admin-job"; row.dataset.key = job.round_key;
+        row.appendChild(document.createElement("p"));
+        var button = document.createElement("button"); button.className = "btn"; button.textContent = "取消旧竞猜并退款";
+        button.onclick = function () {
+          if (!window.confirm("确认取消这笔旧竞猜？\n" + row.firstChild.textContent + "\n未结算的投入会退还；若已结算，奖励保留。")) return;
+          dispatch({ type: "cancelOldThccb", round_key: row.dataset.key });
+        };
+        row.appendChild(button); host.appendChild(row);
+      }
+      var text = job.status === "rewards_retained" ? "竞猜已结算，THCCB 已发奖励保留" :
+        job.status === "result" && job.terminal ? "竞猜已结算" : job.terminal ? "竞猜已取消" :
+        job.desired === "orphan" ? "发现旧竞猜，请核对后取消" : job.desired === "result" ? "结算待同步" : "取消/退款待同步";
+      if (job.left_label) text += " · " + job.left_label + " / " + job.right_label;
+      if (job.error) text += " · " + job.error;
+      if (job.summary && job.summary.total_refund !== undefined) text += " · 退款 " + job.summary.total_refund;
+      row.firstChild.textContent = text;
+      row.title = job.round_key;
+      row.lastChild.hidden = job.terminal || job.desired !== "orphan";
+      row.lastChild.disabled = !canControl();
+    });
+    Array.from(host.children).forEach(function (row) { if (!keep.has(row.dataset.key)) row.remove(); });
+  }
+  function closeAdminMenu() {
+    $("admin-menu").hidden = true;
+    $("btn-restart").setAttribute("aria-expanded", "false");
+  }
+  function destructiveIntent(type) { return ["setThccbEnabled", "voidRound", "resetGame", "cancelOldThccb", "newGame", "penaltyLock"].includes(type); }
   var $ = function (id) { return document.getElementById(id); };
 
   function configuredTimerSeconds(attr, fallback) {
@@ -443,7 +491,7 @@
     $("title-main").textContent = T("gameTitle");
     $("sub-title").textContent = T("gameSubtitle");
     $("setup-title").textContent = T("gameName");
-    $("btn-restart").textContent = T("restartBtn");
+    $("btn-restart").textContent = "管理员";
     $("btn-playagain").textContent = T("playagainBtn");
     $("btn-start").textContent = T("startBtn");
     $("input-nameA").value = T("teamDefaultA");
@@ -699,9 +747,14 @@
     }
     intent = Object.assign({}, intent, { client_id: clientId, timer_id: G.timerSync && G.timerSync.id,
       timer_elapsed_ms: elapsed,
-      timer_start_elapsed_ms: intent.type === "startDialTimer" && pendingDialStart ? performance.now() - pendingDialStart.startedAt : null });
+      timer_start_elapsed_ms: intent.type === "startDialTimer" && pendingDialStart ? performance.now() - pendingDialStart.startedAt : null,
+      control: G.control && Object.assign({}, G.control),
+      operation_id: Date.now().toString(36) + "-" + Math.random().toString(36).slice(2) });
+    if (destructiveIntent(intent.type)) {
+      intentQueue = []; intentGeneration++; thccbRetryPending = false; intentError = "";
+    }
     if (connState !== "ok") {
-      if (intent.type === "retryThccb") return;
+      if (destructiveIntent(intent.type) || intent.type === "retryThccb") { intentError = "操控端尚未连接本地服务，操作未执行；恢复连接后请重新操作。"; renderThccb(); return; }
       queueIntent(intent);
       scheduleFlush();
       return;
@@ -735,7 +788,7 @@
       if (!r.ok) return r.json().then(function (j) { throw new Error(j.error || "http " + r.status); });
       intentError = "";
       if (retry) {
-        thccbRetryFeedback = "重试成功。";
+        thccbRetryFeedback = "已发起核对。";
         thccbRetryRound = G.thccb && G.thccb.round_key;
       }
       renderThccb();
@@ -745,7 +798,7 @@
       intentError = e.message || "操作发送失败，请重试";
       if (retry) thccbRetryFeedback = "重试失败，请确认连接后再次重试。";
       renderThccb();
-      if (!retry && ONLINE && ROLE === "controller" && connState !== "ok") {
+      if (!retry && !destructiveIntent(intent.type) && ONLINE && ROLE === "controller" && connState !== "ok") {
         queueIntent(intent);
         scheduleFlush();
       }
@@ -1133,7 +1186,7 @@
     var hint = $("hint");
     box.innerHTML = "";
     var t = G.teams[G.active], o = G.teams[WL.other(G.active)];
-    var control = canControl();
+    var control = canControl() && !(G.thccb && G.thccb.waiting);
 
     if (G.phase === "setup") {
       hint.innerHTML = ROLE === "monitor"
@@ -1196,17 +1249,7 @@
         });
         lock.id = "btn-lock";
         box.appendChild(lock);
-        var penalty = mk("说话处罚", "magenta", function () {
-          if (!window.confirm("确认" + T("psychic") + "在隐藏" + T("target") + "后、锁定" + T("dial") +
-              "前说话违规？\n确认后将把" + T("dial") + "在整条刻度上均匀随机放置并立即锁定，无法撤销。")) return;
-          ensureAudio();
-          dispatch({
-            type: "penaltyLock",
-            timerSeconds: configuredTimerSeconds("data-guess-timer-seconds", 15)
-          });
-        });
-        penalty.id = "btn-penalty-lock";
-        box.appendChild(penalty);
+
       }
     } else if (G.phase === "guess") {
       hint.innerHTML = teamName(WL.other(G.active), o.name) + "：" + T("target") + "中心在" + T("dial") + "<b>左边</b>还是<b>右边</b>？";
@@ -1230,6 +1273,13 @@
       if (control) box.appendChild(mk("开始下一轮", "primary", function () {
         dispatch({ type: "nextRound" });
       }));
+    } else if (G.phase === "over") {
+      hint.textContent = "本局已结束，可以继续查看复盘，或开始新的一局。";
+      if (canControl()) {
+        var playAgain = mk(T("playagainBtn"), "primary", function () { dispatch({ type: "newGame" }); });
+        playAgain.id = "btn-recap-playagain";
+        box.appendChild(playAgain);
+      }
     } else {
       hint.innerHTML = "";
     }
@@ -1742,9 +1792,34 @@
     render();
   };
   $("btn-restart").onclick = function () {
-    if (ONLINE && G.thccb && ["starting", "open", "closed"].indexOf(G.thccb.status) !== -1 &&
-        !window.confirm("重新开局会取消当前 THCCB 竞猜并退还下注，确认终止这一局？")) return;
-    dispatch({ type: "newGame" });
+    var show = $("admin-menu").hidden;
+    $("admin-menu").hidden = !show;
+    $("btn-restart").setAttribute("aria-expanded", String(show));
+    if (show) $("admin-close").focus();
+  };
+  $("admin-close").onclick = function () { closeAdminMenu(); $("btn-restart").focus(); };
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && !$("admin-menu").hidden) { closeAdminMenu(); $("btn-restart").focus(); }
+  });
+  $("thccb-enabled").onchange = function () {
+    var enabled = this.checked;
+    if (!enabled && !window.confirm("关闭 THCCB 联动并继续本地游戏？未结算竞猜将取消并退款；THCCB 离线时会在恢复后同步，已发奖励保留。")) { this.checked = true; return; }
+    dispatch({ type: "setThccbEnabled", value: enabled });
+  };
+  $("btn-void-round").onclick = function () {
+    if (!window.confirm("作废当前轮并重新抽题和目标？本轮不计入队伍成绩，队伍和轮次不变。\n未结算竞猜将取消并退款；THCCB 已发奖励保留。结算状态未知时会继续核对。")) return;
+    psychicViewing = false; overDismissed = false;
+    dispatch({ type: "voidRound" });
+  };
+  $("btn-reset-game").onclick = function () {
+    if (!window.confirm("终止本局并回到开局设置？本局成绩和复盘将清空。\n未结算竞猜将取消并退款；THCCB 已发奖励保留。")) return;
+    psychicViewing = false;
+    dispatch({ type: ONLINE ? "resetGame" : "newGame" });
+  };
+  $("btn-penalty-lock").onclick = function () {
+    if (!window.confirm("确认转录员说话违规？游标将随机放置并立即锁定。")) return;
+    ensureAudio();
+    dispatch({ type: "penaltyLock", timerSeconds: configuredTimerSeconds("data-guess-timer-seconds", 15) });
   };
   $("btn-load-deck").onclick = function () { $("file-deck").click(); };
   $("btn-reset-deck").onclick = resetDeck;
@@ -1796,7 +1871,7 @@
     var button = this;
     button.disabled = true;
     $("thccb-config-message").textContent = "正在保存…";
-    var body = { enabled: $("thccb-enabled").checked, base_url: $("thccb-url").value, secret: $("thccb-secret").value };
+    var body = { enabled: !!(G.thccb && G.thccb.enabled), base_url: $("thccb-url").value, secret: $("thccb-secret").value };
     $("thccb-secret").value = "";
     thccbRequest({ method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
       .then(function (c) { showThccbConfig(c); $("thccb-config-message").textContent = "联动配置已保存并生效。"; })

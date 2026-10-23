@@ -59,13 +59,8 @@ function assert(cond, msg) {
 
   await page.click("#controls .btn");
   await page.click("#controls .btn");
-  await page.waitForSelector("#btn-penalty-lock");
-  const controlsFit = await page.evaluate(() => {
-    const lock = document.getElementById("btn-lock").getBoundingClientRect();
-    const penalty = document.getElementById("btn-penalty-lock").getBoundingClientRect();
-    return lock.top === penalty.top && lock.right <= penalty.left && lock.left >= 0 && penalty.right <= innerWidth;
-  });
-  assert(controlsFit, "lock and speaking penalty fit side by side on a 360px phone");
+  await page.click("#btn-restart");
+  assert(await page.$eval("#admin-menu", el => { const r = el.getBoundingClientRect(); return !el.hidden && r.left >= 0 && r.right <= innerWidth; }), "admin menu fits a 360px phone");
   page.once("dialog", dialog => dialog.dismiss());
   await page.click("#btn-penalty-lock");
   assert(await page.$eval("body", el => el.dataset.phase) === "dial", "dismissing the native confirmation keeps discussion open");

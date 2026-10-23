@@ -26,21 +26,31 @@ const puppeteer = require("puppeteer-core");
     { username: "东风谷早苗", position: 556, distance: 56, payout: "120" }
   ];
   const actions = [];
+  const rounds = new Map();
   const source = http.createServer(async (req, res) => {
     if (req.url === "/api/v1/returned/current") {
       res.writeHead(200);
       res.end('null');
       return;
     }
+    let body = ''; for await (const chunk of req) body += chunk;
+    body = body ? JSON.parse(body) : {};
+    const key = body.round_key || decodeURIComponent(req.url.split('/').at(-2));
+    const action = req.url.split('/').at(-1);
+    if (action === 'capabilities') { res.end(JSON.stringify({ round_state: true, durable_cancel: true })); return; }
+    if (action === 'state') { const r = rounds.get(key); res.end(JSON.stringify({ round_key: key, status: r ? r.status : 'missing', exists: !!r, summary: r || null })); return; }
+    if (action === 'abort') { const r = rounds.get(key); if (r && r.status !== 'settled') r.status = 'cancelled'; res.end(JSON.stringify({ round_key: key, status: r ? r.status : 'cancelled', exists: !!r, summary: r || null })); return; }
     actions.push(req.url);
-    req.resume();
+    if (action === 'start') rounds.set(key, { ...body, status: 'open' });
+    if (action === 'close' && !rejectClose) rounds.get(key).status = 'closed';
+    if (action === 'result') { rounds.get(key).status = 'settled'; rounds.get(key).target_position = body.target_position; }
     const results = req.url.endsWith("/results");
     if (notificationDelay) await new Promise(resolve => setTimeout(resolve, notificationDelay));
     res.writeHead((rejectClose && req.url.endsWith("/close")) || (results && resultMode === "error") ? 503 : 200);
     res.end(JSON.stringify(results ? {
       round_key: decodeURIComponent(req.url.split("/").at(-2)), target_position: resultTarget,
       top_five: resultMode === "empty" ? [] : topFive
-    } : {}));
+    } : rounds.get(key) || {}));
   });
   const { server, state } = require("../server.js");
   let browser;
@@ -64,13 +74,15 @@ const puppeteer = require("puppeteer-core");
     assert.equal(await controller.$eval("#conn-badge", el => el.textContent), "RETURNED已连接");
     assert.equal(await controller.$eval("#thccb-conn-badge", el => el.textContent), "THCCB未启用");
     await controller.$eval("details.advanced", el => { el.open = true; });
-    await controller.$eval("#thccb-enabled", el => { el.checked = true; });
     await controller.$eval("#thccb-url", (el, value) => { el.value = value; }, "http://127.0.0.1:" + source.address().port);
     const secret = "browser-test-secret-at-least-32-characters";
     await controller.$eval("#thccb-secret", (el, value) => { el.value = value; }, secret);
     await controller.click("#thccb-save");
     await controller.waitForFunction(() => document.getElementById("thccb-config-message").textContent.includes("已保存"));
+    await controller.click("#btn-restart");
+    await controller.click("#thccb-enabled");
     await controller.waitForFunction(() => document.getElementById("thccb-conn-badge").textContent === "THCCB已连接");
+    await controller.click("#admin-close");
     assert.equal(await controller.$eval("#thccb-secret", el => el.value), "", "saving clears the password field");
     assert.equal(JSON.parse(fs.readFileSync(process.env.WL_CONFIG)).thccb.secret, secret);
     assert.equal(await controller.$$("#audience-panel, #audience-final").then(els => els.length), 0);
@@ -94,28 +106,30 @@ const puppeteer = require("puppeteer-core");
     assert.equal(state.timerSync.status, "running", "controller has started the dial clock");
     await controller.evaluate(timer => fetch("/api/timer", { method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ type: "expired", client_id: timer.ownerId, timerId: timer.id, elapsedMs: timer.durationMs + 1500 }) }), state.timerSync);
-    await controller.waitForSelector("#btn-thccb-retry:not(.hidden)");
+    await controller.waitForFunction(() => document.getElementById("thccb-status-message").textContent.includes("操作待处理"));
+    await controller.click("#btn-restart");
     assert.equal(state.phase, "dial");
-    assert.match(await controller.$eval("#thccb-status", el => el.textContent), /通知失败/);
-    assert.equal(await controller.$eval("#thccb-conn-badge", el => el.textContent), "THCCB联动异常");
+    assert.match(await controller.$eval("#admin-thccb-detail", el => el.textContent), /HTTP 503/);
+    assert.equal(await controller.$eval("#thccb-conn-badge", el => el.textContent), "THCCB已连接");
     assert(await controller.evaluate(() => document.documentElement.scrollWidth <= innerWidth), "long round identifiers fit a phone");
     notificationDelay = 600;
     const failedAttempts = actions.filter(url => url.endsWith('/close')).length;
     await controller.click("#btn-thccb-retry");
     assert.deepEqual(await controller.$eval("#btn-thccb-retry", el => [el.textContent, el.disabled, el.getAttribute('aria-busy')]),
       ["重试中…", true, 'true'], "retry immediately shows progress and prevents repeat clicks");
-    assert.match(await controller.$eval("#thccb-status-message", el => el.textContent), /正在重试/);
+    assert.equal(await controller.$eval("#admin-menu", el => el.hidden), false);
     await controller.$eval("#btn-thccb-retry", el => el.click());
     await controller.waitForFunction(() => !document.getElementById("btn-thccb-retry").disabled &&
-      document.getElementById("thccb-status-message").textContent.includes("重试失败"));
+      document.getElementById("admin-thccb-detail").textContent.includes("HTTP 503"));
     assert.equal(actions.filter(url => url.endsWith('/close')).length, failedAttempts + 1, "double-click cannot send another retry");
     assert.equal(await controller.$eval("#btn-thccb-retry", el => el.textContent), "重试联动");
     rejectClose = false;
     await controller.click("#btn-thccb-retry");
-    await controller.waitForFunction(() => document.body.dataset.phase === "guess" && document.getElementById("btn-thccb-retry").classList.contains("hidden"));
+    await controller.waitForFunction(() => document.body.dataset.phase === "guess" && !document.getElementById("btn-thccb-retry").disabled);
     assert.equal(state.dial, 750);
     assert.match(await controller.$eval("#thccb-status", el => el.textContent), /已封盘/);
-    assert.match(await controller.$eval("#thccb-status", el => el.textContent), /重试成功/);
+    await controller.click("#admin-close");
+    assert(await controller.evaluate(() => document.getElementById("thccb-status").getBoundingClientRect().top >= document.getElementById("controls").getBoundingClientRect().bottom), "bridge status sits below game controls");
     assert.equal(await controller.$eval("#thccb-conn-badge", el => el.textContent), "THCCB已连接");
     notificationDelay = 0;
     assert.equal(actions.filter(url => url.endsWith("/start")).length, 1, "retry does not reopen the question");
@@ -143,9 +157,10 @@ const puppeteer = require("puppeteer-core");
     assert.equal(await monitor.$$("#audience-panel").then(els => els.length), 0, "no legacy QQ leaderboard remains");
 
     async function checkView(view, phase) {
+      if (view === "qr" && ["setup", "chooseCard", "psychic"].includes(phase)) view = "paused";
       await monitor.waitForFunction((view, phase) => document.body.dataset.phase === phase &&
         document.getElementById("audience-results").dataset.view === view, {}, view, phase);
-      assert(await monitor.$eval(view === "qr" ? "#audience-qr" : "#audience-results-board", el => el.checkVisibility()), `${view} is actually visible during ${phase}`);
+      assert(await monitor.$eval(view === "qr" ? "#audience-qr" : view === "paused" ? "#audience-paused" : "#audience-results-board", el => el.checkVisibility()), `${view} is actually visible during ${phase}`);
       assert(await monitor.$eval(view === "qr" ? "#audience-results-board" : "#audience-qr", el => !el.checkVisibility()), "the other view is hidden, not just assigned a class");
     }
     async function screenshot(name) {

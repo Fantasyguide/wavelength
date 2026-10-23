@@ -67,6 +67,8 @@ function latestSnapshot() {
   let r = await req("GET", base + "/api/ping");
   let j = JSON.parse(r.body);
   assert(r.status === 200 && j.ok === true && j.authRequired === true, "public ping reports controller authentication");
+  assert(Number.isFinite(j.serverNow) && Math.abs(j.serverNow - Date.now()) < 1000,
+    "ping provides the server clock for client countdown calibration");
 
   assert((await req("GET", base + "/api/thccb")).status === 401, "THCCB config requires authentication");
   assert((await req("POST", base + "/api/thccb", { enabled: true })).status === 401, "THCCB config writes require authentication");
@@ -98,6 +100,8 @@ function latestSnapshot() {
   });
   await sleep(150);
   assert(latestSnapshot().phase === "setup", "initial SSE snapshot phase setup");
+  assert(Number.isFinite(latestSnapshot().serverNow) && Math.abs(latestSnapshot().serverNow - Date.now()) < 1000,
+    "SSE includes a fresh server timestamp for clock fallback");
   strictAssert.deepEqual([state.ruleSet, state.winScore, state.bandWidth, state.teams.A.score, state.teams.B.score],
     ["balanced", 8, 48, 0, 0], "server starts with balanced defaults");
   strictAssert.deepEqual(state.cards, defaultDeck.cards, "startup loads the original default cards");
@@ -127,6 +131,8 @@ function latestSnapshot() {
   assert(s.phase === "chooseCard" && s.cardChoices.length === 2 && s.target === null, "setup broadcasts two candidates without a target");
   assert(s.timerKind === "chooseCard" && s.timerEnd > Date.now() + 9500 && s.timerEnd <= Date.now() + 10000,
     "server starts a ten-second selection countdown");
+  assert(s.timerEnd - s.serverNow > 9500 && s.timerEnd - s.serverNow <= 10000,
+    "snapshot deadline and timestamp use the same server clock");
   const chosen = s.cardChoices[1];
   await req("POST", base + "/api/intent", { type: "selectCard", index: -1 });
   await req("POST", base + "/api/intent", { type: "donePsychic" });

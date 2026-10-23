@@ -1374,6 +1374,16 @@
 #thccb-settings label { margin-top: 10px; }
 #thccb-save { margin-top: 10px; }
 #btn-thccb-retry.hidden { display: none; }
+#admin-menu { position: fixed; z-index: 59; top: 78px; right: 16px; width: min(370px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow-y: auto; padding: 18px; box-sizing: border-box; border: 1px solid var(--line, #c7bfae); border-radius: 14px; background: var(--panel, #fffaf1); box-shadow: 0 12px 40px #0003; }
+#admin-menu[hidden] { display: none; }
+#admin-menu > .btn { display: block; width: 100%; margin: 10px 0; }
+.admin-heading { display: flex; justify-content: space-between; align-items: center; }
+#admin-thccb-switch { padding: 12px 0; }
+#admin-thccb-detail, #admin-thccb-jobs { overflow-wrap: anywhere; font-size: 14px; }
+.admin-job { border-top: 1px solid #ccc8; padding: 10px 0; }
+.admin-job p { margin: 0 0 8px; }
+#thccb-status { text-align: center; margin: 8px 0; font-size: 14px; }
+body.monitor-mode #admin-menu, body.monitor-mode #thccb-status { display: none; }
 
 
 /* Reuse the former audience panel's frame, nickname face and large ranking type. */
@@ -1571,3 +1581,5 @@ body:not(.monitor-mode) .audience-qr-caption { font-size: 22px; }
   body:not(.monitor-mode) .audience-qr { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr) auto; gap: 4px; }
   body:not(.monitor-mode) .audience-results[data-view="qr"] { min-height: 310px; }
 }
+
+#btn-restart { position: relative; z-index: 55; }

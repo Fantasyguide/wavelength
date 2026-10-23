@@ -2,7 +2,6 @@
 
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
-const http = require("node:http");
 const puppeteer = require("puppeteer-core");
 const fixture = require("./server-fixture");
 
@@ -10,13 +9,7 @@ const fixture = require("./server-fixture");
   process.env.PORT = "0";
   fixture.configure();
   // Exercise the normal controller status without contacting the real betting service.
-  const source = http.createServer((req, res) => {
-    req.resume();
-    res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify(req.url.endsWith("/results") ? {
-      round_key: decodeURIComponent(req.url.split("/").at(-2)), target_position: 600, top_five: []
-    } : {}));
-  });
+  const source = require("./fake-thccb")().server;
   let browser, server;
   try {
     await new Promise(resolve => source.listen(0, "127.0.0.1", resolve));
