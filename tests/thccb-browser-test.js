@@ -162,12 +162,15 @@ const puppeteer = require("puppeteer-core");
         document.getElementById("audience-results").dataset.view === view, {}, view, phase);
       assert(await monitor.$eval(view === "qr" ? "#audience-qr" : view === "paused" ? "#audience-paused" : "#audience-results-board", el => el.checkVisibility()), `${view} is actually visible during ${phase}`);
       assert(await monitor.$eval(view === "qr" ? "#audience-results-board" : "#audience-qr", el => !el.checkVisibility()), "the other view is hidden, not just assigned a class");
+      if (view !== "results") assert(await monitor.$eval("#audience-axis", el => el.hidden && !el.children.length),
+        "leaving settlement clears every audience marker and label");
     }
     async function screenshot(name) {
       if (!process.env.WL_AUDIENCE_SCREENSHOT_DIR) return;
       fs.mkdirSync(process.env.WL_AUDIENCE_SCREENSHOT_DIR, { recursive: true });
       await monitor.screenshot({ path: path.join(process.env.WL_AUDIENCE_SCREENSHOT_DIR, name + ".png") });
       await (await monitor.$("#audience-results")).screenshot({ path: path.join(process.env.WL_AUDIENCE_SCREENSHOT_DIR, name + "-card.png") });
+      await (await monitor.$(".spectrum-wrap")).screenshot({ path: path.join(process.env.WL_AUDIENCE_SCREENSHOT_DIR, name + "-axis.png") });
     }
     await monitor.bringToFront();
     await checkView("qr", "guess");
@@ -185,6 +188,7 @@ const puppeteer = require("puppeteer-core");
     await intent("reveal");
     await checkView("results", "revealed");
     assert.match(await monitor.$eval("#audience-results-note", el => el.textContent), /正在同步/);
+    assert(await monitor.$eval("#audience-axis", el => el.hidden), "no audience positions appear before results arrive");
     await monitor.waitForFunction(() => document.querySelectorAll("#audience-results-rows li").length === 5);
     assert.deepEqual(await monitor.$$eval(".audience-player", els => els.map(el => el.textContent)), topFive.map(entry => entry.username));
     assert.equal(await monitor.$$("#audience-results-rows img").then(els => els.length), 0, "no avatars or HTML from external usernames");
@@ -199,11 +203,85 @@ const puppeteer = require("puppeteer-core");
       getComputedStyle(el).color !== getComputedStyle(el.parentElement.querySelector(".audience-position")).color)),
       "signed errors have a different color from the guess position");
     assert.equal(await monitor.$eval(".audience-payout", el => el.textContent), "1,280");
+    await screenshot("axis-clustered");
+    async function checkAxis(page, positions) {
+      const geometry = await page.evaluate(() => {
+        const axis = document.getElementById("axis").getBoundingClientRect();
+        const rect = el => { const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, top: r.top, bottom: r.bottom }; };
+        const ranks = [...document.querySelectorAll(".audience-axis-rank")];
+        const labels = [...document.querySelectorAll(".audience-axis-label")];
+        const colors = [...document.querySelectorAll(".audience-error")].map(el => getComputedStyle(el).color);
+        return {
+          visible: document.getElementById("audience-axis").checkVisibility(),
+          dots: [...document.querySelectorAll(".audience-axis-dot")].map(el => {
+            const r = el.getBoundingClientRect();
+            return { rank: Number(el.dataset.rank), position: ((r.left + r.right) / 2 - axis.left) / axis.width * 1000,
+              y: (r.top + r.bottom) / 2, color: getComputedStyle(el).fill };
+          }),
+          ranks: ranks.map(el => Number(el.dataset.rank)),
+          matchingColors: [...labels, ...document.querySelectorAll(".audience-axis-leader, .audience-axis-dot")]
+            .every(el => getComputedStyle(el).fill === colors[Number(el.dataset.rank) - 1]),
+          whiteRanks: ranks.every(el => getComputedStyle(el).fill === "rgb(255, 255, 255)"),
+          labels: labels.map(rect),
+          numbers: ranks.map(rect), axis: { left: axis.left, right: axis.right, bottom: axis.bottom },
+          fitsScreen: !document.body.classList.contains("monitor-mode") || innerWidth < 1800 ||
+            document.getElementById("audience-axis").getBoundingClientRect().bottom <= innerHeight,
+          noOverflow: document.documentElement.scrollWidth <= innerWidth
+        };
+      });
+      assert(geometry.visible && geometry.dots.length === positions.length);
+      assert.deepEqual(geometry.ranks.slice().sort((a, b) => a - b), positions.map((_, i) => i + 1), "each leaderboard rank appears exactly once");
+      assert(geometry.dots.every(dot => Math.abs(dot.position - positions[dot.rank - 1]) < .01 &&
+        Math.abs(dot.y - geometry.axis.bottom) < 1), "dots preserve exact prediction coordinates on the lower axis edge: " + JSON.stringify({ dots: geometry.dots, axis: geometry.axis }));
+      assert(geometry.matchingColors && geometry.whiteRanks, "badges, leaders and dots use leaderboard error colors, with white rank numbers");
+      assert.equal(geometry.labels.length, positions.length, "every rank has its own badge, even for identical predictions");
+      assert(geometry.labels.every(r => r.left >= geometry.axis.left - 1 && r.right <= geometry.axis.right + 1), "labels stay inside both axis endpoints");
+      for (const rects of [geometry.labels, geometry.numbers]) assert(rects.every((a, i) => rects.every((b, j) =>
+        i === j || a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top)), "labels and numbers remain readable without overlap");
+      assert(geometry.fitsScreen && geometry.noOverflow, "audience markers fit the display without scrolling the page sideways");
+      return geometry;
+    }
+    // Hit testing reads actual paint order, including nested stacking contexts.
+    // Enable pointer events only for this check; the live overlay stays inert.
+    const paintOrder = await monitor.evaluate(() => {
+      const style = document.createElement("style");
+      style.textContent = ".audience-axis *, .tick-number, .bar, .direction-frame { pointer-events: auto !important; }";
+      document.head.appendChild(style);
+      try {
+        const axis = document.getElementById("axis").getBoundingClientRect();
+        const dot = document.querySelector('.audience-axis-dot[data-rank="1"]').getBoundingClientRect();
+        const borderStack = document.elementsFromPoint((dot.left + dot.right) / 2, axis.bottom - 1);
+        const dotIndex = borderStack.findIndex(el => el.classList.contains("audience-axis-dot"));
+        const aboveFrames = ["bar", "direction-frame"].every(name => {
+          const index = borderStack.findIndex(el => el.classList.contains(name));
+          return index > dotIndex && dotIndex >= 0;
+        });
+        // Probe the overlap with 0% in the current cluster of predictions.
+        const tick = [...document.querySelectorAll(".tick-number")].find(el => el.textContent === "0%");
+        const box = tick.getBoundingClientRect();
+        let belowPercent = false;
+        for (let x = box.left + 1; x < box.right; x += 2) {
+          const stack = document.elementsFromPoint(x, (box.top + box.bottom) / 2);
+          const leaderIndex = stack.findIndex(el => el.classList.contains("audience-axis-leader"));
+          if (leaderIndex >= 0) {
+            belowPercent = stack.indexOf(tick) >= 0 && stack.indexOf(tick) < leaderIndex;
+            break;
+          }
+        }
+        return { aboveFrames, belowPercent };
+      } finally { style.remove(); }
+    });
+    assert.deepEqual(paintOrder, { aboveFrames: true, belowPercent: true }, "audience artwork paints above both frames but below percentage text");
     for (const [width, height] of [[3904, 672], [1952, 336], [390, 844]]) {
       await monitor.setViewport({ width, height });
-      await monitor.evaluate(() => document.fonts.ready);
+      await monitor.evaluate(async () => {
+        await new Promise(requestAnimationFrame);
+        await document.fonts.ready;
+        await new Promise(requestAnimationFrame);
+      });
       assert(await monitor.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `no horizontal overflow at ${width}×${height}`);
       assert(await monitor.$$eval(".audience-winners li", rows => rows.every(row => row.scrollWidth <= row.clientWidth)), "long names stay inside rows");
+      await checkAxis(monitor, topFive.map(entry => entry.position));
       if (width >= 1800) {
         assert(await monitor.$eval(".audience-player", el => parseFloat(getComputedStyle(el).fontSize) >= 36 * innerWidth / 3904), "nicknames retain the old large type");
         assert(await monitor.$eval("#audience-results", el => {
@@ -212,6 +290,37 @@ const puppeteer = require("puppeteer-core");
         }), "audience card fits below the right team");
       }
     }
+    assert(await controller.$eval("#audience-axis", el => el.hidden && !el.children.length), "controllers never draw audience positions");
+    const originalEntries = state.thccb.results.top_five;
+    for (const [width, height] of [[3904, 672], [1952, 336], [390, 844]]) {
+      await monitor.setViewport({ width, height });
+      await monitor.evaluate(async () => {
+        await new Promise(requestAnimationFrame);
+        await document.fonts.ready;
+        await new Promise(requestAnimationFrame);
+      });
+      const axisBefore = await monitor.$eval("#axis", el => ({ top: el.getBoundingClientRect().top, left: el.getBoundingClientRect().left }));
+      for (const positions of [[500, 500, 500, 500, 500], [0, 0, 0, 0, 0], [1000, 1000, 1000, 1000, 1000],
+        [0, 30, 60, 105, 150], [0, 250, 500, 750, 1000]]) {
+        state.thccb.results.top_five = originalEntries.map((entry, i) => ({ ...entry, position: positions[i], distance: Math.abs(positions[i] - 500) }));
+        await intent("noop");
+        // A broadcast with the same first value may still update the remaining entries.
+        await monitor.waitForFunction(expected => document.querySelectorAll(".audience-axis-dot").length === expected.length &&
+          [...document.querySelectorAll(".audience-axis-dot")].every(el => {
+          const axis = document.getElementById("axis").getBoundingClientRect(), dot = el.getBoundingClientRect();
+          return Math.abs(((dot.left + dot.right) / 2 - axis.left) / axis.width * 1000 - expected[Number(el.dataset.rank) - 1]) < .01;
+        }), {}, positions);
+        await checkAxis(monitor, positions);
+        assert.deepEqual(await monitor.$eval("#axis", el => ({ top: el.getBoundingClientRect().top, left: el.getBoundingClientRect().left })), axisBefore,
+          "rank layout never moves the main axis");
+        if (width === 3904 && positions.every(p => p === 500)) await screenshot("axis-coincident");
+        if (width === 3904 && positions[1] === 250) await screenshot("axis-separated");
+        if (width === 3904 && positions.every(p => p === 1000)) await screenshot("axis-endpoint");
+      }
+    }
+    state.thccb.results.top_five = originalEntries;
+    await intent("noop");
+    await monitor.waitForFunction(() => document.querySelectorAll(".audience-error")[1].textContent === "差 +0.2%");
     await monitor.setViewport({ width: 3904, height: 672 });
     await monitor.$eval("#audience-results-rows", el => { el.scrollTop = 0; });
     await screenshot("leaderboard");
@@ -258,6 +367,7 @@ const puppeteer = require("puppeteer-core");
         await monitor.waitForSelector("#role-modal:not(.hidden)");
         await monitor.click("#btn-role-monitor");
         await checkView("results", "over");
+        await checkAxis(monitor, topFive.map(entry => entry.position));
         assert.deepEqual(await monitor.$$eval(".audience-error", els => els.map(el => el.textContent)),
           ["正中", "差 -20.0%", "差 -30.0%", "差 -30.2%", "差 -200.0%"], "signed errors use the returned target, including the maximum possible distance");
         assert.deepEqual(await monitor.$$eval(".audience-error", els => els.map(el => getComputedStyle(el).color)),
@@ -271,6 +381,7 @@ const puppeteer = require("puppeteer-core");
       } else {
         await monitor.waitForFunction(text => document.getElementById("audience-results-note").textContent.includes(text), {}, mode === "empty" ? "没有观众" : "未能加载");
         assert.equal(await monitor.$$("#audience-results-rows li").then(els => els.length), 0);
+        assert(await monitor.$eval("#audience-axis", el => el.hidden && !el.children.length), "empty and failed results leave no stale axis markers");
         await intent("nextRound");
         await checkView("qr", "chooseCard");
       }

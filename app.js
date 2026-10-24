@@ -223,6 +223,99 @@
     return "hsl(" + hue + ", 65%, 28%)";
   }
 
+  function renderAudienceAxis(results, entries) {
+    var layer = $("audience-axis");
+    if (ROLE !== "monitor" || !entries.length) {
+      layer.hidden = true;
+      layer.replaceChildren();
+      delete layer.dataset.entries;
+      return;
+    }
+    layer.hidden = false;
+    var bounds = layer.getBoundingClientRect();
+    var width = bounds.width;
+    if (!width) return;
+    var layoutUnit = bounds.height / 96;
+    var unit = Math.min(layoutUnit, width / (entries.length * 64 + (entries.length - 1) * 18 + 4));
+    var dotY = $("axis").getBoundingClientRect().bottom - bounds.top;
+    var key = JSON.stringify([results.round_key, results.target_position, entries, width, unit, dotY]);
+    if (layer.dataset.entries === key) return;
+    layer.dataset.entries = key;
+    var points = entries.map(function (entry, index) {
+      return { rank: index + 1, entry: entry, x: entry.position / WL.UNIT * width,
+        color: audienceErrorColor((entry.position - results.target_position) / WL.UNIT * 200) };
+    }).sort(function (a, b) { return a.x - b.x || a.rank - b.rank; });
+    // Pack independent badges as close to their true positions as possible.
+    // Pool only overlapping neighbours; distant badges stay at their own dots.
+    var gap = 82 * unit, blocks = [];
+    points.forEach(function (point, index) {
+      blocks.push({ sum: point.x - index * gap, count: 1 });
+      while (blocks.length > 1) {
+        var a = blocks[blocks.length - 2], b = blocks[blocks.length - 1];
+        if (a.sum / a.count <= b.sum / b.count) break;
+        blocks.splice(-2, 2, { sum: a.sum + b.sum, count: a.count + b.count });
+      }
+    });
+    var index = 0, min = 34 * unit, max = width - min - (points.length - 1) * gap;
+    blocks.forEach(function (block) {
+      var start = Math.max(min, Math.min(max, block.sum / block.count));
+      for (var i = 0; i < block.count; i++, index++) points[index].labelX = start + index * gap;
+    });
+    var ns = "http://www.w3.org/2000/svg";
+    function svgElement(tag, attrs, content) {
+      var node = document.createElementNS(ns, tag);
+      Object.keys(attrs || {}).forEach(function (name) { node.setAttribute(name, attrs[name]); });
+      if (content !== undefined) node.textContent = content;
+      return node;
+    }
+    var top = Math.min(0, dotY - 12 * unit), height = bounds.height - top;
+    var svg = svgElement("svg", { viewBox: "0 " + top + " " + width + " " + height,
+      width: width, height: height, preserveAspectRatio: "none", role: "img", "aria-label": "本轮观众前五名的位置，编号对应榜单" });
+    svg.style.top = "calc(" + (top / layoutUnit) + " * var(--audience-unit))";
+    svg.style.height = "calc(" + (height / layoutUnit) + " * var(--audience-unit))";
+    var labelY = 28 * unit, joinY = labelY + 12 * unit;
+    points.forEach(function (point) {
+      var x = point.x, labelX = point.labelX;
+      // A solid ribbon widens from 6px at the true position to 18px at the badge.
+      // Measure width perpendicular to the leader so edge fans stay equally bold.
+      var dx = labelX - x, dy = joinY - dotY, length = Math.hypot(dx, dy);
+      var nx = dy / length, ny = -dx / length;
+      var start = 3 * unit, end = 9 * unit;
+      svg.appendChild(svgElement("path", {
+        "class": "audience-axis-leader", "data-rank": point.rank,
+        d: "M" + (x - nx * start) + " " + (dotY - ny * start) +
+          "L" + (labelX - nx * end) + " " + (joinY - ny * end) +
+          "L" + (labelX + nx * end) + " " + (joinY + ny * end) +
+          "L" + (x + nx * start) + " " + (dotY + ny * start) + "Z" +
+          "M" + (labelX - 32 * unit) + " " + labelY + "V" + (labelY + 64 * unit) +
+          "H" + (labelX + 32 * unit) + "V" + labelY + "Z",
+        // Matching winding and fill over stroke leave only the combined outer
+        // outline. The ribbon ends inside the badge, with no seam at the join.
+        fill: point.color, stroke: "#fff", "stroke-width": 4 * unit, "stroke-linejoin": "round",
+        "paint-order": "stroke fill", "aria-hidden": "true"
+      }));
+    });
+    points.forEach(function (point) {
+      var x = point.labelX;
+      var label = svgElement("g", { "class": "audience-axis-badge" });
+      // Keep the badge face above neighbouring ribbons without adding an inner border.
+      label.appendChild(svgElement("rect", { "class": "audience-axis-label", "data-rank": point.rank,
+        x: x - 32 * unit, y: labelY, width: 64 * unit, height: 64 * unit,
+        fill: point.color }));
+      var rank = svgElement("text", { "class": "audience-axis-rank", "data-rank": point.rank,
+        x: x, y: labelY + 48 * unit, fill: "#fff", "font-size": 44 * unit, "text-anchor": "middle" }, point.rank);
+      rank.appendChild(svgElement("title", {}, "第 " + point.rank + " 名 " + point.entry.username + "，竞猜位置 " +
+        WL.formatPercent(WL.toSignedPercent(point.entry.position))));
+      label.appendChild(rank);
+      svg.appendChild(label);
+    });
+    points.forEach(function (point) {
+      svg.appendChild(svgElement("circle", { "class": "audience-axis-dot", "data-rank": point.rank,
+        cx: point.x, cy: dotY, r: 10 * unit, fill: point.color, stroke: "#fff", "stroke-width": 3 * unit, "aria-hidden": "true" }));
+    });
+    layer.replaceChildren(svg);
+  }
+
   function renderAudienceResults() {
     var info = G.thccb;
     var showResults = !!(ONLINE && info && info.enabled && G.audience_linked !== false && ["revealed", "over"].includes(G.phase));
@@ -233,6 +326,7 @@
     $("audience-results-board").hidden = !showResults;
     var results = showResults ? info.results : null;
     var entries = results ? results.top_five.slice(0, 5) : [];
+    renderAudienceAxis(results, entries);
     $("audience-results-target").textContent = results ? "目标 " + WL.formatPercent(WL.toSignedPercent(results.target_position)) : "";
     var note = showResults ? info.results_error || (!results ? "正在同步竞猜结果…" :
       !entries.length ? "本轮没有观众参与竞猜。" : "") : "";
