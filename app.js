@@ -949,7 +949,7 @@
   function monitorPhase() {
     if (G.phase === "over" && G.result && G.result.draw) return "和局复盘";
     if (G.phase === "over" && G.result && G.result.early) return "提前结束 · 复盘";
-    return { setup: "待开局", chooseCard: "选题", psychic: "出题", dial: "讨论", guess: "猜左右",
+    return { setup: "待开局", readyCards: "待揭示卡片", chooseCard: "选题", psychic: "出题", dial: "讨论", readyGuess: "待判断左右", guess: "猜左右",
       reveal: "揭晓", revealed: "结算", over: "复盘" }[G.phase] || "";
   }
 
@@ -968,7 +968,7 @@
     $("opt-bandwidth").disabled = balanced;
     $("winscore-label").textContent = "获胜分数（0 = 不设分数门槛，仍最多 " + WL.rulesFor(G).maxRounds + " 轮）";
     $("rule-cards").textContent = G.cardMode === "choice"
-      ? "选题：两题选一，每队每局可重新抽选一次。"
+      ? "选题：点击「揭示卡片」后，两题选一并计时 10 秒；每队每局可重新抽选一次。"
       : "选题：直接使用抽到的题目，也可点击「" + T("skipBtn") + "」换题。";
     $("rule-turns").textContent = balanced
       ? "平衡快局：双方 0 分起步，两队轮流出题。"
@@ -987,7 +987,7 @@
 
   function actingTeam() {
     // Share the handoff between the turn instruction and the highlighted team card.
-    if (G.phase === "guess") return WL.other(G.active);
+    if (G.phase === "readyGuess" || G.phase === "guess") return WL.other(G.active);
     if (G.phase === "revealed") return G.catchup ? G.active : WL.other(G.active);
     return G.active;
   }
@@ -1089,7 +1089,7 @@
   function renderTurn() {
     var actor = actingTeam();
     var who = teamName(actor, G.teams[actor].name);
-    var action = { chooseCard: "选题", psychic: "出题", dial: "讨论并拨杆", guess: "猜左右", reveal: "揭示目标", revealed: "出题" }[G.phase];
+    var action = { readyCards: "准备选题", chooseCard: "选题", psychic: "出题", dial: "讨论并拨杆", readyGuess: "准备判断左右", guess: "猜左右", reveal: "揭示目标", revealed: "出题" }[G.phase];
     $("banner").classList.add("hidden");
     if (G.phase === "over") {
       $("turn-indicator").textContent = G.result && G.result.draw ? "双方和局" : "对局结束";
@@ -1112,6 +1112,10 @@
     $("card-frame").classList.toggle("choosing", G.phase === "chooseCard");
     var label = "第 " + G.round + " " + T("roundUnit") + " · " + (G.sudden ? "加时 · " : "") + monitorPhase();
     if (G.ruleSet === "balanced") label += " · 平衡快局";
+    if (G.phase === "readyCards") {
+      $("card-label").textContent = label;
+      return;
+    }
     if (G.phase === "chooseCard") {
       $("card-label").textContent = label;
       G.cardChoices.forEach(function (card, index) {
@@ -1287,6 +1291,17 @@
         ? "等待控制器开始游戏…"
         : "填写队伍信息并点击「" + T("startBtn") + "」。";
       if (control) box.appendChild(mk(T("startBtn"), "primary", startGame));
+    } else if (G.phase === "readyCards") {
+      hint.innerHTML = teamName(G.active, t.name) + " · " + T("psychic") +
+        "：准备好后点击「揭示卡片」，显示候选题并开始 10 秒倒计时。";
+      if (control) {
+        var revealCards = mk("揭示卡片", "primary", function () {
+          ensureAudio();
+          dispatch({ type: "revealCards" });
+        });
+        revealCards.id = "btn-reveal-cards";
+        box.appendChild(revealCards);
+      }
     } else if (G.phase === "chooseCard") {
       hint.innerHTML = teamName(G.active, t.name) + " · " + T("psychic") +
         (G.cardChoices.length > 1 ? "：选择本轮题目。" : "：确认本轮题目。");
@@ -1345,6 +1360,17 @@
         box.appendChild(lock);
 
       }
+    } else if (G.phase === "readyGuess") {
+      hint.innerHTML = teamName(WL.other(G.active), o.name) + "：" + T("dial") +
+        "已锁定，准备好后点击「判断左右」开始倒计时。";
+      if (control) {
+        var startGuess = mk("判断左右", "primary", function () {
+          ensureAudio();
+          dispatch({ type: "startGuess", timerSeconds: configuredTimerSeconds("data-guess-timer-seconds", 15) });
+        });
+        startGuess.id = "btn-start-guess";
+        box.appendChild(startGuess);
+      }
     } else if (G.phase === "guess") {
       hint.innerHTML = teamName(WL.other(G.active), o.name) + "：" + T("target") + "中心在" + T("dial") + "<b>左边</b>还是<b>右边</b>？";
       if (control) {
@@ -1382,7 +1408,11 @@
     if (wideMonitor()) {
       hint.textContent = "第 " + G.round + " " + T("roundUnit") + " · " + (G.sudden ? "加时 · " : "") + monitorPhase();
     } else if (ROLE === "monitor") {
-      if (G.phase === "chooseCard") {
+      if (G.phase === "readyCards") {
+        hint.innerHTML = teamName(G.active, t.name) + " 正在准备选题，等待控制器揭示卡片。";
+      } else if (G.phase === "readyGuess") {
+        hint.innerHTML = teamName(WL.other(G.active), o.name) + " 正在准备判断左右，等待控制器开始。";
+      } else if (G.phase === "chooseCard") {
         hint.innerHTML = teamName(G.active, t.name) + " 的 " + T("psychic") + " 正在选择本轮题目，等待控制器确认。";
       } else if (G.phase === "psychic") {
         hint.innerHTML = teamName(G.active, t.name) + " 的 " + T("psychic") + " 正在查看" + T("target") + "并出题，请听取" + T("clue") + "。";

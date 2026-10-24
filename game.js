@@ -303,7 +303,7 @@
   function drawRoundCards(s, previousChoices) {
     s.cardChoices = [];
     if (s.cardMode === "choice") {
-      s.phase = "chooseCard";
+      s.phase = "readyCards";
       s.card = null;
       s.target = null;
       var mixed = s.cards.some(function (c) { return cardTag(c) === 1; }) &&
@@ -326,7 +326,12 @@
     s.timerKind = null;
     s.timerEnd = null;
     s.guessTimerSeconds = 15;
-    if (s.phase === "chooseCard") startTimer(s, "chooseCard", CHOICE_TIMER_SECONDS);
+  }
+
+  function readyGuess(s) {
+    s.phase = "readyGuess";
+    s.timerKind = null;
+    s.timerEnd = null;
   }
 
   function selectCard(s, index) {
@@ -526,15 +531,13 @@
     var changed = false;
     while (s.timerEnd !== null && s.timerEnd + TIMER_GRACE_MS <= now) {
       // Keep the visible countdown separate from the last accepted input time.
-      var deadline = s.timerEnd + TIMER_GRACE_MS;
       if (s.timerKind === "chooseCard" && s.phase === "chooseCard") {
         selectCard(s, randomCardIndex(s.cardChoices));
       } else if (s.timerKind === "dial" && (s.phase === "psychic" || s.phase === "dial")) {
         // The displayed zero is the center (500 internally). Preserve any other
         // current position; only a centered dial gets a uniform random choice.
         if (s.dial === UNIT / 2) s.dial = Math.floor(Math.random() * (UNIT + 1));
-        s.phase = "guess";
-        startTimer(s, "guess", s.guessTimerSeconds, 15, deadline);
+        readyGuess(s);
       } else if (s.timerKind === "guess" && s.phase === "guess") {
         s.guess = Math.random() < 0.5 ? "L" : "R";
         s.phase = "reveal";
@@ -554,8 +557,8 @@
     if (!intent || typeof intent.type !== "string") return s;
     // Late input cannot override an automatic action or act on its new phase.
     // The online server coordinates timers with asynchronous THCCB confirmations.
-    if (!(options && options.deferTimers) && advanceTimers(s) && ["selectCard", "selectSide", "donePsychic", "startDialTimer",
-      "setDial", "lock", "penaltyLock", "guess", "reveal", "skipCard", "redrawCards"].indexOf(intent.type) !== -1) return s;
+    if (!(options && options.deferTimers) && advanceTimers(s) && ["revealCards", "selectCard", "selectSide", "donePsychic", "startDialTimer",
+      "setDial", "lock", "penaltyLock", "startGuess", "guess", "reveal", "skipCard", "redrawCards"].indexOf(intent.type) !== -1) return s;
     switch (intent.type) {
       case "setRulesOpen":
         if (typeof intent.value === "boolean") s.rulesOpen = intent.value;
@@ -568,6 +571,12 @@
         break;
       case "voidRound":
         voidRound(s);
+        break;
+      case "revealCards":
+        if (s.phase === "readyCards") {
+          s.phase = "chooseCard";
+          startTimer(s, "chooseCard", CHOICE_TIMER_SECONDS);
+        }
         break;
       case "selectCard":
         if (s.phase === "chooseCard" && Number.isInteger(intent.index) &&
@@ -597,6 +606,12 @@
       case "penaltyLock":
         if (s.phase === "dial") {
           if (intent.type === "penaltyLock") s.dial = Math.floor(Math.random() * (UNIT + 1));
+          s.guessTimerSeconds = timerSeconds(intent.timerSeconds, s.guessTimerSeconds);
+          readyGuess(s);
+        }
+        break;
+      case "startGuess":
+        if (s.phase === "readyGuess") {
           s.phase = "guess";
           startTimer(s, "guess", intent.timerSeconds, s.guessTimerSeconds);
         }

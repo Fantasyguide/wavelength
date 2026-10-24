@@ -100,6 +100,11 @@ async function pickFile(name, content, inputId) {
   doc.getElementById("input-nameB").value = "粉队";
   doc.getElementById("select-first").value = "A";
   click("btn-start");
+  if (doc.getElementById("btn-reveal-cards")) {
+    assert(doc.querySelectorAll(".card-choice").length === 0, "candidate information stays hidden until reveal");
+    assert(doc.getElementById("timer-display").classList.contains("hidden"), "waiting for card reveal has no countdown");
+    click("btn-reveal-cards");
+  }
 
   assert(doc.getElementById("opt-card-mode").value === "choice", "two-choice mode is the default");
   assert(doc.querySelectorAll(".card-choice").length === 2, "two candidate cards shown before psychic phase");
@@ -120,6 +125,8 @@ async function pickFile(name, content, inputId) {
   await sleep(250);
   assert(warningBeeps === 2, "zero tone does not repeat during selection grace");
   click("btn-redraw");
+  assert(!doc.querySelector(".card-choice") && doc.getElementById("timer-display").classList.contains("hidden"), "redrawn cards wait for reveal");
+  click("btn-reveal-cards");
   assert(doc.getElementById("timer-display").textContent === "00:10", "redraw during grace restarts selection countdown");
   assert(doc.getElementById("btn-redraw").disabled, "redraw disabled after this team's single chance");
   assert(doc.getElementById("card-label").textContent.indexOf("第 1 轮") !== -1, "redraw keeps the round number");
@@ -178,6 +185,9 @@ async function pickFile(name, content, inputId) {
   assert(doc.getElementById("dial").style.left !== "50%", "dial moved to " + doc.getElementById("dial").style.left);
 
   click("btn-lock");
+  assert(doc.getElementById("controls").children.length === 1 && doc.getElementById("btn-start-guess"), "lock shows only the guessing start button");
+  assert(doc.getElementById("timer-display").classList.contains("hidden"), "lock waits without counting down");
+  click("btn-start-guess");
   assert(doc.getElementById("hint").textContent.indexOf("左边") !== -1, "guess phase");
   assert(doc.getElementById("guess-region").hidden && doc.getElementById("direction-frame").hidden, "no direction highlight before the opponent chooses");
   assert(doc.getElementById("timer-display").textContent === "00:15", "15-second guess timer starts after locking dial");
@@ -235,12 +245,16 @@ async function pickFile(name, content, inputId) {
   assert(guessRegion.hidden && directionFrame.hidden, "new round clears the previous direction highlight");
   assert(doc.getElementById("hint").textContent.indexOf("粉队") !== -1, "turn switched to B");
 
+  click("btn-reveal-cards");
   assert(doc.querySelectorAll(".card-choice").length === 2, "next round starts with two candidates");
   assert(!doc.getElementById("btn-redraw").disabled, "other team retains its redraw chance");
   click(doc.querySelectorAll(".card-choice")[1]);
   click(doc.getElementById("controls").children[0]);
   click(doc.getElementById("controls").children[0]);
   click("btn-lock");
+  assert(doc.getElementById("controls").children.length === 1 && doc.getElementById("btn-start-guess"), "lock shows only the guessing start button");
+  assert(doc.getElementById("timer-display").classList.contains("hidden"), "lock waits without counting down");
+  click("btn-start-guess");
   click(doc.getElementById("controls").children[0]);
   assert(doc.querySelector(".guess-result").textContent.indexOf("等待揭示") !== -1, "new-round guess does not reuse previous reveal result");
   assert(!guessRegion.hidden && guessRegion.dataset.side === "L" && axis.style.getPropertyValue("--guess-color") === "var(--cA)", "left choice follows the choosing red team after the turn changes");
@@ -257,6 +271,11 @@ async function pickFile(name, content, inputId) {
   ws2.dispatchEvent(new window.Event("change", { bubbles: true }));
   doc.getElementById("select-first").value = "A";
   click("btn-start");
+  if (doc.getElementById("btn-reveal-cards")) {
+    assert(doc.querySelectorAll(".card-choice").length === 0, "candidate information stays hidden until reveal");
+    assert(doc.getElementById("timer-display").classList.contains("hidden"), "waiting for card reveal has no countdown");
+    click("btn-reveal-cards");
+  }
   click(doc.querySelector(".card-choice"));
   click(doc.getElementById("controls").children[0]);
   click(doc.getElementById("controls").children[0]);
@@ -266,6 +285,9 @@ async function pickFile(name, content, inputId) {
   interact.dispatchEvent(new PE2("pointermove", { clientX: cx, pointerId: 1, bubbles: true }));
   interact.dispatchEvent(new window.Event("pointerup", { bubbles: true }));
   click("btn-lock");
+  assert(doc.getElementById("controls").children.length === 1 && doc.getElementById("btn-start-guess"), "lock shows only the guessing start button");
+  assert(doc.getElementById("timer-display").classList.contains("hidden"), "lock waits without counting down");
+  click("btn-start-guess");
   click(doc.getElementById("controls").children[0]);
   click(doc.getElementById("controls").children[0]);
   assert(doc.getElementById("over-modal").className.indexOf("hidden") === -1, "game over modal shown");
@@ -282,6 +304,11 @@ async function pickFile(name, content, inputId) {
   doc.getElementById("opt-card-mode").dispatchEvent(new window.Event("change", { bubbles: true }));
   doc.getElementById("select-first").value = "A";
   click("btn-start");
+  if (doc.getElementById("btn-reveal-cards")) {
+    assert(doc.querySelectorAll(".card-choice").length === 0, "candidate information stays hidden until reveal");
+    assert(doc.getElementById("timer-display").classList.contains("hidden"), "waiting for card reveal has no countdown");
+    click("btn-reveal-cards");
+  }
   assert(doc.querySelectorAll(".card-choice").length === 0 && doc.getElementById("hint").textContent.includes("查看目标"), "classic mode bypasses card choice");
 
   const centerOf = () => (parseFloat(doc.getElementById("center-mark").style.left) / 100) * 1000;
@@ -308,6 +335,9 @@ async function pickFile(name, content, inputId) {
   psychicPass();
   dragTo2Band();
   click("btn-lock");
+  assert(doc.getElementById("controls").children.length === 1 && doc.getElementById("btn-start-guess"), "lock shows only the guessing start button");
+  assert(doc.getElementById("timer-display").classList.contains("hidden"), "lock waits without counting down");
+  click("btn-start-guess");
   guessCorrect();
   reveal();
   assert(doc.getElementById("over-modal").className.indexOf("hidden") !== -1, "tie does not end game immediately");
@@ -318,6 +348,9 @@ async function pickFile(name, content, inputId) {
   psychicPass();
   dragTo(centerOf() < 500 ? 1000 : 0);
   click("btn-lock");
+  assert(doc.getElementById("controls").children.length === 1 && doc.getElementById("btn-start-guess"), "lock shows only the guessing start button");
+  assert(doc.getElementById("timer-display").classList.contains("hidden"), "lock waits without counting down");
+  click("btn-start-guess");
   guessCorrect();
   reveal();
   assert(doc.getElementById("over-modal").className.indexOf("hidden") !== -1, "first sudden-death turn alone does not decide");
@@ -326,6 +359,9 @@ async function pickFile(name, content, inputId) {
   psychicPass();
   dragTo2Band();
   click("btn-lock");
+  assert(doc.getElementById("controls").children.length === 1 && doc.getElementById("btn-start-guess"), "lock shows only the guessing start button");
+  assert(doc.getElementById("timer-display").classList.contains("hidden"), "lock waits without counting down");
+  click("btn-start-guess");
   guessCorrect();
   reveal();
   assert(doc.getElementById("over-modal").className.indexOf("hidden") === -1, "sudden death decided after both teams' turns");
@@ -336,6 +372,11 @@ async function pickFile(name, content, inputId) {
   doc.getElementById("opt-card-mode").dispatchEvent(new window.Event("change", { bubbles: true }));
   doc.body.setAttribute("data-guess-timer-seconds", "7");
   click("btn-start");
+  if (doc.getElementById("btn-reveal-cards")) {
+    assert(doc.querySelectorAll(".card-choice").length === 0, "candidate information stays hidden until reveal");
+    assert(doc.getElementById("timer-display").classList.contains("hidden"), "waiting for card reveal has no countdown");
+    click("btn-reveal-cards");
+  }
   assert(!doc.getElementById("btn-redraw").disabled, "new match restores redraw allowance");
   click(doc.querySelector(".card-choice"));
   click(doc.getElementById("controls").children[0]);
@@ -345,6 +386,8 @@ async function pickFile(name, content, inputId) {
   await sleep(250);
   assert(!doc.getElementById("screen").classList.contains("open"), "dial timeout hides the psychic's target");
   assert(doc.getElementById("dial").style.left === "25%", "dial timeout displays the random position");
+  assert(doc.body.dataset.phase === "readyGuess" && doc.getElementById("timer-display").classList.contains("hidden"), "timeout also waits for guessing start");
+  click("btn-start-guess");
   assert(doc.getElementById("hint").textContent.includes("左边") && doc.getElementById("timer-display").textContent === "00:07",
     "dial timeout advances to guessing with the configured duration");
   window.Date.now = realDateNow;
@@ -352,6 +395,11 @@ async function pickFile(name, content, inputId) {
 
   click(doc.body.dataset.phase === "over" ? "btn-playagain" : "btn-reset-game");
   click("btn-start");
+  if (doc.getElementById("btn-reveal-cards")) {
+    assert(doc.querySelectorAll(".card-choice").length === 0, "candidate information stays hidden until reveal");
+    assert(doc.getElementById("timer-display").classList.contains("hidden"), "waiting for card reveal has no countdown");
+    click("btn-reveal-cards");
+  }
   click(doc.querySelector(".card-choice"));
   click(doc.getElementById("controls").children[0]);
   click(doc.getElementById("controls").children[0]);
@@ -362,14 +410,20 @@ async function pickFile(name, content, inputId) {
   window.Math.random = () => 0.25;
   window.Date.now = () => movedDialStart + 61600;
   await sleep(250);
-  assert(doc.getElementById("dial").style.left === "80%" && doc.getElementById("hint").textContent.includes("左边"),
+  assert(doc.getElementById("dial").style.left === "80%" && doc.body.dataset.phase === "readyGuess",
     "local timeout preserves a dial moved during grace and advances without pressing lock");
+  click("btn-start-guess");
   assert(doc.getElementById("timer-display").textContent === "00:07", "preserved dial starts the configured guess timer");
   window.Date.now = realDateNow;
   window.Math.random = realRandom;
 
   click(doc.body.dataset.phase === "over" ? "btn-playagain" : "btn-reset-game");
   click("btn-start");
+  if (doc.getElementById("btn-reveal-cards")) {
+    assert(doc.querySelectorAll(".card-choice").length === 0, "candidate information stays hidden until reveal");
+    assert(doc.getElementById("timer-display").classList.contains("hidden"), "waiting for card reveal has no countdown");
+    click("btn-reveal-cards");
+  }
   const selectionExpiry = realDateNow() + 11600;
   const beepsBeforeExpiry = warningBeeps;
   // The built-in cards are untagged, so 0.75 selects the right candidate.
@@ -407,8 +461,10 @@ async function pickFile(name, content, inputId) {
   click("btn-penalty-lock");
   window.Math.random = realRandom;
   window.confirm = originalConfirm;
-  assert(doc.body.dataset.phase === "guess" && doc.getElementById("dial").style.left === "25%",
+  assert(doc.body.dataset.phase === "readyGuess" && doc.getElementById("dial").style.left === "25%",
     "confirming the penalty replaces a moved dial and locks immediately");
+  assert(doc.getElementById("timer-display").classList.contains("hidden"), "penalty waits without a timer");
+  click("btn-start-guess");
   assert(doc.getElementById("timer-display").textContent === "00:07", "penalty uses the configured guess timer");
   assert(!doc.getElementById("btn-lock") && doc.getElementById("btn-penalty-lock").disabled &&
     !doc.getElementById("screen").classList.contains("open"), "penalty removes lock actions and keeps the target hidden");

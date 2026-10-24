@@ -138,6 +138,10 @@ function click(doc, id) {
   cdoc.getElementById("input-nameB").value = "粉队";
   cdoc.getElementById("select-first").value = "A";
   click(cdoc, "btn-start");
+  await waitFor(() => [cdoc, mdoc].every(doc => doc.body.dataset.phase === "readyCards"), "both devices wait for card reveal");
+  assert([cdoc, mdoc].every(doc => !doc.querySelector(".card-choice") && doc.getElementById("timer-display").classList.contains("hidden")), "cards and timers stay hidden on both devices before reveal");
+  assert(!mdoc.getElementById("btn-reveal-cards"), "monitor cannot reveal cards");
+  click(cdoc, "btn-reveal-cards");
 
   await waitFor(() => mdoc.querySelectorAll(".card-choice").length === 2 && cdoc.querySelectorAll(".card-choice").length === 2, "both devices receive two candidates");
   assert(cdoc.getElementById("timer-display").textContent === "00:10",
@@ -147,6 +151,8 @@ function click(doc, id) {
   await waitFor(() => [cdoc, mdoc].every(doc => doc.getElementById("timer-display").textContent === "00:09"),
     "both calibrated clocks count down as real time passes");
   click(cdoc, "btn-redraw");
+  await waitFor(() => cdoc.getElementById("btn-reveal-cards"), "redraw waits for reveal");
+  click(cdoc, "btn-reveal-cards");
   await waitFor(() => cdoc.getElementById("btn-redraw").disabled, "redraw acknowledged");
   assert(cdoc.getElementById("timer-display").textContent === "00:10", "redraw restores all ten seconds despite clock skew");
   controller.window.Date.now = () => Date.now() + 120000;
@@ -198,6 +204,10 @@ function click(doc, id) {
   await waitFor(() => mdoc.getElementById("dial").style.left === "60%", "monitor dial synced to 60%");
 
   click(cdoc, "btn-lock");
+  await waitFor(() => [cdoc, mdoc].every(doc => doc.body.dataset.phase === "readyGuess"), "both devices wait for guessing start");
+  assert([cdoc, mdoc].every(doc => doc.getElementById("timer-display").classList.contains("hidden")), "lock clears the timer on both devices");
+  assert(!mdoc.getElementById("btn-start-guess"), "monitor cannot start guessing");
+  click(cdoc, "btn-start-guess");
   await waitFor(() => mdoc.getElementById("hint").textContent.indexOf("左边") !== -1, "monitor sees guess phase");
   await waitFor(() => cdoc.body.dataset.phase === "guess", "controller sees guess phase");
   assert(cdoc.getElementById("turn-indicator").textContent.includes("粉队") && !cdoc.getElementById("turn-indicator").textContent.includes("蓝队"), "turn indicator hands the action to the opposing team for left/right guessing");
@@ -221,6 +231,8 @@ function click(doc, id) {
 
   click(cdoc, cdoc.getElementById("controls").children[0]);
   await waitFor(() => mdoc.getElementById("hint").textContent.indexOf("粉队") !== -1, "monitor turn switched to B");
+  await waitFor(() => cdoc.getElementById("btn-reveal-cards"), "next round waits for reveal");
+  click(cdoc, "btn-reveal-cards");
   await waitFor(() => mdoc.querySelectorAll(".card-choice").length === 2, "monitor receives next-round candidates");
 
   await waitFor(() => cdoc.querySelectorAll(".card-choice").length === 2, "controller receives next-round candidates");
@@ -234,7 +246,9 @@ function click(doc, id) {
   assert(mdoc.getElementById("btn-penalty-lock").disabled, "monitor cannot apply a speaking penalty");
   controller.window.confirm = () => true;
   click(cdoc, "btn-penalty-lock");
-  await waitFor(() => cdoc.body.dataset.phase === "guess" && mdoc.body.dataset.phase === "guess", "penalty locks on both devices");
+  await waitFor(() => cdoc.body.dataset.phase === "readyGuess" && mdoc.body.dataset.phase === "readyGuess", "penalty locks on both devices");
+  click(cdoc, "btn-start-guess");
+  await waitFor(() => cdoc.body.dataset.phase === "guess" && mdoc.body.dataset.phase === "guess", "guess start syncs on both devices");
   assert(cdoc.getElementById("dial").style.left === mdoc.getElementById("dial").style.left,
     "controller and monitor receive the same server-selected penalty position");
   assert(!mdoc.getElementById("screen").classList.contains("open"), "penalty does not reveal the secret target");

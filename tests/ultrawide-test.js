@@ -128,6 +128,7 @@ function postIntent(port, intent) {
   assert(roleFits, "role selection is readable and fully visible on the physical display");
   await page.click("#btn-role-monitor");
   await postIntent(port, { type: "setup", teamA: "蓝队", teamB: "粉队", first: "A", ruleSet: "original" });
+  await postIntent(port, { type: "revealCards" });
   await page.waitForFunction(() => document.body.classList.contains("monitor-mode") && document.getElementById("sides").children.length > 0);
   const choicesFit = await page.$$eval(".card-choice", (els) => els.length === 2 && els.every((el) => el.scrollWidth <= el.clientWidth && el.scrollHeight <= el.clientHeight));
   assert(choicesFit, "two candidates fit the ultra-wide monitor card area");
@@ -165,6 +166,7 @@ function postIntent(port, intent) {
   await assertReadableLayout("dial");
   await postIntent(port, { type: "setDial", value: 600 });
   await postIntent(port, { type: "lock" });
+  await postIntent(port, { type: "startGuess" });
   await page.waitForFunction(() => document.body.dataset.phase === "guess");
   await assertReadableLayout("guess");
   const selectedTopic = await page.$$eval(".sides .side", (els) => {
@@ -263,11 +265,13 @@ function postIntent(port, intent) {
   await page.waitForFunction(() => !document.querySelector("details.rules").open);
   await postIntent(port, { type: "newGame" });
   await postIntent(port, { type: "setup", teamA: "超长名称幻想乡队", teamB: "超长名称外来人队", first: "A" });
+  await postIntent(port, { type: "revealCards" });
   await postIntent(port, { type: "selectCard", index: 1 });
   await postIntent(port, { type: "selectSide", side: 0 });
   await postIntent(port, { type: "donePsychic" });
   await postIntent(port, { type: "setDial", value: 600 });
   await postIntent(port, { type: "lock" });
+  await postIntent(port, { type: "startGuess" });
   await page.setViewport({ width: 1952, height: 336, deviceScaleFactor: 1 });
   await page.waitForFunction(() => innerWidth === 1952 && document.body.dataset.phase === "guess");
   const scaledLayout = await page.evaluate(() => {
@@ -305,12 +309,14 @@ function postIntent(port, intent) {
   for (const special of ["catchup", "sudden"]) {
     await postIntent(port, { type: "newGame" });
     await postIntent(port, { type: "setup", teamA: "超长名称幻想乡队", teamB: "超长名称外来人队", first: "A" });
+    await postIntent(port, { type: "revealCards" });
     await postIntent(port, { type: "selectCard", index: 0 });
     await postIntent(port, { type: "donePsychic" });
     state.teams.B.score = special === "catchup" ? 9 : 4;
     if (special === "sudden") state.round = 10;
     await postIntent(port, { type: "setDial", value: state.target.center });
     await postIntent(port, { type: "lock" });
+    await postIntent(port, { type: "startGuess" });
     await postIntent(port, { type: "guess", guess: "R" });
     await postIntent(port, { type: "reveal" });
     await page.waitForFunction(() => document.body.dataset.phase === "revealed" && document.querySelector(".team.b").getAttribute("aria-label").includes("选择右边"));
@@ -360,6 +366,7 @@ function postIntent(port, intent) {
     ["短", "人类友好度低", "岁月静好", "负重前行"]
   ] });
   await postIntent(port, { type: "setup", first: "A" });
+  await postIntent(port, { type: "revealCards" });
   await page.waitForSelector(".card-choice");
   for (const [width, height] of [[1952, 336], [3904, 672]]) {
     await page.setViewport({ width, height, deviceScaleFactor: 1 });

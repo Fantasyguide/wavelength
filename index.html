@@ -16,7 +16,7 @@
 <link rel="preload" href="assets/fantasyguide/WavelengthNumeric-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="app.css">
 </head>
-<!-- 出题/拨杆和猜左右的秒数可在这里调整，0 关闭；选题固定 10 秒。各阶段均有 1.5 秒宽限。 -->
+<!-- 出题/拨杆和猜左右的秒数可在这里调整，0 关闭；点击「揭示卡片」后选题固定 10 秒，点击「判断左右」后才开始猜左右计时。各阶段均有 1.5 秒宽限。 -->
 <body data-dial-timer-seconds="60" data-guess-timer-seconds="15">
 <div class="wrap">
 
@@ -114,10 +114,10 @@
   <details class="rules">
     <summary><span class="rules-summary-label">规则速查</span></summary>
     <ul>
-      <li id="rule-cards">选题：两题选一，每队每局可重新抽选一次。</li>
+      <li id="rule-cards">选题：点击「揭示卡片」后，两题选一并计时 10 秒；每队每局可重新抽选一次。</li>
       <li>出题：转录员查看目标，用一个线索描述它在两个概念之间的位置。</li>
       <li>讨论：隐藏目标后，本队讨论并拖动游标，再锁定位置。转录员须保持沉默；违规时使用「说话处罚」随机锁定。</li>
-      <li>猜左右：对方判断目标中心在游标左边还是右边。请按屏幕倒计时完成操作，超时由系统自动处理。</li>
+      <li>猜左右：锁定后点击「判断左右」，开始 15 秒倒计时，对方选择目标中心在游标左边还是右边。请按屏幕倒计时完成操作，超时由系统自动处理。</li>
       <li>计分：本队命中色带得 2 / 3 / 4 分；对方猜对得 1 分，本队得 4 分时对方不得分。</li>
       <li id="rule-turns">平衡快局：双方 0 分起步，两队轮流出题。</li>
       <li id="rule-ending">获胜：第 4 轮有队达到 8 分则结算，否则第 6 轮结算；高分胜。无法追平时提前结束。</li>

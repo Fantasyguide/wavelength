@@ -58,11 +58,15 @@ function assert(cond, msg) {
   await delayHeartbeat();
   await page.$eval("#select-first", (el) => { el.value = "A"; });
   await page.click("#btn-start");
+  await page.waitForSelector("#btn-reveal-cards");
+  await page.locator("#btn-reveal-cards").click();
   await page.waitForSelector(".card-choice");
   assert(await page.$eval("#timer-display", el => el.textContent) === "00:10", "selection starts at ten despite clock skew and a heartbeat delayed by 3.9 seconds");
   await delayHeartbeat();
   await page.click("#btn-redraw");
-  await page.waitForFunction(() => document.getElementById("btn-redraw").disabled);
+  await page.waitForSelector("#btn-reveal-cards");
+  await page.locator("#btn-reveal-cards").click();
+  await page.waitForFunction(() => document.getElementById("btn-redraw")?.disabled);
   assert(await page.$eval("#timer-display", el => el.textContent) === "00:10", "redraw restores ten seconds after another delayed heartbeat");
   await page.click(".card-choice");
   await sleep(500);
@@ -109,6 +113,8 @@ function assert(cond, msg) {
   console.log("ok: auto reconnected after server restart");
   await page.waitForSelector("#setup-modal:not(.hidden)", { timeout: 5000 });
   await page.evaluate(() => document.getElementById("btn-start").click());
+  await page.waitForSelector("#btn-reveal-cards");
+  await page.locator("#btn-reveal-cards").click();
   await page.waitForSelector(".card-choice");
   await page.click(".card-choice");
   await sleep(500);
@@ -124,6 +130,8 @@ function assert(cond, msg) {
   await local.waitForSelector("#setup-modal:not(.hidden)");
   const onlineBefore = JSON.stringify(state2);
   await local.click("#btn-start");
+  await local.waitForSelector("#btn-reveal-cards");
+  await local.locator("#btn-reveal-cards").click();
   await local.waitForSelector(".card-choice");
   await local.click(".card-choice");
   await local.waitForFunction(() => document.body.dataset.phase === "psychic");

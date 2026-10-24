@@ -83,6 +83,8 @@ function assert(cond, msg) {
 
   await page.$eval("#select-first", (el) => { el.value = "A"; });
   await page.click("#btn-start");
+  await page.waitForSelector("#btn-reveal-cards");
+  await page.click("#btn-reveal-cards");
   await page.waitForSelector(".card-choice");
   assert(await page.$$eval(".card-choice", (els) => els.length) === 2, "static host offers two candidates by default");
   await page.click(".card-choice");

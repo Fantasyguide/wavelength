@@ -14,19 +14,27 @@ for (const ruleSet of ['original', 'balanced']) for (const cardMode of ['single'
   const fields = ['teams', 'active', 'catchup', 'sudden', 'sdPts', 'sdTurns', 'result', 'log', 'redrawUsed'];
   const checkpoint = () => JSON.parse(JSON.stringify(Object.fromEntries(fields.map(k => [k, g[k]]))));
   const play = points => {
+    if (g.phase === 'readyCards') apply(g, 'revealCards');
     if (g.phase === 'chooseCard') apply(g, 'selectCard', { index: 0 });
     g.target.center = 500;
-    apply(g, 'donePsychic'); apply(g, 'setDial', { value: points ? 500 : 1000 });
-    apply(g, 'lock', { timerSeconds: 0 }); apply(g, 'guess', { guess: 'R' }); apply(g, 'reveal');
+    apply(g, 'donePsychic');
+    apply(g, 'setDial', { value: points ? 500 : 1000 });
+    apply(g, 'lock', { timerSeconds: 0 });
+    apply(g, 'startGuess');
+    apply(g, 'guess', { guess: 'R' });
+    apply(g, 'reveal');
   };
   for (let turn = 0; turn < 14 && g.phase !== 'over'; turn++) {
     const before = checkpoint(), round = g.round;
-    if (cardMode === 'choice' && !g.redrawUsed[g.active]) apply(g, 'redrawCards');
+    if (cardMode === 'choice' && !g.redrawUsed[g.active]) {
+      apply(g, 'revealCards');
+      apply(g, 'redrawCards');
+    }
     play(0); const previous = g.card;
     apply(g, 'voidRound');
     assert.deepEqual(checkpoint(), before, 'void restores all scoring, overtime, redraw and history state');
     assert.equal(g.round, round);
-    assert.equal(g.phase, cardMode === 'choice' ? 'chooseCard' : 'psychic');
+    assert.equal(g.phase, cardMode === 'choice' ? 'readyCards' : 'psychic');
     assert(!JSON.stringify(g).includes('checkpoint'), 'private rollback state is never serialized');
     if (cardMode === 'single') assert.notDeepEqual(g.card, previous, 'a sufficient deck avoids the voided topic');
     if (g.sudden) {
@@ -39,10 +47,15 @@ for (const ruleSet of ['original', 'balanced']) for (const cardMode of ['single'
 }
 
 {
-  const g = WL.createGame(); apply(g, 'setup', { ruleSet: 'original', cardMode: 'single', winScore: 1 });
+  const g = WL.createGame();
+  apply(g, 'setup', { ruleSet: 'original', cardMode: 'single', winScore: 1 });
   const initial = JSON.parse(JSON.stringify(g.teams));
-  g.target.center = 500; apply(g, 'donePsychic'); apply(g, 'lock', { timerSeconds: 0 });
-  apply(g, 'guess', { guess: 'L' }); apply(g, 'reveal'); assert.equal(g.phase, 'over');
+  g.target.center = 500;
+  apply(g, 'donePsychic');
+  apply(g, 'lock', { timerSeconds: 0 });
+  apply(g, 'startGuess');
+  apply(g, 'guess', { guess: 'L' });
+  apply(g, 'reveal'); assert.equal(g.phase, 'over');
   apply(g, 'voidRound'); assert.equal(g.phase, 'psychic'); assert.equal(g.result, null);
   assert.deepEqual(g.teams, initial); assert.deepEqual(g.log, []);
 }
@@ -53,6 +66,7 @@ function game(ruleSet = "balanced", first = "A", winScore) {
   return g;
 }
 function turn(g, points, defense = 0) {
+  if (g.phase === "readyCards") apply(g, "revealCards");
   if (g.phase === "chooseCard") apply(g, "selectCard", { index: 0 });
   assert.equal(g.phase, "psychic");
   if (g.ruleSet === "balanced") assert.equal(g.target.dist, "recommended");
@@ -60,6 +74,7 @@ function turn(g, points, defense = 0) {
   apply(g, "donePsychic");
   apply(g, "setDial", { value: 500 + ({ 4: 0, 3: 30, 2: 90, 0: 150 }[points]) });
   apply(g, "lock", { timerSeconds: 0 });
+  apply(g, "startGuess");
   apply(g, "guess", { guess: defense ? "L" : "R" });
   apply(g, "reveal");
   assert.equal(g.reveal.pts, points);
@@ -254,11 +269,13 @@ for (const first of ["A", "B"]) {
 
 for (const [offset, points] of [[19, 4], [20, 3], [67, 3], [68, 2], [120, 2], [121, 0]]) {
   const g = game();
+  apply(g, "revealCards");
   apply(g, "selectCard", { index: 0 });
   g.target.center = 500;
   apply(g, "donePsychic");
   apply(g, "setDial", { value: 500 + offset });
   apply(g, "lock", { timerSeconds: 0 });
+  apply(g, "startGuess");
   apply(g, "guess", { guess: "R" });
   apply(g, "reveal");
   assert.equal(g.reveal.pts, points, "width-48 scoring boundary at " + offset);
@@ -292,11 +309,13 @@ for (const match of replay.matches) {
       assert.equal(g.round, r.round);
       assert.equal(g.active, r.team);
       assert.deepEqual(g.cardChoices, r.candidates);
+      replayApply(g, "revealCards");
       replayApply(g, "selectCard", { index: r.selection.index });
       assert.deepEqual(g.target, r.targetRaw);
       replayApply(g, "donePsychic");
       replayApply(g, "setDial", { value: WL.fromSignedPercent(r.dial.dial) });
       replayApply(g, "lock", { timerSeconds: 0 });
+      replayApply(g, "startGuess");
       replayApply(g, "guess", { guess: r.opponentSide });
       replayApply(g, "reveal");
       assert.deepEqual([g.reveal.pts, g.reveal.oppPts], [r.pts, r.oppPts]);

@@ -125,8 +125,9 @@ const puppeteer = require("puppeteer-core");
     assert.equal(await controller.$eval("#btn-thccb-retry", el => el.textContent), "重试联动");
     rejectClose = false;
     await controller.click("#btn-thccb-retry");
-    await controller.waitForFunction(() => document.body.dataset.phase === "guess" && !document.getElementById("btn-thccb-retry").disabled);
+    await controller.waitForFunction(() => document.body.dataset.phase === "readyGuess" && !document.getElementById("btn-thccb-retry").disabled);
     assert.equal(state.dial, 750);
+    await controller.click("#btn-start-guess");
     assert.match(await controller.$eval("#thccb-status", el => el.textContent), /已封盘/);
     await controller.click("#admin-close");
     assert(await controller.evaluate(() => document.getElementById("thccb-status").getBoundingClientRect().top >= document.getElementById("controls").getBoundingClientRect().bottom), "bridge status sits below game controls");
@@ -157,7 +158,7 @@ const puppeteer = require("puppeteer-core");
     assert.equal(await monitor.$$("#audience-panel").then(els => els.length), 0, "no legacy QQ leaderboard remains");
 
     async function checkView(view, phase) {
-      if (view === "qr" && ["setup", "chooseCard", "psychic"].includes(phase)) view = "paused";
+      if (view === "qr" && ["setup", "readyCards", "chooseCard", "psychic"].includes(phase)) view = "paused";
       await monitor.waitForFunction((view, phase) => document.body.dataset.phase === phase &&
         document.getElementById("audience-results").dataset.view === view, {}, view, phase);
       assert(await monitor.$eval(view === "qr" ? "#audience-qr" : view === "paused" ? "#audience-paused" : "#audience-results-board", el => el.checkVisibility()), `${view} is actually visible during ${phase}`);
@@ -337,6 +338,8 @@ const puppeteer = require("puppeteer-core");
     await intent("newGame");
     await checkView("qr", "setup");
     await intent("setup", { cardMode: "choice", ruleSet: "original", winScore: 0 });
+    await checkView("qr", "readyCards");
+    await intent("revealCards");
     await checkView("qr", "chooseCard");
     for (const mode of ["empty", "error", "ranked"]) {
       resultMode = mode;
@@ -356,6 +359,8 @@ const puppeteer = require("puppeteer-core");
       await intent("donePsychic");
       await checkView("qr", "dial");
       await intent("lock");
+      await checkView("qr", "readyGuess");
+      await intent("startGuess");
       await checkView("qr", "guess");
       await intent("guess", { guess: "R" });
       await checkView("qr", "reveal");
@@ -383,6 +388,8 @@ const puppeteer = require("puppeteer-core");
         assert.equal(await monitor.$$("#audience-results-rows li").then(els => els.length), 0);
         assert(await monitor.$eval("#audience-axis", el => el.hidden && !el.children.length), "empty and failed results leave no stale axis markers");
         await intent("nextRound");
+        await checkView("qr", "readyCards");
+        await intent("revealCards");
         await checkView("qr", "chooseCard");
       }
     }

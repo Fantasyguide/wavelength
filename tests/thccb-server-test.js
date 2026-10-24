@@ -65,10 +65,12 @@ async function monitorSnapshot() {
   const frozen = state.dial;
   assert.equal((await intent('setDial', { value: 123 })).status, 400); assert.equal(state.dial, frozen);
   delete fake.reject.close;
-  await intent('retryThccb'); assert.equal(state.phase, 'guess');
+  await intent('retryThccb'); assert.equal(state.phase, 'readyGuess');
+  assert.equal(state.timerEnd, null);
+  await intent('startGuess');
   assert(state.timerEnd > Date.now() + 6500);
   const penalty = state.dial; await intent('penaltyLock'); assert.equal(state.dial, penalty);
-  await intent('guess', { guess: 'L' }); await intent('reveal');
+  await intent('startGuess'); await intent('guess', { guess: 'L' }); await intent('reveal');
   await waitFor(() => state.thccb.results, 'leaderboard fetched');
   const monitor = await monitorSnapshot(); assert.equal(monitor.thccb.results.top_five[0].username, '<winner>');
   assert.equal(monitor.thccb.jobs, undefined); assert.equal(monitor.control, undefined);
@@ -85,7 +87,7 @@ async function monitorSnapshot() {
     if (!state.thccb.enabled) await admin('setThccbEnabled', { value: true });
     await intent('setup', { cardMode: 'single' });
     if (action !== 'start') await intent('donePsychic');
-    if (action === 'result') { await intent('lock'); await intent('guess', { guess: 'L' }); }
+    if (action === 'result') { await intent('lock'); await intent('startGuess'); await intent('guess', { guess: 'L' }); }
     const gate = fake.hold(action, action === 'result');
     const count = fake.calls.length;
     const outstanding = intent({ start: 'donePsychic', close: 'lock', result: 'reveal' }[action]);
@@ -113,7 +115,7 @@ async function monitorSnapshot() {
   const abortGate = fake.hold('abort');
   await admin('setThccbEnabled', { value: false }); await admin('setThccbEnabled', { value: true });
   let starts = fake.calls.filter(c => c.action === 'start').length;
-  await intent('lock'); await intent('guess', { guess: 'L' }); await intent('reveal'); await intent('nextRound');
+  await intent('lock'); await intent('startGuess'); await intent('guess', { guess: 'L' }); await intent('reveal'); await intent('nextRound');
   await intent('donePsychic'); assert.equal(state.phase, 'dial'); assert.equal(state.thccb.status, 'unlinked');
   assert.equal(fake.calls.filter(c => c.action === 'start').length, starts);
   abortGate.release(); await clean();
@@ -125,12 +127,13 @@ async function monitorSnapshot() {
   await intent('startDialTimer', { timerSeconds: 60, guessTimerSeconds: 7 }); await intent('donePsychic');
   fake.reject.close = 503; state.timerEnd = Date.now() - 1501;
   await waitFor(() => state.thccb.timer_blocked, 'automatic closure waits for retry');
-  await admin('setThccbEnabled', { value: false }); assert.equal(state.phase, 'guess'); assert(state.timerEnd > Date.now() + 6500);
+  await admin('setThccbEnabled', { value: false }); assert.equal(state.phase, 'readyGuess'); assert.equal(state.timerEnd, null);
+  await intent('startGuess'); assert(state.timerEnd > Date.now() + 6500);
   delete fake.reject.close;
   await intent('newGame'); await clean(); await admin('setThccbEnabled', { value: true });
   await intent('setup', { cardMode: 'single' }); await intent('startDialTimer', { timerSeconds: 60 });
   starts = fake.calls.filter(c => c.action === 'start').length; state.timerEnd = Date.now() - 1501;
-  await waitFor(() => state.phase === 'guess', 'psychic timeout works without an instantaneous betting round');
+  await waitFor(() => state.phase === 'readyGuess', 'psychic timeout works without an instantaneous betting round');
   assert.equal(fake.calls.filter(c => c.action === 'start').length, starts);
   await intent('newGame');
 

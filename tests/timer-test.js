@@ -13,6 +13,15 @@ function choiceGame(cards = [["甲", "乙"], ["丙", "丁"], ["戊", "己"]]) {
   const g = WL.createGame();
   send(g, "loadDeck", { cards });
   send(g, "setup");
+  assert.equal(g.phase, "readyCards");
+  assert.equal(g.timerEnd, null, "cards wait without starting a countdown");
+  const before = JSON.stringify(g);
+  send(g, "selectCard", { index: 0 });
+  send(g, "redrawCards");
+  assert.equal(JSON.stringify(g), before, "unrevealed cards cannot be selected or redrawn");
+  now += 60000;
+  assert.equal(WL.advanceTimers(g), false, "waiting to reveal never expires");
+  send(g, "revealCards");
   return g;
 }
 
@@ -36,6 +45,10 @@ try {
   const choice = choiceGame();
   assert.equal(choice.timerKind, "chooseCard");
   assert.equal(choice.timerEnd, now + 10000, "selection starts with ten seconds");
+  now += 1000;
+  const choiceEnd = choice.timerEnd;
+  send(choice, "revealCards");
+  assert.equal(choice.timerEnd, choiceEnd, "repeated reveal cannot restart selection");
   now = choice.timerEnd + grace - 1;
   assert.equal(WL.advanceTimers(choice), false, "selection waits throughout the grace period");
   const picked = choice.cardChoices[1];
@@ -51,7 +64,11 @@ try {
   const redraw = choiceGame();
   now = redraw.timerEnd + 1000;
   send(redraw, "redrawCards");
-  assert.equal(redraw.timerEnd, now + 10000, "redrawing in grace restarts ten seconds");
+  assert.equal(redraw.phase, "readyCards");
+  assert.equal(redraw.timerEnd, null, "redrawing waits for the next reveal");
+  now += 60000;
+  send(redraw, "revealCards");
+  assert.equal(redraw.timerEnd, now + 10000, "revealing replacement cards starts ten seconds");
   const redrawDeadline = redraw.timerEnd;
   now += 1000;
   send(redraw, "redrawCards");
@@ -100,11 +117,20 @@ try {
     assert.equal(WL.advanceTimers(g), false, "psychic/dial remains active until grace ends");
     now = deadline + grace;
     send(g, "lock", { timerSeconds: 3600 });
-    assert.equal(g.phase, "guess", `${phase} expires even when a late lock arrives`);
+    assert.equal(g.phase, "readyGuess", `${phase} expires even when a late lock arrives`);
     assert.equal(g.dial, 900, "timeout randomizes a dial still at the displayed zero");
-    assert.equal(g.timerEnd, deadline + grace + 7000, "guess countdown starts after dial grace ends");
+    assert.equal(g.timerEnd, null, "automatic lock waits for explicit guessing start");
     send(g, "setDial", { value: 100 });
     assert.equal(g.dial, 900, "late drag cannot move the locked dial");
+    send(g, "guess", { guess: "L" });
+    assert.equal(g.guess, null, "cannot choose a side before starting the stage");
+    now += 60000;
+    assert.equal(WL.advanceTimers(g), false, "waiting for guessing does not expire");
+    send(g, "startGuess");
+    assert.equal(g.timerEnd, now + 7000, "explicit start gets the full configured duration");
+    const guessEnd = g.timerEnd;
+    send(g, "startGuess", { timerSeconds: 3600 });
+    assert.equal(g.timerEnd, guessEnd, "duplicate start cannot extend the countdown");
     now = g.timerEnd + grace - 1;
     assert.equal(WL.advanceTimers(g), false, "guess remains active until grace ends");
     now = g.timerEnd + grace;
@@ -130,9 +156,9 @@ try {
     Math.random = () => { throw new Error("nonzero dial must not be randomized"); };
     now = deadline + grace;
     send(g, "setDial", { value: 500 });
-    assert.equal(g.phase, "guess");
+    assert.equal(g.phase, "readyGuess");
     assert.equal(g.dial, position, "timeout locks the last position received within grace, including both endpoints");
-    assert.equal(g.timerEnd, deadline + grace + 7000, "preserving the dial still starts the configured guess clock");
+    assert.equal(g.timerEnd, null, "preserving the dial still waits for the guessing button");
     assert.equal(WL.advanceTimers(g), false, "automatic lock is not repeated");
   }
 
@@ -149,9 +175,13 @@ try {
   now = resumed.timerEnd + 20000;
   Math.random = () => 0.5;
   WL.advanceTimers(resumed);
-  assert.equal(resumed.phase, "reveal", "suspended local page catches up through both expired stages");
+  assert.equal(resumed.phase, "readyGuess", "resuming stops at the untimed guessing gate");
   assert.equal(resumed.dial, 750, "resuming a suspended page retains its nonzero dial");
-  assert.equal(resumed.guess, "R", "the 50% boundary chooses right");
+  assert.equal(resumed.guess, null);
+  send(resumed, "startGuess");
+  now = resumed.timerEnd + grace;
+  WL.advanceTimers(resumed);
+  assert.equal(resumed.guess, "R", "the 50% boundary chooses right after guessing starts");
 
   // A speaking penalty replaces even a moved dial, without changing the target
   // or scoring before the opponent has guessed and the target is revealed.
@@ -164,8 +194,8 @@ try {
     nextRandom(sample);
     send(penalty, "penaltyLock", { value: 123 });
     assert.equal(penalty.dial, expected, "penalty uniformly samples the whole scale, ignoring client position");
-    assert.equal(penalty.phase, "guess");
-    assert.equal(penalty.timerEnd, now + 7000, "penalty starts a full configured guess countdown even during grace");
+    assert.equal(penalty.phase, "readyGuess");
+    assert.equal(penalty.timerEnd, null, "penalty also waits for explicit guessing start");
     assert.equal(JSON.stringify(penalty.target), target);
     assert.equal(JSON.stringify(penalty.teams), teams);
     assert.equal(penalty.log.length, 0);
@@ -175,7 +205,7 @@ try {
     send(penalty, "setDial", { value: 123 });
     assert.equal(JSON.stringify(penalty), locked, "duplicate penalty and late dragging cannot change the locked result");
   }
-  for (const phase of ["setup", "chooseCard", "psychic", "guess", "reveal", "revealed", "over"]) {
+  for (const phase of ["setup", "readyCards", "chooseCard", "psychic", "readyGuess", "guess", "reveal", "revealed", "over"]) {
     const invalid = WL.createGame();
     invalid.phase = phase;
     const before = JSON.stringify(invalid);
@@ -184,6 +214,7 @@ try {
   }
   const untimedPenalty = timedGame("dial");
   send(untimedPenalty, "penaltyLock", { timerSeconds: 0 });
+  send(untimedPenalty, "startGuess");
   assert.equal(untimedPenalty.phase, "guess");
   assert.equal(untimedPenalty.timerEnd, null, "penalty respects a disabled guess countdown");
   const latePenalty = timedGame("dial", 7);
@@ -191,11 +222,15 @@ try {
   now = latePenalty.timerEnd + grace;
   send(latePenalty, "penaltyLock", { timerSeconds: 3600 });
   assert.equal(latePenalty.dial, 800, "a penalty confirmed after expiry cannot override the automatic lock");
+  assert.equal(latePenalty.timerEnd, null);
+  send(latePenalty, "startGuess");
   assert.equal(latePenalty.timerEnd, now + 7000);
 
   const noGuessClock = timedGame("dial", 0);
   now = noGuessClock.timerEnd + 20000;
   WL.advanceTimers(noGuessClock);
+  assert.equal(noGuessClock.phase, "readyGuess");
+  send(noGuessClock, "startGuess");
   assert.equal(noGuessClock.phase, "guess");
   assert.equal(noGuessClock.timerEnd, null, "zero disables the automatic guess clock");
   const noDialClock = WL.createGame();
@@ -208,7 +243,10 @@ try {
   now = manual.timerEnd + grace - 1;
   send(manual, "setDial", { value: 123 });
   send(manual, "lock", { timerSeconds: 15 });
-  assert.equal(manual.timerEnd, now + 15000, "manual lock in grace starts a full guess countdown");
+  assert.equal(manual.timerEnd, null, "manual lock in grace pauses for the guessing button");
+  now += 60000;
+  send(manual, "startGuess");
+  assert.equal(manual.timerEnd, now + 15000, "guessing button starts a full countdown");
   now = manual.timerEnd + grace - 1;
   send(manual, "guess", { guess: "R" });
   now += 100000;
@@ -224,6 +262,7 @@ try {
     Math.random = () => (i + 0.5) / 10010;
     WL.advanceTimers(g);
     distribution[g.dial]++;
+    send(g, "startGuess");
     WL.advanceTimers(g, now + 1000 + grace);
     if (g.guess === "L") left++;
   }

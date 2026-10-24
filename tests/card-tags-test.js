@@ -43,7 +43,9 @@ try {
     const small = WL.createGame();
     send(small, "loadDeck", { cards });
     send(small, "setup");
+    send(small, "revealCards");
     send(small, "redrawCards");
+    send(small, "revealCards");
     assert(small.cardChoices.length >= 1 && small.cardChoices.length <= 2);
     if (small.cardChoices.length === 2) assert.notDeepEqual(WL.cardSides(small.cardChoices[0]), WL.cardSides(small.cardChoices[1]));
     send(small, "selectCard", { index: 0 });

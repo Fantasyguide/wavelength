@@ -62,6 +62,7 @@ function finishPerfectRound(game) {
   WL.applyIntent(game, { type: "donePsychic" });
   WL.applyIntent(game, { type: "setDial", value: game.target.center });
   WL.applyIntent(game, { type: "lock" });
+  WL.applyIntent(game, { type: "startGuess" });
   WL.applyIntent(game, { type: "guess", guess: "L" });
   WL.applyIntent(game, { type: "reveal" });
 }

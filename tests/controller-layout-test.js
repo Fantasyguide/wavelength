@@ -40,6 +40,9 @@ const fixture = require("./server-fixture");
     await page.goto(base, { waitUntil: "domcontentloaded" });
     await page.waitForSelector("#role-modal:not(.hidden)");
     await fixture.loginController(page);
+    await page.waitForSelector("#btn-reveal-cards");
+    await checkLayout("readyCards");
+    await page.click("#btn-reveal-cards");
     await page.waitForSelector(".card-choice");
     assert(await page.$eval("#btn-thccb-retry", el => !el.checkVisibility()), "healthy bridge hides the retry button");
 
@@ -88,7 +91,8 @@ const fixture = require("./server-fixture");
             if (r.height < 44) issues.push("touch button is too short");
             if (r.bottom <= innerHeight && !el.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2))) issues.push("button is obscured");
           }
-          if (parseFloat(getComputedStyle(document.querySelector(".side .con")).fontSize) < 24) issues.push("topic is too small");
+          const topic = document.querySelector(".side .con");
+          if (topic && parseFloat(getComputedStyle(topic).fontSize) < 24) issues.push("topic is too small");
           if (parseFloat(getComputedStyle(document.querySelector("#hint")).fontSize) < 17) issues.push("instruction is too small");
           return issues;
         });
@@ -118,6 +122,8 @@ const fixture = require("./server-fixture");
     await page.touchscreen.touchEnd();
     await page.waitForFunction(() => parseFloat(document.getElementById("dial").style.left) > 70);
     await page.click("#btn-lock");
+    await checkLayout("readyGuess");
+    await page.click("#btn-start-guess");
     state.timerEnd = Date.now() + 600000;
     await checkLayout("guess");
     await intent("guess", { guess: "L" });

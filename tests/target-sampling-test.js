@@ -55,7 +55,7 @@ assert.equal(target(neutralGame, [[900, 0.99]], neutral), 900, "zero strength re
 const lifecycle = WL.createGame();
 const apply = (type, extra = {}) => WL.applyIntent(lifecycle, { type, ...extra });
 apply("loadDeck", { cards: [["左", "右"]] }); apply("setOrdered", { value: true });
-randomValues([], () => { apply("setup"); apply("redrawCards"); });
+randomValues([], () => { apply("setup"); apply("revealCards"); apply("redrawCards"); apply("revealCards"); });
 randomValues([0.9, 0, 0.99], () => apply("selectCard", { index: 0 }));
 assert.equal(lifecycle.target.center, 900, "choosing and redrawing cards do not consume target history");
 randomValues([], () => apply("selectCard", { index: 0 }));

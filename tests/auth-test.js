@@ -183,7 +183,8 @@ async function stopServer() {
   await move({ type: "setup", cardMode: "single" }, "psychic");
   assert(controllerStream.snapshots.at(-1).target !== null, "authenticated controller receives the secret target");
   await move({ type: "donePsychic" }, "dial");
-  await move({ type: "lock" }, "guess");
+  await move({ type: "lock" }, "readyGuess");
+  await move({ type: "startGuess" }, "guess");
   await move({ type: "guess", guess: "L" }, "reveal");
   await move({ type: "reveal" }, "revealed");
   assert(publicStream.snapshots.at(-1).target !== null && publicStream.snapshots.at(-1).log.length === 1,
@@ -201,6 +202,7 @@ async function stopServer() {
   assert(gdoc.getElementById("thccb-conn-badge").hidden, "local mode does not claim a THCCB connection");
   gdoc.getElementById("select-first").value = "A";
   click(gdoc, "btn-start");
+  click(gdoc, "btn-reveal-cards");
   await waitFor(() => gdoc.querySelectorAll(".card-choice").length === 2, "guest receives default two-card choice");
   click(gdoc, gdoc.querySelector(".card-choice"));
   await waitFor(() => gdoc.getElementById("hint").textContent.indexOf("查看目标") !== -1, "guest can play a full local round");

@@ -102,7 +102,7 @@ function bridgeSnapshot() {
   state.thccb = {
     enabled: !!bridge.enabled, round_key: bridgeRound ? bridgeRound.key : null,
     status: bridgeRound ? bridgeRound.status : !bridge.enabled ? "disabled" :
-      ["setup", "chooseCard", "psychic"].includes(state.phase) ? "armed" : "unlinked",
+      ["setup", "readyCards", "chooseCard", "psychic"].includes(state.phase) ? "armed" : "unlinked",
     timer_blocked: timerBlocked, waiting: !!pendingTransition, pending: !!(pendingTransition && pendingTransition.running),
     retryable: !!pendingTransition || !!bridgeManager.pending().length || !!bridgeManager.conflict,
     results: bridgeRound ? bridgeRound.results || null : null,

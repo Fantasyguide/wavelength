@@ -46,6 +46,8 @@ function assert(cond, msg) {
   assert(visibleNow, "start button scrollable into view on phone");
 
   await page.evaluate(() => document.getElementById("btn-start").click());
+  await page.waitForSelector("#btn-reveal-cards");
+  await page.click("#btn-reveal-cards");
   await page.waitForSelector(".card-choice");
   const choicesFit = await page.$$eval(".card-choice", (els) => els.length === 2 && els.every((el) => {
     const r = el.getBoundingClientRect();
@@ -67,6 +69,9 @@ function assert(cond, msg) {
   await page.evaluate(() => { Math.random = () => 0.25; });
   page.once("dialog", dialog => dialog.accept());
   await page.click("#btn-penalty-lock");
+  await page.waitForFunction(() => document.body.dataset.phase === "readyGuess");
+  assert(await page.$eval("#timer-display", el => el.classList.contains("hidden")), "penalty waits for the guessing button");
+  await page.click("#btn-start-guess");
   await page.waitForFunction(() => document.body.dataset.phase === "guess");
   assert(await page.$eval("#dial", el => el.style.left) === "25%", "accepting the native confirmation randomizes and locks the dial");
 
