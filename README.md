@@ -2,6 +2,8 @@
 
 本地 / 局域网可玩的《逆转录者（Returned）》，基于《Wavelength（心灵波长）》桌游：两队对抗，Psychic 出题，队友拨杆猜目标位置，对方猜左右。开局可选「原版」或「平衡快局」。
 
+在线游玩：[GitHub Pages · 本地热座版](https://fantasyguide.github.io/wavelength/)。多设备实时联机需自行运行下述 Node 服务器。
+
 ## 文件结构
 
 | 文件 | 作用 |
@@ -158,11 +160,15 @@ JSON 中对应写作 `{"concepts": ["纯情", "海王"], "tag": 1}`；双面卡�
 
 ## 在线托管(无后端版,任何人打开网址即玩)
 
-把仓库的**整个根目录**(或仅 `index.html` + `app.css` + `app.js` + `game.js` + `cards.yaml` + `names.json` + 完整 `assets/` 目录)当作静态站点部署到任意静态托管,访问者打开网址即可直接玩**本地热座版**——页面会自动检测到没有后端并进入本地模式。
+静态站点需要 `index.html`、`app.css`、`app.js`、`game.js`、`target-sampling-config.js`、`controller-timer.js`、`cards.yaml`、`names.json` 和完整 `assets/` 目录；保留 `decks/` 与 `design/color-lab/` 可同时提供题库文件和页面中的配色预览。访问者打开网址即可直接玩**本地热座版**——页面会自动检测到没有后端并进入本地模式。
 
-- 仓库保持私密即可;**`config.json`、`auth-sessions.json` 已被 gitignore,不会随仓库暴露**
+- 本仓库已公开；**`config.json`、`auth-sessions.json` 已被 gitignore，不属于静态部署文件**
 - 部署在第三方平台时,托管的是仓库内文件的公开副本(只有游戏代码,无任何秘密)
 - 联网模式(控制器/监视器、密码)是 `server.js` 的功能,只能在你自己运行的 Node 服务器上生效
+
+### GitHub Pages（本站）
+
+访问 https://fantasyguide.github.io/wavelength/ 即可游玩。`.github/workflows/pages.yml` 会在每次推送到 `main` 后自动发布，也可在 Actions 中手动运行。工作流仅打包上述静态资源，不包含服务器配置、会话、联动数据或服务端程序。仓库 Settings → Pages 的部署来源设为 **GitHub Actions**。
 
 ### Netlify(推荐,免费)
 
